@@ -1,0 +1,322 @@
+<!DOCTYPE
+ html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+ "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="keywords" content="starsiege, tribes, hudbot, scriptgl" />
+	<meta name="description" content="Hudbot's ScriptGL documentation" />
+	
+
+	<title>Hudbot's ScriptGL documentation</title>
+	<link rel="stylesheet" href="style.css" type="text/css" id="style" />
+
+</head>
+
+<body>
+	<div class="navbar">
+		<a href="../">Home</a> | <a href="./">Hudbot</a>
+	</div>
+
+	<h1>Hudbot's ScriptGL documentation</h1>
+	
+	<div class="boxy float_right">
+		Quick Links
+		
+		<ul>
+			<li><a href="#usage">Using ScriptGL</a></li>
+			<li><a href="#textures_and_fonts">Textures &amp; Fonts</a></li>
+			<li><a href="#functions_list">ScriptGL Function List</a></li>
+			<li><a href="#functions_def">ScriptGL Functions</a></li>
+			<li><a href="#functions_ext">ScriptGL Extensions</a></li>
+		</ul>
+	</div>
+	
+	<h2>ScriptGL</h2>
+	<p>
+		ScriptGL is a hudbot extension which allows you to use a subset of OpenGL commands from Tribes Script; It also implements a few custom OpenGL commands for textures and fonts.
+	</p>
+	
+	
+	<div><a id="usage"></a></div>
+	<h3>Using ScriptGL</h3>
+	<p>
+		Drawing with ScriptGL is only allowed inside special callback functions. Currently only the playGui GUI is supported so that is where your drawing will have to take place. ScriptGL will call <span class="bold">ScriptGL::playGui::onPreDraw( %dimensions )</span> and <span class="bold">ScriptGL::playGui::onPostDraw( %dimensions )</span> before and after the playGui is rendered, allowing you to draw under or over the default HUDs. <span class="bold">%dimensions</span> will hold the resolution of the screen in the form of "width height".</p>
+	
+	<div><pre>function ScriptGL::playGui::onPreDraw( %dimensions ) {
+	glDisable( $GL_TEXTURE_2D );
+	glColor4ub( 255, 255, 255, 128 );
+	glBegin( $GL_TRIANGLES );
+		glVertex2i( 40, 40 );
+		glVertex2i( 60, 20 );
+		glVertex2i( 80, 40 );
+	glEnd( );
+	...
+}
+
+function ScriptGL::playGui::onPostDraw( %dimensions ) {
+	...
+}</pre></div>
+
+	<p>Since the Tribes Scripting engine is fairly slow, calling these functions once a frame will bog you down quickly if you are doing anything non-trivial. To combat this, ScriptGL will only call the onDraw functions every <span class="bold">$ScriptGL::Latency</span> milliseconds (default <span class="bold">100</span>, i.e. 10 times a second). Since there obviously needs to be something displayed in the interim, the onDraw OpenGL calls are compiled in to an intermediate bytecode so your HUDs will be "carbon copied", so to speak, until the next update.</p>
+	
+	<p>A setting of <span class="bold">15</span> should be the absolute lowest interval you would need, being slightly higher than 60 times a second. If you are not displaying anything that requires constant updating, a large value such as <span class="bold">1000</span> (once every second) would be good. After a certain point the overhead of the script calls evaporates and higher latencies have no effect.</p>
+
+	<div><a id="textures_and_fonts"></a></div>
+	<h3>Textures &amp; Fonts</h3>
+	<p>
+		ScriptGL can use any TrueType font a) available to Windows or b) in the <span class="bold">"Hudbot/Fonts"</span> directory. All .ttf files in <span class="bold">"Hudbot/Fonts"</span> are temporarily loaded to Windows using AddFontResource when Hudbot is started so you may distribute non-standard fonts without requiring the user to manually install them. Fonts may <span class="bold">not</span> be zipped.
+	</p>
+	
+	<p>
+		ScriptGL textures (used by glBindTexture, glDrawTexture, and glGetTextureDimensions) are stored in <span class="bold">"Hudbot/ScriptGL"</span>. They may be in subdirectories or zipped, but path names are <span class="bold">not</span> used when loading textures. Files not in zips will take precedence over zipped files, but no guarantee is made if multiple files with the same name are present in multiple directories and/or zips.<br /><br />
+	</p>
+
+	<p>
+		Note: Fonts and textures will be garbage collected if they are not used for 30 seconds. "Using" means calling <span class="bold">glBindTexture</span>, <span class="bold">glDrawTexture</span>, or <span class="bold">glSetFont</span>. The current font and texture are not saved between onDraw calls, i.e. even if you are only using a single font you still need to use <span class="bold">glSetFont</span> each onDraw call.
+	</p>
+
+	<div><a id="functions_list"></a></div>
+	<h3>ScriptGL Function List</h3>
+	
+	<ul>
+		<li><span class="bold">glBegin</span>( mode )</li>
+		<li><span class="bold">glBindTexture</span>( texture )</li>
+		<li><span class="bold">glBlendFunc</span>( sfactor, dfactor )</li>
+		<li><span class="bold">glColor4ub</span>( r, g, b, a )</li>
+		<li><span class="bold">glDisable</span>( cap )</li>
+		<li><span class="bold">glDrawString</span>( x, y, string )</li>
+		<li><span class="bold">glDrawTexture</span>( texture, mode, x, y, [scale_x], [scale_y], [radians] )</li>
+		<li><span class="bold">glEnd</span>( )</li>
+		<li><span class="bold">glGetStringDimensions( string )</span>( )</li>
+		<li><span class="bold">glGetTextureDimensions</span>( texture )</li>
+		<li><span class="bold">glRectangle</span>( x, y, width, height )</li>
+		<li><span class="bold">glRescanTextureDirectory</span>( )</li>
+		<li><span class="bold">glSetFont</span>( font, pixel_height, [render_mode], [glow_radius] )</li>
+		<li><span class="bold">glTexCoord2f</span>( x, y )</li>
+		<li><span class="bold">glTexEnvi</span>( mode )</li>
+		<li><span class="bold">glVertex2i</span>( x, y )</li>
+	</ul>
+
+	<div><a id="functions_def"></a></div>
+	<h3>ScriptGL Functions</h3>
+	<p>
+		The following ScriptGL functions behave like their OpenGL counterparts. Documenation should be fairly easy to find for them if you need more information
+	</p>
+	<ul>
+		<li><a href="http://www.google.com/search?q=glBegin"><span class="bold">glBegin</span>( mode )</a>
+			<ul>
+				<li>$GL_POINTS</li>
+				<li>$GL_LINES</li>
+				<li>$GL_LINE_LOOP</li>
+				<li>$GL_LINE_STRIP</li>
+				<li>$GL_TRIANGLES</li>
+				<li>$GL_TRIANGLE_STRIP</li>
+				<li>$GL_TRIANGLE_FAN</li>
+				<li>$GL_QUADS</li>
+				<li>$GL_QUAD_STRIP</li>
+				<li>$GL_POLYGON</li>
+			</ul>
+		</li>
+		<li><a href="http://www.google.com/search?q=glBlendFunc"><span class="bold">glBlendFunc</span>( sfactor, dfactor )</a>
+			<ul>
+				<li>$GL_ZERO</li>
+				<li>$GL_ONE</li>
+				<li>$GL_SRC_COLOR</li>
+				<li>$GL_ONE_MINUS_SRC_COLOR</li>
+				<li>$GL_SRC_ALPHA</li>
+				<li>$GL_ONE_MINUS_SRC_ALPHA</li>
+				<li>$GL_SRC_ALPHA_SATURATE</li>
+				<li>$GL_DST_COLOR</li>
+				<li>$GL_ONE_MINUS_DST_COLOR</li>
+				<li>$GL_DST_ALPHA</li>
+				<li>$GL_ONE_MINUS_DST_ALPHA</li>
+			</ul>
+		</li>
+		<li><a href="http://www.google.com/search?q=glColor4ub"><span class="bold">glColor4ub</span>( r, g, b, a )</a></li>
+		<li><a href="http://www.google.com/search?q=glEnd"><span class="bold">glEnd</span>( )</a></li>
+		<li><a href="http://www.google.com/search?q=glTexCoord2f"><span class="bold">glTexCoord2f</span>( x, y )</a></li>
+		<li><a href="http://www.google.com/search?q=glTexEnvi"><span class="bold">glTexEnvi</span>( mode )</a>
+			<ul>
+				<li>$GL_DECAL</li>
+				<li>$GL_MODULATE</li>
+				<li>$GL_REPLACE</li>
+				<li>$GL_BLEND</li>
+			</ul>
+			
+			<p>
+			Note: The trick to drawing colored/transparent textures (even when the source texture is fully opaque) is glTexEnvi( $GL_MODULATE ) followed by glColor4ub( r, g, b, a ). Using glTexEnvi( $GL_REPLACE ) will draw the texture without applying any settings from glColor4ub.</p>
+		</li>
+		<li><a href="http://www.google.com/search?q=glVertex2i"><span class="bold">glVertex2i</span>( x, y )</a>
+		</li>
+
+	<li>
+		<a href="http://www.google.com/search?q=glDisable"><span class="bold">glDisable</span>( cap )</a> is the same as in OpenGL except the only supported cap is $GL_TEXTURE_2D. You will only need this if you want to draw non-texture primitives. glDrawTexture and glBindTexture will enable $GL_TEXTURE_2D for you automatically so there is no need to include support for glEnable.
+	
+	<div><pre>glDisable( $GL_TEXTURE_2D );</pre></div>
+	
+	<ul>
+		<li>$GL_TEXTURE_2D</li>
+	</ul>
+	</li>
+
+	<li><span class="bold">glBindTexture</span>( texture ) takes a texture file name, enables $GL_TEXTURE_2D, and binds the texture to OpenGL. Use this when you need to manually specify texture or vertex coordinates. Ex:
+	<div><pre>
+glTexEnvi( $GL_REPLACE );
+glBindTexture( "mypic.tga" );
+glBegin( $GL_QUADS );
+	glTexCoor2f( 0, 0 ); glVertex2i( 0, 0 );
+	glTexCoor2f( 1, 0 ); glVertex2i( 100, 0 );
+	glTexCoor2f( 1, 1 ); glVertex2i( 100, 100 );
+	glTexCoor2f( 0, 1 ); glVertex2i( 0, 100 );
+glEnd( );</pre></div>
+	</li>
+	</ul>
+
+	<div><a id="functions_ext"></a></div>
+	<h3>ScriptGL Extensions</h3>
+	<ul>
+	<li>
+	<p><span class="bold">glDrawString</span>( %x, %y, %string )</p>
+	<blockquote>
+	<p>Draws <span class="bold">%string</span> with the current font at the specified position. String formatting is limited to "\n" to move to the next line and "&lt;<span style="color:#ff0000">RR</span><span style="color:#00ff00">GG</span><span style="color:#0000ff">BB</span><span style="color:#000000">AA</span>&gt;" for color formatting. Color formatting is not required, so you may use a <span class="bold">glColor4ub</span> call before <span class="bold">glDrawString</span> if you won't need to change colors mid-string. Ex:</p>
+	<pre>glDrawString( 100, 100, "&lt;ff000080&gt;This string is red\nWith half transparency" );
+	
+Or
+	
+glColor4ub( 255, 0, 0, 128 );
+glDrawString( 100, 100, "This string is red\nWith half transparency" );</pre>
+	<p>
+		<span class="bold">glDrawString</span> modifies the following OpenGL states that you will need to reset if you require different settings after the call to <span class="bold">glDrawString</span>:</p>
+
+	<pre>glEnable( GL_TEXTURE_2D );
+glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );</pre>
+	</blockquote>
+	</li>
+	
+	<li>
+	<p><span class="bold">glDrawTexture</span>( %texture, %mode, %x, %y, [%scale_x], [%scale_y], [%radians] )</p>
+	
+	<blockquote>
+	<p>
+		This is a shortcut function which saves you from having to manually bind the texture and specify the texture coordinates / vertex positions manually. The built in modes should cover most of the situations you will commonly encounter when drawing textures:
+	</p>
+		<ul>
+			<li><span class="bold">$GLEX_DRAW:</span> Draws the texture with the topleft corner at <span class="bold">%x</span>, <span class="bold">%y</span>.</li>
+			<li><span class="bold">$GLEX_CENTERED:</span> Draws the texture with it's center on <span class="bold">%x</span>, <span class="bold">%y</span>.</li>
+			<li><span class="bold">$GLEX_SCALED:</span> Draws the texture with the topleft corner at <span class="bold">%x</span>, <span class="bold">%y</span> and scaled by <span class="bold">%scale_x</span>, <span class="bold">%scale_y</span> (if present).</li>
+			<li><span class="bold">$GLEX_ROTATED:</span> Draws the texture with it's center at <span class="bold">%x</span>, <span class="bold">%y</span>, scaled by <span class="bold">%scale_x</span>, <span class="bold">%scale_y</span> (if present), and rotated <span class="bold">%radians</span> radians (if present).</li>
+		</ul>
+		
+		<p>Ex:</p>
+
+		<pre>glDrawTexture( "mypic.tga", $GLEX_DRAW, 100, 100 );
+// Centered at 100, 100
+glDrawTexture( "mypic.tga", $GLEX_CENTERED, 100, 100 );
+// Scaled 1.5x
+glDrawTexture( "mypic.tga", $GLEX_SCALED, 100, 100, 1.5, 1.5 );
+// Centered at 100, 100, Scaled 2x, Rotated 1.57 rads
+glDrawTexture( "mypic.tga", $GLEX_ROTATED, 100, 100, 2, 2, 1.57 );</pre>
+
+	<p>
+		<span class="bold">glDrawTexture</span> modifies the following OpenGL states that you will need to reset if you require different settings after the call to <span class="bold">glDrawTexture</span>:</p>
+
+	<pre>glEnable( GL_TEXTURE_2D );</pre>
+	
+	<p><span class="bold">%mode</span> Constants:</p>
+		<ul>
+			<li>$GLEX_DRAW</li>
+			<li>$GLEX_CENTERED</li>
+			<li>$GLEX_ROTATED</li>
+			<li>$GLEX_SCALED</li>
+		</ul>
+	</blockquote>
+	</li>
+
+	<li>
+	<p><span class="bold">glGetStringDimensions</span>( %string )</p>
+	<blockquote>
+	<p>
+	Returns the dimensions for the string using the current font in the form of "Width Height". e.g. glGetStringDimensions( "test string\n2nd line" ) returns "182 36".
+	</p>
+	</blockquote>
+	</li>
+
+	
+	<li>
+	<p><span class="bold">glGetTextureDimensions</span>( %texture )</p>
+	<blockquote>
+	<p>
+	Returns the dimensions for the texture in the form of "Width Height". If the texture is not found, "0 0" is returned. e.g. glGetTextureDimensions( "mypic.tga" ) returns "256 128".
+	</p>
+	</blockquote>
+	</li>
+
+	<li>
+	<p><span class="bold">glRectangle</span>( %x, %y, %width, %height )</p>
+	<blockquote>
+	<p>
+	Draws a rectangle at <span class="bold">%x</span>, <span class="bold">%y</span> which is <span class="bold">%width</span> pixels long and <span class="bold">%height</span> pixels tall.
+	</p>
+	</blockquote>
+	</li>
+
+	<li>
+	<p><span class="bold">glRescanTextureDirectory</span>( )</p>
+	<blockquote>
+	<p>Forces ScriptGL to free all of it's textures and rescan <span class="bold">"Hudbot/ScriptGL"</span> for new textures. Use this if you alter a texture and would like it to be reloaded.
+	</p>
+	<p>
+	Note: You cannot replace edit or replace .zip files while Tribes is running so you can only replace non-zipped files.</p>
+	</blockquote>
+	</li>
+	
+	
+	<li>
+	<p><span class="bold">glSetFont</span>( %font, %pixel_height, [%render_mode], [%glow_radius] )</p>
+	<blockquote>
+	<p>
+	Sets the active font to <span class="bold">%font</span> with a height of <span class="bold">%pixel_height</span>. <span class="bold">%font</span> is the typeface name of the TrueType font you would like to use (as found in the font browers for programs such as Photoshop and Paint Shop Pro). <span class="bold">%render_mode</span> may be either <span class="bold">$GLEX_PIXEL</span> for raw rendering or <span class="bold">$GLEX_SMOOTH</span> for anti-aliased rendering (default is <span class="bold">$GLEX_SMOOTH</span>). If Windows cannot find the specified font, the default system font will be used.
+	</p>
+	<p>
+		<span class="bold">%glow_radius</span> adds a "bloom" effect to the font characters. 0 is no glow effect, 2 is the smallest radius you can choose and 16 is the largest. Processing time increases enormously as the glow radius increases ( height * width * ( glow_radius + 1 ) * 2 pixels are processed for each character ).
+	</p>
+	<p>
+	Note: Font characters are rendered on demand so nothing is created until you call <span class="bold">glDrawString</span>. In addition, when a font has been unused for 30 seconds (i.e. glSetFont has not been called for the font), it will be garbage collected, allowing you to freely create fonts without fear of them piling up in memory. You may create and use as many fonts as you like, memory permitting.
+
+	Ex:
+	</p>
+	<pre>
+// Times New Roman, 48px, Anti-Aliased, 7 pixel glow
+glSetFont( "Times New Roman", 48, $GLEX_SMOOTH, 7 );
+// Only the letters 'T', 'e', 's', and 't' will be rendered and uploaded to video card memory
+glDrawString( 100, 100, "Test" );
+// The letter '2' will be rendered and uploaded to video card memory, the others are cached
+glDrawString( 100, 200, "Test2" );
+// Verdana, 10px, No Anti-Aliasing, no pixel glow
+glSetFont( "verdana", 10, $GLEX_PIXEL );
+// 'T', 'e', 's', 't', and '2' will now be rendered for Verdana
+glDrawString( 300, 400, "Test2" );
+// If we do not glSetFont either font for 30 seconds, they will be 
+// garbage collected
+
+	</pre>
+	<p><span class="bold">%render_mode</span> Constants:</p>
+		<ul>
+			<li>$GLEX_PIXEL</li>
+			<li>$GLEX_SMOOTH</li>
+		</ul>
+
+	</blockquote>
+
+
+	</li>
+
+	</ul>
+	
+
+
+</body>
+</html>

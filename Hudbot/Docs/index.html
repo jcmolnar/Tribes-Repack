@@ -1,0 +1,115 @@
+<!DOCTYPE
+ html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+ "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="keywords" content="starsiege, tribes, hudbot" />
+	<meta name="description" content="Hudbot" />
+	
+
+	<title>Hudbot</title>
+	<link rel="stylesheet" href="style.css" type="text/css" id="style" />
+
+</head>
+
+<body>
+	<div class="navbar">
+		<a href="../">Home</a>
+	</div>
+
+	<h1>Hudbot</h1>
+	
+	<div class="boxy float_right">
+		Quick Links
+		
+		<ul>
+			<li><a href="scriptgl.html">ScriptGL Docs</a></li>
+			<li><a href="replacements.html">Adding Replacements</a></li>
+			<li><a href="prefs.html">Variables &amp; Callbacks</a></li>
+			<li><a href="#fixes">Fixes</a></li>
+			<li><a href="#download">Download</a></li>
+			<li><a href="skins.html">Additional skins</a></li>
+			<li><a href="#screenshots">Screenshots</a></li>
+		</ul>
+	</div>
+	
+	<h2>Hudbot 0.5 - Now with less suck! (<a href="faq.html">SIMPLE FAQ</a>)</h2>
+	<p>
+		Hudbot is an add-on that allows Tribes to use true color skins and HUDs. It has now been integrated with <a href="../project.tribes./mem/">mem.dll</a> so you <span class="bold">no longer need to run a seperate program</span> for Hudbot support. The code has also been completely overhauled so it no longer resembles the work of a retarded monkey. The old code-base has been burned, packed in to a box, and shot off in to the sun.
+	</p>
+	
+	<div><a id="alert"></a></div>
+	<h3>Alert! <img src="new.gif" alt="new!" /></h3>
+	<p>
+		The one major shake-up between the new Hudbot and old Hudbot is that <a href="http://en.wikipedia.org/wiki/PNG">PNGs</a> are <span class="bold">no longer supported</span>. <a href="http://en.wikipedia.org/wiki/Truevision_TGA">TGAs</a> are now the supported graphics format, being much simpler to support and <span class="bold">much faster</span> to read. When zipped, TGAs are not much larger than their zipped PNG counterparts so the size impact is minimal.
+	</p>
+	
+	<p>
+		Additionally, <a href="../project.tribes/t1_happyjump_patch">HappyJump</a> is now built in to mem.dll! You will need to set <span class="bold">$pref::HappyJump = true;</span> to enable it, otherwise IDACTION_TURNLEFT will function like usual.
+	</p>
+
+	<p>
+	If you have Photoshop CS2 (or newer, I'm guessing) and transparency isn't working with TGAs, you can use the <a href="Targa.8BI.zip">Photoshop 7.0 TGA plugin</a> instead, which handles TGAs properly.
+	</p>
+	
+	
+	<div><a id="features"></a></div>
+	<h3>Features</h3>
+		<ul>
+			<li><a href="http://nofix.annihilation.info/">NoFiX's Vista Compatability Fix</a> (<img src="new.gif" alt="new!" /> in 0.5.18!)</li>
+			<li>All of the features from <a href="../project.tribes./mem/">mem.dll</a> (Winamp, 3rd person IFFs, Sky Rotation, onVehicleEnter/Exit..)</li>
+			<li>Load custom TGAs (8/24/32 bit) into tribes to use as HUDs, skins, skies</li>
+						
+			<li>Support for Tribes 2 model skins (download pack for models &amp; skins is on the <a href="skins.html">additional skins</a> page)</li>
+			<li>Reverts to default Tribes huds in windowed/software mode </li>
+			<li>A slew of <a href="prefs.html">$pref &amp; standalone variables</a></li>
+			<li>Built in Timestamp() and Sound()</li>			
+			<li><a href="scriptgl.html">ScriptGL</a> add-on allowing you to draw with OpenGL in Tribes script!</li>
+			<li>Custom terrain is now possible!</li>
+			<li>You can add your own <a href="replacements.html">texture replacements!</a></li>
+			<li><a href="prefs.html#localsound">onLocalSound() callback</a></li>
+			
+			<li><a href="#fixes">Minor Fixes</a></li>
+		</ul>
+
+	<h3>ScriptGL Half Life 2 HUDs</h3>
+	<p>
+		If you would like to try the <a href="scriptgl.html">ScriptGL</a> example HUDs, add <a href="#scriptgl_huds">exec("scriptgl2.cs");</a> to your autoexec.cs or exec the file while in Tribes. scriptgl2.cs contains an implementation of "variable sized HUDs", or vhuds, i.e. the HUDs resize themselves to your resolution; they will look the same in 640x480 or 1600x1200, just like their Half Life 2 counterparts.
+	</p>
+	
+	<p>
+		vhud.halflife2.cs also positions and resizes your RadarHUD on the fly so it retains a proportional size and zoom based on your resolution. This is done in <span class="bold">fullscreen::onrender</span> if you wish to remove or adjust it
+	</p>
+	
+	<div><a id="fixes"></a></div>
+	<h3>Fixes</h3>
+	<ul>
+		<li>Integrated <a href="http://plasmatic.annihilation.info/nofix/">DoSFiX from NoFiX</a> (only useful for servers though).</li>
+		<li>Removes the ugly green lines from HUD borders</li>
+		<li>RadarHUD now properly clips the waypoint indicator to the edge of the hud when $pref::radarStencil is false.</li>
+		<li>Built in CRC Crack</li>
+		<li>Hudbot replaces Tribes memory allocator with the VS7 allocator. Tribes crashes when allocating blocks larger than 8mb and/or under high function/variable/object load.
+		</li>
+		<li>Control::SetPosition now works for the default HUDs (jetpackHud, compassHud, etc)</li>
+		<li>Suns and planets are now rendered with GL_LINEAR instead of GL_NEAREST so they don't look pixelated any more.</li>
+		<li>Mouse Wheel Up now properly triggers zaxis1!<pre>bindCommand(mouse0, zaxis0, TO, "nextWeapon();");
+bindCommand(mouse0, zaxis1, TO, "prevWeapon();");</pre></li>
+	</ul>
+
+	<div><a id="download"></a></div>
+	<h3>Download &amp; Install</h3>
+	<p>
+		Unzip the Hudbot .zip to your <span class="bold">"Tribes/"</span> directory. This will put the Hudbot content in to <span class="bold">"Tribes/Hudbot"</span> and mem.dll in <span class="bold">"Tribes/"</span>. mem.dll will be <span class="bold">automatically loaded</span> by Tribes; there is nothing else you need to do and no programs to run!
+	</p>
+	
+	<div><a id="helpers"></a></div>
+	<h3>Helpers</h3>
+	<ul>
+		<li>GreyHound</li>
+		<li>Whoever made the RadarHUD letter textures I stole</li>
+	</ul>
+
+</body>
+</html>

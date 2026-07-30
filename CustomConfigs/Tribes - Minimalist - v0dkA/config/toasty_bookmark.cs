@@ -1,0 +1,17 @@
+$ToastyBM1 = "HillKingLT | perc 30 | January 25, 2024 at 10:06 PM | 77M";
+$ToastyBM2 = "HillKingLT | perc 30 | January 25, 2024 at 10:06 PM | 77M";
+$ToastyBM1 = "StonehengeLT | xpealidocious | January 26, 2024 at 10:54 AM | 53M";
+$ToastyBM2 = "StonehengeLT | bugs_ | January 26, 2024 at 10:54 AM | 70M";
+$ToastyBM1 = "LotusLT | FiST | January 29, 2024 at 19:05 PM | 57M";
+$ToastyBM2 = "LotusLT | FiST | January 29, 2024 at 19:05 PM | 60M";
+$ToastyBM1 = "ArenaMadnessLT | xpealidocious | February 15, 2024 at 10:30 AM | 68M";
+$ToastyBM1 = "CoronaHillsLT | kustom | February 16, 2024 at 11:00 PM | 120M";
+$ToastyBM1 = "CanyonCrusadeDeluxeLT | bugs_ | February 23, 2024 at 10:21 PM | 51M";
+$ToastyBM2 = "CanyonCrusadeDeluxeLT | deadm4n | February 23, 2024 at 10:21 PM | 124M";
+$ToastyBM1 = "HillKingLT | Mr.Brownstone | February 26, 2024 at 21:30 PM | 130M";
+$ToastyBM1 = "DangerousCrossingLT | zaphod | February 26, 2024 at 21:57 PM | 62M";
+$ToastyBM2 = "StonehengeLT | ParadoX | February 26, 2024 at 10:25 AM | 51M";
+$ToastyBM1 = "HillKingLT | Kryptailian | February 26, 2024 at 11:21 PM | 57M";
+$ToastyBM1 = "HillSideLT | zaphod | February 27, 2024 at 20:13 PM | 53M";
+$ToastyBM1 = "StonehengeLT | Wooden Jesus | March 05, 2024 at 08:26 AM | 66M";
+$ToastyBM1 = "LotusLT | Ollyollyoxenfree | March 05, 2024 at 21:15 PM | 51M";

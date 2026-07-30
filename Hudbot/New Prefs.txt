@@ -1,0 +1,125 @@
+HudBot 0.5 - New Prefs & Variables
+
+Quick Overview
+------------------------------------------------------------
+
+Information Variables
+---------------------
+$Speed, your speed in meters/second
+$Waypoint::Distance, the distance to your current waypoint
+$Energy, your energy as a percentage (0-100)
+$Health, your health as a percentage (0-100)
+$Ammo, the ammo count of your current weapon
+$Waypoint::Distance, the distance to your current waypoint
+$clientMessageType, Set to the current message type when onClientMessage is 
+                    called. 0/1 = Server Red / White, 2 = Global, 3 = Teamchat,
+                    4 = Command Status
+
+Prefs
+-----
+$pref::ScreenSize, Default = 20.0
+$pref::ShowMatchedTextures, Default FALSE
+$pref::showWeapon, Default TRUE
+$pref::happyJump, Default FALSE
+$pref::SkyRotationSpeed, Default 0.0
+
+$pref::RadarWidth, Default 160
+$pref::RadarZoom, Default 4.0
+$pref::RadarStencil, Default TRUE
+$pref::RadarAlpha, Default 1.0
+
+$pref::ForceTrilinear, Default TRUE
+
+Settings
+--------
+$MouseEnable, Default FALSE
+$ScriptGL::Latency, Default 100
+
+
+Callbacks
+---------
+onLocalSound( %cl, %sfx )
+ScriptGUI::playGui::onPreDraw / ScriptGUI::playGui::onPostDraw
+
+
+Variable / Description                                  
+------------------------------------------------------------
+$pref::hudbotTerrain, Default = true, Range TRUE/FALSE
+	Enables or disables the hudbot terrain mip-map generation. Disabling this 
+	will cause custom hudbot terrains to stop working, but will allow for custom 
+	non-hudbot terrains to work again. Your command map will still be black with 
+	custom non-hudbot terrains, and isn't that useful when you aren't cheating!
+
+$pref::ScreenSize, Default = 30.0, Range 1.0 -> 150.0
+	Controls terrain detail level, lower is better. A low ScreenSize will 
+	minimize terrain warping at the cost of higher cpu usage
+
+$pref::ShowMatchedTextures, Default FALSE, Range TRUE/FALSE
+	Setting this to true will cause HudBot to color every texture it can 
+	replace white (regardless of whether a custom user texture is present)
+
+	Terrain textures will be colored by Mip level
+
+	After changing this variable, you will need to force Tribes to reload it's 
+	graphics to OpenGL. This may be done by hitting Escape twice (going to the 
+	options screen/back)
+
+$pref::ShowWeapon, Default TRUE, Range TRUE/FALSE
+	Setting this to false will turn off rendering your weapon in first/third 
+	person mode. Useful for getting a little extra screen space.
+
+$pref::RadarWidth, Default 160, Range 0 -> inf
+	Controls how wide (in pixels) the RadarHUD is.
+
+$pref::RadarZoom, Default 4.0, Range 0.0 -> inf
+	Controls how zoomed OUT the RadarHUD is. The higher the numbers, the further 
+	zoomed OUT the radar is.
+
+$pref::RadarStencil, Default TRUE, Range TRUE/FALSE
+	Set this to false to force the RadarHUD to render as a square 
+	(no circle stencil)
+
+$pref::RadarAlpha, Default 1.0f, Range 0.0 -> 1.0
+	Adjusts the RadarHUD alpha.
+
+$pref::SkyRotationSpeed, Default 0.0f, Range inf
+	The speed at which the sky rotates. Will probably 
+	make you ill if you use it.
+
+
+$pref::ForceTrilinear, Default TRUE, Range TRUE/FALSE
+	Forces Tribes to use Trilinear filtering on all MipMapped textures. 
+	The ceiling in the entryway on the Stonehenge base is a good place to 
+	notice the Bilinear filtering artifacts that Trilinear fixes.
+
+	After changing this variable, hit ESC twice (aka go to the options screen 
+	and back) to force Tribes to reload textures
+
+$pref::happyJump, Default FALSE, range TRUE/FALSE
+	Enables HappyJump, the built in ski script, to be bound to "Turn Left". 
+	When true, you can bind your jump key to "Turn Left" and use it instead of 
+	a ski script. 
+
+
+$MouseEnable, Default FALSE, Range TRUE/FALSE
+	Setting $MouseEnable to TRUE will enable Hudbot's mouse callbacks. 
+	These provide the position of the mouse cursor and the state of the 
+	mouse buttons when the GUI mouse is activated.
+
+	Callbacks activated:
+	    * function onMouseActive( %is_active )
+	    * function onMouseMove( %x, %y )
+	    * function onMouseRMB( %is_down )
+	    * function onMouseLMB( %is_down )
+
+Callbacks
+-------------------------------------------------------------------------------
+
+onLocalSound( %cl, %sfx )
+	onLocalSound is similar to onClientMessage, except for local sounds. 
+	%cl is the client id and %sfx is the name of the .wav that will be played. 
+	If you return anything other than "True" or a non-zero value, the 
+	sound will be muted.
+
+ScriptGUI::playGui::onPreDraw / ScriptGUI::playGui::onPostDraw
+	See the ScriptGL Documentation. 

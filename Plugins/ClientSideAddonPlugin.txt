@@ -1,0 +1,41 @@
+Notes
+=============
+Using this to expand functionality to the clients.
+
+If you are just recieving the dll file (not part of a distribution package) please add the following to the pluginloader.cs file
+
+$PluginLoader::ClientSideAddonPlugin = true;
+
+Functions
+=============
+remoteCSA::CheckFeatures();
+	When called, this will send a list of features to the server (specifically remoteCSA::ClientFeatures(%client, %feature))
+remoteClient::setOverlayColor(%client, [r 0 - 1], [g], [b], [alpha 0 - 0.76]);
+	e.g. Server-side use remoteeval(%client, "client::setOverlayColor, 0, 1, 0, 1); //Sets green at the max it can (internally it gets forced to 0.76)
+	e.g. Water effect remoteeval(%client, "client::setOverlayColor", 0, 0, 1, 0.5);
+	This remains between server! (But not restarts thankfully)
+		remoteClient::setOverlayColor(2048, 0, 0, 0, 0); //Add this on main lobby mode and you should be okay...or just restart
+
+remoteClient::JoinMessages(%client, true);
+	e.g. Hides the join messages
+
+Variables
+=============
+$Pref::disableColorOverlay = false; //Enable or disable color overlays.  False by default
+
+
+Server Code
+=============
+function remoteCSA::ClientFeatures(%client, %feature)
+{
+	$CSA::Features[%feature] = true;
+}
+
+//Add this part somewhere when client loads
+remoteeval(%client, "CSA::CheckFeatures");
+
+
+OpenGL Information
+==================
+Windowed mode - This is hacked in.  FullScreen OpenGL should maintain it's original code, but hacked in a few calls to allow for Windowed screen
+	This is experimental.  There may be a few crashes that need to be fixed (but it's better than Software mode I think)

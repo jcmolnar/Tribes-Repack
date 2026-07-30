@@ -1,0 +1,16 @@
+$Collecting = "true";
+$Collector::Drops                BE = "4";
+$Collector::DropsPlayTester = "4";
+$Collector::Duration = "123.287003";
+$Collector::Grabs                BE = "1";
+$Collector::GrabsPlayTester = "1";
+$Collector::Manager = "PlayTester";
+$Collector::Pickups                BE = "4";
+$Collector::PickupsPlayTester = "4";
+$Collector::PlayerTeamPlayTester = "0";
+$Collector::Score                BE = "30";
+$Collector::ScorePlayTester = "30";
+$Collector::Start = "0.404";
+$Collector::Stop = "123.691002";
+$Collector::TeamScore0 = "0";
+$Collector::TeamScore1 = "0";

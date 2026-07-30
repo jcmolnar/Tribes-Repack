@@ -1,0 +1,96 @@
+<!DOCTYPE
+ html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+ "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="keywords" content="starsiege, tribes, hudbot" />
+	<meta name="description" content="Hudbot" />
+	
+
+	<title>Hudbot Texture Replacements</title>
+	<link rel="stylesheet" href="style.css" type="text/css" id="style" />
+
+</head>
+
+<body>
+	<div class="navbar">
+		<a href="./">Home</a>
+	</div>
+
+	<h1>Hudbot Texture Replacements</h1>
+	
+	<h2>Texture Replacements</h2>
+	
+	<h3>Note</h3>
+	<p>
+		The texture CRC is actually a hash now, but since it's been called the CRC for this long, I'll keep using that term.
+	</p>
+	
+	<h3>Hudbot::addReplacement</h3>
+	<p>
+		You can now add your own texture replacements to Hudbot! The command to do this is 
+	</p>
+	
+	<div><pre>Hudbot::addReplacement( "&lt;CRC&gt;", "&lt;FILE.TGA&gt;" )</pre></div>
+	<p>
+		You can call Hudbot::addReplacement at any time, although duplicate CRCs will be ignored. If you accidently add the wrong name with a CRC you will need to restart Tribes.
+	</p>
+	
+	<p>
+	The CRC MUST be an 8 character hex number, e.g. "01abef83" or "d1ccface"
+	</p>
+	
+	<h3>Adding your own</h3>
+	<p>
+		The process for generating the CRCs to add is simple:
+	</p>
+	<ul>
+		<li><p>Download <a href="t1_crc_textures.zip">t1_crc_textures</a> and extract the .exe to the directory you will be working from</p></li>
+		
+		<li><p>Place your Tribes pbmps in the working directory (or in a subdirectory named based on the textures, recommended to keep things tidy)</p></li>
+		<li>
+			<p>Run <span class="bold">"t1_crc_textures [subdirectory] [Y] &gt; out.txt"</span>. This should create a file with the necessary Hudbot commands to add the texture CRCs and names.</p>
+			<p>If you specify a subdirectory, a comment will be added to each Hudbot call with the name of the subdirectory so you know where the texture is from. If you don't specify a directory the textures will be processed from the current directory.</p>
+			<p>If you add Y as the third parameter, t1_crc_textures will also CRC the 16x16 mipmap of the bitmap (if it exists). This is used for terrain tiles for faster processing in Tribes.</p>
+		</li>
+		
+		<li><p>
+			Add the Hudbot commands to your autoexec.cs or a file that will be executed when Tribes starts and you should be set!</p>
+		</li>
+	</ul>
+	
+	
+	<h3>Example</h3>
+	<p>This example is generating CRCs from the weapon skins for UltraRaptor's T2 models.</p>
+	
+	<pre>E:\Textures>dir UltraRaptor
+ Volume in drive E is Jane
+ Volume Serial Number is 205E-01D2
+
+ Directory of E:\Textures\UltraRaptor
+
+12/16/2004  11:09p      &lt;DIR&gt;          .
+12/16/2004  11:09p      &lt;DIR&gt;          ..
+01/02/2003  01:23p              33,006 chaingun.DTS
+01/03/2003  11:18p              33,358 disc.DTS
+01/01/2003  02:13p              45,368 shotgun.DTS
+12/27/2002  01:53p               4,164 t2discb.bmp
+12/31/2002  09:29a               5,174 t2discl.bmp
+01/02/2003  12:31p              65,604 weapon_chaingun.bmp
+01/02/2003  06:37p              65,604 weapon_disc.bmp
+01/01/2003  02:15p              65,604 weapon_elf.bmp
+               8 File(s)        317,882 bytes
+               2 Dir(s)   5,028,433,920 bytes free
+
+E:\Textures>t1_crc_textures UltraRaptor
+Hudbot::addReplacement( "f69a2f81", "T2DISCB.TGA" ); // UltraRaptor
+Hudbot::addReplacement( "94177c4e", "T2DISCL.TGA" ); // UltraRaptor
+Hudbot::addReplacement( "9e142df5", "WEAPON_CHAINGUN.TGA" ); // UltraRaptor
+Hudbot::addReplacement( "765a90e0", "WEAPON_DISC.TGA" ); // UltraRaptor
+Hudbot::addReplacement( "d8cca022", "WEAPON_ELF.TGA" ); // UltraRaptor
+
+E:\Textures>t1_crc_textures UltraRaptor > UltraRaptor.acs.cs</pre>
+</body>
+</html>

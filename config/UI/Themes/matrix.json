@@ -1,0 +1,100 @@
+{
+  "format": 1,
+  "kind": "skin",
+  "name": "Matrix Digital Rain",
+  "author": "Native Tribes",
+  "notes": [
+    "Phosphor terminal theme with live code rain inside the widgets themselves.",
+    "",
+    "The rain is a second pass inside the SDF widget shader, so it is clipped to",
+    "each widget's own distance field -- it follows the chamfers, notches and skew",
+    "of whatever shape row is selected instead of being a rectangle pasted on top.",
+    "",
+    "'effect' turns it on for a style row. WHERE it actually draws is the player's",
+    "choice, not the theme's: Options -> Interface has Rain on buttons / panels /",
+    "list rows, plus a speed multiplier. All default on.",
+    "",
+    "animSpeed is the theme's own fall rate and leadBrightness is how much brighter",
+    "the leading glyph is than its trail; the player's speed setting multiplies the",
+    "former and hover multiplies it again."
+  ],
+  "select": {
+    "style": "energised"
+  },
+  "palette": {
+    "base": "#040A04",
+    "baseBottom": "#010401",
+    "primary": "#0D380D",
+    "primaryBottom": "#051805",
+    "edge": "#00FF41",
+    "disabled": "#091209",
+    "disabledEdge": "#005515",
+    "edgeShadow": "#001A06",
+    "text": "#C7FFD5",
+    "textDim": "#65826D"
+  },
+  "styles": {
+    "chamfer": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "bevel": 0
+    },
+    "plate": {
+      "cham": 2,
+      "corners": 15,
+      "ring": 1.5,
+      "bevel": 0
+    },
+    "bracket": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "ringMode": 1,
+      "seg": 12,
+      "bevel": 0
+    },
+    "keyed": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "notch": 4,
+      "under": 1,
+      "bevel": 0
+    },
+    "blade": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "skew": 12,
+      "bevel": 0
+    },
+    "energised": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "bar": 3,
+      "scan": 0.095,
+      "bevel": 0,
+      "effect": "matrix_rain",
+      "animSpeed": 1.5,
+      "leadBrightness": 1.8
+    },
+    "segmented": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "ringMode": 2,
+      "seg": 6,
+      "bevel": 0
+    },
+    "rail": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.5,
+      "rail": 0.5,
+      "notch": 2,
+      "bevel": 0
+    }
+  }
+}

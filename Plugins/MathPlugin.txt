@@ -1,0 +1,87 @@
+Functions
+=============
+Parameters in [] are optional
+
+getIntRandom( [%range] )
+%range = 1-999,999(999,999 because of tribes)
+return value between 0 and %range-1, if %range is not specified 0 and max_rand (google it)
+
+getRandom()
+returns random number between 0 <= x < 1
+
+SeedRandom( %seed, [any value to display info])
+%seed of 0 initializes it using the system clock, otherwise seed using the %seed (int)
+
+getIntRandomMT( [lowerRange], [higherRange] )
+lowerRange = -99,999 - 999,998(999,998 because of tribes)
+higherRange = -99,998 - 999,999 (Must be larger than lowerRange)
+Must set both lowerRange and upperRange to use, or neither of them
+return value between lowerRange and higherRange, if %range is not specified 0 and max_rand (google it)
+
+getRandomMT()
+returns random number between 0 <= x < 1
+
+SeedRandomMT( %seed, [any value to display info])
+%seed of 0 initializes it random_device which is a slower method of random, but uses many different factors to obtain a truly random seed, otherwise seed using the %seed (int)
+
+getSHA256( string )
+returns "H [num1] ... [num8] H"
+
+cos,sin,tan	- Trig functions
+acos,asin	- Inverse functions
+atan ( %val1 ) or atan( %val1, %val2 )
+I would recommend using %val2, as it will allow %val2 to be zero.
+If %val2 is not supplied it assumes %val1 has the ratio (opposite/adjacent)
+
+deg2rag(%rad), rad2deg(%degree)
+
+Math::Log( %num, [%base] )
+%base assumed to be "e"
+
+ceil( %num )
+like floor but ceils the number instead
+
+round( %num, [%precision] ) / round2(...) in case you can't find where function round was defined in scripts
+%precision = how many decimal places to go
+
+Vector::rotate ( %vector, %rotation )
+returns the %vector with the %rotation applied  (Good for keeping an object at a certain
+point relative to another object)
+
+Rotation::rotate ( %original, %rotation)
+returns the %orignal rot as if rotated by %rotation (handy for #addrot)
+
+Gamebase::setRelative(%parent, %child, %relpos, %relrot)
+To use this, think of the parent being at pos 0 0 0 at rot 0 0 0, place the %child where
+you want it to be (including rotation).  This point and rotation is your %relpos and %relrot
+if the parent gets rotated or position moved everything will be moved with it
+
+Gamebase::getEyeTransform(%client)
+returns the same as Gamebase::getMuzzleTransform when not holding a weapon
+
+Number::Beautify(%num, [%fixDrifting], [limitingDecimal], [%sep])
+123456 turns to 123,456
+%fixDrifting is optional defaulted to 0 (false).  This will detect how many repeats there are at the end and correct the number (Negative fixes only if a decimal point exists)
+(I suggest 3 for this)...this must be 2 or higher or it will not work
+%limitingDecimal limits the output for decimal points (setting to negative value will disable this)
+%sep a 1 character seperator
+//Sorry no rounding for limitingDecimal
+examples
+	Number::Beautify("1234") == "1,234"
+	Number::Beautify("1.2345678") == "1.2345678"
+	Number::Beautify("1.999999", 3) == "2"
+	Number::Beautify("199999", -3) == "199999"
+	Number::Beautify("199999", 3) == "200000"
+	Number::Beautify("1.666666", 3) == "1.66667" //Notice you lose one decimal here
+	Number::Beautify("1.666666", 3, 2) == "1.66" //The 3 converts it to 1.66667, but the 2 clips it
+	Number::Beautify("1.666666", 0, 2) == "1.66"
+	Number::Beautify("1.666666", 0, 100) == "1.666666"
+	Number::Beautify("10000.666666", 0, -1, " ") == "10 000.666666" //Replaced the , with a " "
+
+Math::isInteger( %str )
+Checks whether a number is an integer (negative or positive, no decimals)
+
+Variables
+==============
+$pi
+$e

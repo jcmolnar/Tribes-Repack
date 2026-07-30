@@ -1,0 +1,76 @@
+Notes
+=============
+This is meant to be used for the Recording (so you can create scripted videos)
+As this isn't meant for playing in a server, the functions haven't been tested for stability.
+The plugin itself isn't unstable, just the function calls haven't been tested
+
+Functions
+=============
+DemoCamSpecial::createObject()
+	- Creates the camera object, $dcs_obj is set by this
+
+DC::GetPosition ()
+	- x z y - Limited this to just democam's created with the createObject
+
+DC::SetPosition(x, z, y)
+	- Yes, they are seperate parameters
+
+DC::GetFullRotation()
+	- x z y
+	- Tribes apparently stores the camera position without clipping it to -PI to PI...this will show you numbers above that
+
+DC::GetRotation()
+	- x z y
+	- Clips to -2PI and 2PI...
+
+DC::SetRotation(x, z, y)
+	- Yes, they are seperate parameters
+
+DC::moveToPosition("x z y", %time, [Optional: callback])
+	- Moves the camera to the position in %time seconds
+	- Put a callback function for when the movement is complete (so you can string together multiple movements)
+	- e.g. DC::moveToPosition("0 0 0", 10, "myPosDone");
+
+DC::turnToRotation("x z y", %time, [Optional: callback])
+	- Same as move, but with rotation
+	- Fun fact, z is roll...so you can do a barrel roll
+
+DC::moveCubicWaypoints(%tribesVariableArray, [Optional: callbackFunction]);
+	Using CubicHermiteSpline
+	e.g. $waypointB[0] = "0 0 0 5"; //After 5 seconds go from point 0 0 0, then 10 0 0 in 3 seconds, 0 0 10 in 2 seconds, 0 10 0 in 1 second (11 seconds total camera time)
+	e.g. $waypointB[0] = "10 0 0 8";"
+	e.g. $waypointB[0] = "0 0 10 10";"
+	e.g. $waypointB[0] = "0 10 0 11";"
+	DC::moveCubicWaypoints('waypointB');
+
+DC::turnCubicWaypoints(%tribesVariableArray, [Optional: callbackFunction]);
+	Using CubicHermiteSpline
+	e.g. $waypointB[0] = "0 0 0 5"; //After 5 seconds go from point 0 0 0, then 10 0 0 in 3 seconds, 0 0 10 in 2 seconds, 0 10 0 in 1 second (11 seconds total camera time)
+	e.g. $waypointB[0] = "10 0 0 8";"
+	e.g. $waypointB[0] = "0 0 10 10";"
+	e.g. $waypointB[0] = "0 10 0 11";"
+	DC::turnCubicWaypoints('waypointB');
+
+
+DC::navigateCubicWaypoints(%tribesPosVariableArray, %tribesRotVariableArray, [Optional: callbackFunction]);
+	- Does both both rotation and position at once (synchronized)
+	Using CubicHermiteSpline
+	e.g. $waypointB[0] = "0 0 0 5"; //After 5 seconds go from point 0 0 0, then 10 0 0 in 3 seconds, 0 0 10 in 2 seconds, 0 10 0 in 1 second (11 seconds total camera time)
+	e.g. $waypointB[0] = "10 0 0 8";"
+	e.g. $waypointB[0] = "0 0 10 10";"
+	e.g. $waypointB[0] = "0 10 0 11";"
+	e.g. $waypointBr[0] = "0 0 0 5";
+	e.g. $waypointBr[0] = "10 0 0 8";"
+	e.g. $waypointBr[0] = "0 0 10 10";"
+	e.g. $waypointBr[0] = "0 10 0 11";"
+	DC::navigateCubicWaypoints('waypointB', 'waypointBr');
+
+
+Variables
+=============
+$dcs_x = 0; //Distance moved in x direction in 1 realworld second
+$dcs_z = 0;
+$dcs_y = 0;
+$dcs_pitch = 0; //Rotation for pitch in 1 realworld second
+$dcs_yaw = 0;
+$dcs_roll = 0;

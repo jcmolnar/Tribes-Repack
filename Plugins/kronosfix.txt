@@ -1,0 +1,50 @@
+kronosfix.dll  —  CLIENT-side plugin (player)
+=============================================
+
+Notes
+=============
+Hardens the Kronos/Tribes CLIENT against crashes and hangs caused by malformed or
+edge-case network data from the server. These are real wire-decode crash vectors
+found by reverse-engineering the client and cross-checked against the WebAssembly
+port (which hit and fixed the same bugs). A standard unmodified client still
+joins; this just stops it from crashing on the bad packets.
+
+Install (if not part of a distribution package)
+=============
+Drop kronosfix.dll in this Plugins\ folder and add to
+Plugins\Scripts\PluginLoader.cs (under the client block):
+
+    $PluginLoader::kronosfix = true;
+
+On load it logs to kronosfix.log (one "install OK ..." line per hook).
+
+What it fixes (all 7 crash/hang vectors)
+=============
+- deleteNotify / clearNotify (FUN @0x4fe894 / 0x4fe8b4): NULL-safe entry guard so
+  a notify on an already-freed object can't deref a null pointer.
+- RemoteCreate (0x55256f): when the engine fails to create a ghost object from the
+  wire, mark it handled and return cleanly instead of dereferencing NULL.
+- Lightning x2 (0x4694a9 / 0x4697fe): NULL guards on the lightning-bolt render/
+  update paths (a bolt referencing a missing object used to crash).
+- PlayerPSC control-object (0x40629d): if resolveGhost returns NULL for the
+  control object, bail instead of dereferencing it.
+- PlayerPSC move-popping hang (0x406155): clamp the wire-supplied pending-move
+  count to a sane max (256) so a bogus count can't spin the client.
+- DataBlock (0x402a61): DataBlockEvent::unpack reads a 6-bit group id from the wire
+  and asks the engine to make that datablock; an out-of-range group returns NULL and
+  the client used to deref it. Now it flags the packet invalid and bails cleanly.
+- ScoreList tab-stops x2 (0x4c1f99 / 0x4c1fdc): the score screen parses the server's
+  score-heading strings into fixed 16-slot tab-stop arrays with no column limit. A
+  heading with >16 tab columns overflowed the array (object/heap corruption). Now the
+  column count is clamped to 15, exactly matching the engine's MaxColumns guard.
+
+How it works
+=============
+DllMain installs each fix as an in-place DETOUR: VirtualProtect the target bytes
+to RWX, overwrite the prologue with an E9 JMP to a small trampoline, the
+trampoline runs a NULL/bounds guard, then re-executes the original (relocated)
+prologue and jumps back. Self-pinned (GetModuleHandleExW PIN) + a getPlugin export
+so the Kronos plugin loader keeps it resident. No engine files are modified on disk.
+
+Deep notes: re/t1vista_crashes.md, re/DLL_RE_MANUAL.md in the Tribes Browser Based
+project. The same guards have been ported to TribesSource for the native rebuild.

@@ -1,0 +1,55 @@
+{
+  "format": 1,
+  "framework": 2,
+  "id": "vector",
+  "name": "Vector",
+  "authoring": "manual",
+  "reference": { "width": 1920, "height": 1080 },
+
+  "assets": {},
+
+  "prefs": {
+    "$pref::miniMapWidth": "180",
+    "$pref::miniMapZoom": "6",
+    "$pref::miniMapRotate": "False"
+  },
+
+  "stockHuds": [
+    { "name": "crosshairHud",   "class": "FearGui::Crosshair",          "visible": true  },
+    { "name": "chatDisplayHud", "class": "FearGui::FearGuiChatDisplay", "visible": true  },
+    { "name": "Minimap",        "class": "FearGui::Minimap",            "visible": true  },
+    { "name": "clockHud",       "class": "FearGui::ClockHud",           "visible": true  },
+    { "name": "healthHud",      "class": "FearGui::HealthHud",          "visible": false },
+    { "name": "jetPackHud",     "class": "FearGui::JetHud",             "visible": false },
+    { "name": "weaponHud",      "class": "FearGui::WeaponHud",          "visible": false },
+    { "name": "compassHud",     "class": "FearGui::CompassHud",         "visible": false },
+    { "name": "sensorHUD",      "class": "FearGui::SensorHud",          "visible": false }
+  ],
+
+  "parts": [
+    {
+      "id": "reticle",
+      "slot": ["healthenergy", "weapon", "items"],
+      "handle": "ModernHUD::VectorReticle",
+      "anchor": "center",
+      "offset": [0, 0],
+      "size": [420, 150],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "Vector::Reticle",
+          "body": ["Vector::Reticle(%x, %y, %partW);"] }
+      ]
+    },
+    {
+      "id": "ctf",
+      "slot": "ctf",
+      "handle": "ModernHUD::VectorCtf",
+      "anchor": "top-center",
+      "offset": [0, 14],
+      "size": [420, 44],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "Vector::Ctf",
+          "body": ["Vector::Ctf(%x, %y, %partW);"] }
+      ]
+    }
+  ]
+}

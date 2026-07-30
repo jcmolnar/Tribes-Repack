@@ -1,0 +1,71 @@
+{
+  "format": 1,
+  "_comment": [
+    "Player Setup PREVIEW models. See MODEL_AUTHORING.md in this folder.",
+    "",
+    "This file is OPTIONAL. The five stock armors are compiled into the client, so deleting",
+    "this file loses nothing -- it exists to retune their cameras and to show the schema.",
+    "An entry whose id matches a built-in REPLACES it; any other id adds a new one.",
+    "",
+    "Preview only. Nothing here changes the armor you spawn in: the server and your loadout",
+    "own that. Validate with:  python tools/player_preview_validate.py"
+  ],
+
+  "models": [
+    {
+      "id": "light-male",
+      "label": "Light Armor - Male",
+      "shape": "larmor.dts",
+      "gender": "male",
+      "skinMode": "legacySingleTexture",
+      "skinSlot": "larmor",
+      "defaultAnimation": "run",
+      "camera": { "yaw": 0.0, "pitch": -0.25, "distanceScale": 1.0, "targetZScale": 0.5 },
+      "allowRootMotion": false
+    },
+    {
+      "id": "medium-male",
+      "label": "Medium Armor - Male",
+      "shape": "marmor.dts",
+      "gender": "male",
+      "skinMode": "legacySingleTexture",
+      "skinSlot": "marmor",
+      "defaultAnimation": "run",
+      "camera": { "yaw": 0.0, "pitch": -0.25, "distanceScale": 1.0, "targetZScale": 0.5 },
+      "allowRootMotion": false
+    },
+    {
+      "id": "heavy",
+      "label": "Heavy Armor",
+      "shape": "harmor.dts",
+      "gender": "any",
+      "skinMode": "legacySingleTexture",
+      "skinSlot": "harmor",
+      "defaultAnimation": "run",
+      "camera": { "yaw": 0.0, "pitch": -0.22, "distanceScale": 1.05, "targetZScale": 0.5 },
+      "allowRootMotion": false
+    },
+    {
+      "id": "light-female",
+      "label": "Light Armor - Female",
+      "shape": "lfemale.dts",
+      "gender": "female",
+      "skinMode": "legacySingleTexture",
+      "skinSlot": "lfemale",
+      "defaultAnimation": "run",
+      "camera": { "yaw": 0.0, "pitch": -0.25, "distanceScale": 1.0, "targetZScale": 0.5 },
+      "allowRootMotion": false
+    },
+    {
+      "id": "medium-female",
+      "label": "Medium Armor - Female",
+      "shape": "mfemale.dts",
+      "gender": "female",
+      "skinMode": "legacySingleTexture",
+      "skinSlot": "mfemale",
+      "defaultAnimation": "run",
+      "camera": { "yaw": 0.0, "pitch": -0.25, "distanceScale": 1.0, "targetZScale": 0.5 },
+      "allowRootMotion": false
+    }
+  ]
+}

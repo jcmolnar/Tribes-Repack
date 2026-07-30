@@ -1,0 +1,15 @@
+$pref::hudPositionsToastyHUD::Container = "1265 375||0 0 0";
+$pref::hudPositionsRatingsHUD::Container = "125 596||0.130376 0.870849 0";
+$pref::hudPositionsCtfHUD::Container = "111 40||0.5311 0.0503145 0";
+$pref::hudPositionsHUDOverlay::Container = "40 41||0.060241 0.0783939 0";
+$pref::hudPositionsLHHud::Container = "491 421||0.505144 0.506619 0";
+$pref::hudPositionsclock::Container = "451 60||0.510181 0.07034 0";
+$pref::hudPositionsItemHUD::Container = "924 592||0.910579 0.877958 0";
+$pref::hudPositionsHitCG1_Hud = "493 423||0.501016 0.501779 0";
+$pref::hudPositionsGSpeed::Container = "481 575||0.498656 1 0";
+$pref::hudPositionsGHealth::Container = "271 575||0.280914 1 0";
+$pref::hudPositionsGEnergy::Container = "691 575||0.716398 1 0";
+$pref::hudPositionsFlagPopup::Container = "-284 515||0.474 0.728469 0";
+$pref::hudPositionsEnemy_Hud = "36 472||0.0339943 1.01288 0";
+$pref::hudPositionsaaRepKitHUD::Container = "299 717||0.327133 0.830823 0";
+$pref::hudPositionsWeaponHUD::Container = "811 390||0.736603 0.70018 0";

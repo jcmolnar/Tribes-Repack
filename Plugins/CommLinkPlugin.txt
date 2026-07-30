@@ -1,0 +1,73 @@
+Functions
+=============
+Parameters in [] are optional
+
+Comm::create(%id, %maxConnections)
+Registers this tribes process as the %id, so other servers can communicate with it.  Call this when you load the server
+%id = 0 - 999999 An unique number that is given to a server, this can be anything you desire
+%maxConnections = 1 - n The maximum amount of IPC connections that is allowed to connect to the server (The amount of servers you have)
+e.g. You have 3 servers communicating
+Primary Server:		Comm::create(1, 2); //Give 1 to the primary server, just because it is easy to remember
+Secondary Server:	Comm::create(2, 2);
+Another Server:		Comm::create(3, 2);
+
+e.g. You have a primary server that might have 10 other servers communicating with it, but each secondary server only talks with the primary server
+Primary Server:		Comm::create(1, 10); //10 secondary servers are allow connecting to this , in this example we only have 2, but it could be up to 10 in this case
+Secondary Server:	Comm::create(20, 1);
+Another Server:		Comm::create(30, 1);
+
+e.g. You have 2 primary servers, which communicate with each other and one secondary server which doesn't recieve any communication but still relays information to the primaries.
+Primary Server:		Comm::create(1, 10);
+Primary Server:		Comm::create(2, 10);
+Another Server:		Comm::create(30, 1); //Still need to have 1 here, while it does technically accept communications from 1 server, it won't check it
+
+
+Comm::write(%id, %message)
+Sends a message to %id server, note limit message to 1000 characters or less
+%id = The id of the server you want to send to
+%message = The message you want to send
+
+Returns: The length of %message, or -1 when it fails
+
+Comm::read()
+Tries reading to see if there are any messages in the buffer
+Returns:
+False when there are no messages, or %result if there is.  %result would be in the form of "%sendingId %message"
+
+
+
+
+
+Example Code:
+//(In a server with this test code use comm::test(1); and then in another server use comm::test(123);
+$commServers = "1 123 2";
+function comm::test(%id) {
+	$commId = %id;
+	echo("Creating communication link " @ %id);
+	echo(Comm::create(%id, 5)); //Testing purposes limiting to only 5 other servers (total 6)
+
+	echo("Starting read loop");
+	comm::readloop();
+
+	echo("Starting random writes");
+	comm::writeLoop();
+}
+
+function comm::ReadLoop() {
+	schedule("comm::ReadLoop();", 0.1); //Just testing, no end cases
+
+	%str = Comm::read();
+	while(%str != false) { //In theory if you flood this at a quick enough rate you could lock up the server
+		echo(%str);
+		%str = Comm::read();
+	}
+}
+
+function comm::writeLoop() {
+	schedule("comm::writeLoop();", 0.1);
+
+	$randomIncrement++;
+	for(%i = 0; (%server = getWord($commServers, %i)) != -1; %i++) { //It sends to itself as well
+		comm::write(%server, "Testing " @ $randomIncrement);
+	}
+}

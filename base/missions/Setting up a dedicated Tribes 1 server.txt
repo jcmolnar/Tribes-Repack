@@ -1,0 +1,81 @@
+Setting up a dedicated Tribes server (tuned to Football mod, can be used for others)
+
+The quick and dirty:
+
+I'm assuming you've already installed and patched T1 to the latest build (1.11)
+
+Conventions:
+The "root folder" is the location where you installed Tribes. By default this is in C:\Dynamix\Tribes but I won't assume anything. I will call this root:\ so for example, the name of the first file in that folder is root:\base
+
+The "config folder" is root:\Config\
+
+The "maps folder" is root:\Base\Missions\
+
+More on why this is important later.
+
+Steps before you launch:
+
+1) Adjust the config file.
+
+Take the config file and put it in the Config folder. Open it in there.
+
+You'll note that I've set up the server to be a Football server and run on port 28001. Hence the name of this config file. You can rename yours any way you want, but for clarity it's best to name each config file using a similar naming convention.
+
+Here are the most important things you need to edit in this file, aside from the name:
+
+$Server::HostName = "{KOI} Football";
+This is the name that shows up in the master server list. Make yours unique. 
+
+$Server::Info = "Knights of Invictus Football || Admin: Spike <tfb@spikescape.com>";
+This shows up when someone clicks the Get Server Info button in the server list window. I highly recommend putting an email address in here. I also put the full name of the tribe in here.
+
+$Server::MaxPlayers = "20";
+Self explanatory. You should be able to host two 64 player servers no problem on a single machine.
+
+$Server::Password = "";
+The "join server" password, currently only settable by changing this value and restarting the server. (See IMPORTANT NOTE below)
+
+$AdminPassword = "Changeme";
+The superadmin (SAD) password
+
+$telnetpassword = "password";
+$telnetport = "12345";
+The telnet port lets you connect to the server remotely using EZConsole or Tricon. 
+
+IMPORTANT NOTE: if you make changes to this config file after the server's been running, you must restart the server (click the close box on the console window) before they'll take effect.
+
+2) Create the startup shortcut
+
+Make a shortcut to the InfiniteSpawn.exe application (it's in root:\). 
+
+Right-click the shortcut and select Properties. 
+
+The Target field in the properties window serves the same purpose as the command line. So you can enter the entire dedicated server setup command line into this field, eg: 
+
+C:\Dynamix\Tribes\infinitespawn.exe *tribes +exec footballserverconfig -mod football -dedicated
+
+(Syntax and order of flags is very important here. You must enter things in the following order: *tribes +exec <config file name without the .cs> -mod football (if you use a mod) -dedicated) 
+
+Make sure the Start In field matches the first part (the path) from the Target field: 
+
+C:\Dynamix\Tribes\
+
+Then click OK to close the Properties dialog. 
+
+When you double click the shortcut, the console starts up with ispawn controlling it. 
+
+You can drag the shortcut into your \Windows\Start Menu\StartUp folder (in Windows 2000, right click the Start button and select Explore All Users, then navigate to Programs then StartUp in there) and the console will automatically run every time you reboot the server machine.
+
+3) Create a map rotation
+
+See the notes in the serverconfig sample file for details.
+
+4) For multiple servers running on the same machine
+
+	a) create a unique server prefs file for each one. Each must have a unique name, port, and telnet port. All other information can remain the same. Name each server prefs file with its unique name that specifies what it does and put the file in the \Tribes\Config folder. 
+
+	b) Create a unique startup shortcut for the new server(s). Again, the server config name must be unique because two servers running on the same machine need different ports. Flag the new shortcut to point at the new server prefs file. 
+
+	c) Double-click the shortcut to start the server.
+
+

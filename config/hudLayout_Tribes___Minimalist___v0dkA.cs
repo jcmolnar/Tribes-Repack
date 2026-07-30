@@ -1,0 +1,9 @@
+$pref::hudPositionsToastyHUD::Container = "1044 503||1 1.00653 0";
+$pref::hudPositionsRadarRing::Container = "8 21||0.00558659 0.0241102 0";
+$pref::hudPositionsRadarOverlay::Container = "5 17||0.00351124 0.0196987 0";
+$pref::hudPositionsGSpeed::Container = "959 733||0.987642 0.836758 0";
+$pref::hudPositionsGHealth::Container = "886 73||1.00911 0.0836197 0";
+$pref::hudPositionsGEnergy::Container = "882 94||1.00227 0.107675 0";
+$pref::hudPositionsclock::Container = "171 4||0.11018 0.00347524 0";
+$pref::hudPositionsLegendzFPSHUD::Container = "27 3||0.0166052 0.00262009 0";
+$pref::hudPositionsChatOverlay::Container = "1 2||0.428839 0.0166359 0";

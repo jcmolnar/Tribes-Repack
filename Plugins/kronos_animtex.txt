@@ -1,0 +1,87 @@
+kronos_animtex.dll  —  CLIENT-side animated interior/world textures
+===================================================================
+
+What it does
+============
+Plays a folder of image frames over an existing in-game texture (lava, water,
+screens, force fields, conveyors...). It works by mutating the SOURCE GFXBitmap
+in memory each frame and forcing the GL texture cache to re-upload it — no engine
+files changed on disk, no source rebuild. Pure runtime DLL, same proven machinery
+as kronosfix.dll / kronos_fullbodyanim.dll.
+
+CLIENT-ONLY: animated textures are a rendering decision made on each viewer's
+machine. The server cannot push this. Every player who should SEE the animation
+needs the DLL installed (deploy through your client addon channel).
+
+Install (client)
+================
+1. Drop kronos_animtex.dll in C:\Dynamix\Tribes\Plugins\ (next to kronosfix.dll).
+2. In Plugins\Scripts\PluginLoader.cs add:
+       $PluginLoader::kronos_animtex = true;
+   (or launch with +p kronos_animtex).
+3. Create C:\Dynamix\Tribes\Plugins\anim_textures.cfg  (see below).
+4. Put frames in C:\Dynamix\Tribes\Plugins\anim_textures\<name>\0001.bmp ...
+5. Restart the client.
+
+Config:  Plugins\anim_textures.cfg
+==================================
+One target per line.  Format:   name | fps
+    # lines starting with # or ; are comments
+    lava  | 12
+    water | 8
+
+For each "name", frames live in  Plugins\anim_textures\<name>\  as 8-bit indexed
+.bmp files sorted by filename: 0001.bmp, 0002.bmp, ...
+  * frame 0001.bmp MUST be exactly the ORIGINAL in-game texture (that's how the
+    DLL recognises which texture to animate — by content match).
+  * every frame must have the SAME dimensions and use the SAME palette as the
+    texture (the engine keeps its own palette; we only swap 8bpp index data).
+
+Making frames from a GIF
+========================
+Use gif2bmp.py (needs Python + Pillow:  py -m pip install pillow):
+
+  1. Export the original texture from the game .vol as an 8-bit BMP, e.g. lava_orig.bmp.
+  2. python gif2bmp.py lava.gif --palette-from lava_orig.bmp --out anim_textures\lava
+     -> writes 0001.bmp (= the original, verbatim), 0002.bmp ... all quantized to
+        the texture's palette and sized to it.
+  3. Copy the anim_textures\lava folder into C:\Dynamix\Tribes\Plugins\.
+
+(If you don't have the original texture handy you can run without --palette-from,
+but then 0001.bmp won't match the in-game pixels and you must also replace that
+texture in your addon so the game loads your frame-0 as the base.)
+
+Verify
+======
+kronos_animtex.log (written next to the exe's working dir) should show:
+    --- kronos_animtex loaded (pinned=...) ---
+    target 'lava': N frames WxH @12.0fps key=...
+    hook OK GFXBitmap::Read @0x005c7af8 -> ...
+    hook OK RenderTick @0x00546dc4 -> ...
+    BOUND 'lava' -> GFXBitmap 0x... (WxH mips=...)        <- appears when you enter a map using that texture
+    patch OK force-reupload(JZ->NOP) @0x0057abef
+If you see "patch ABORT ... binary mismatch", the client exe isn't the expected
+T1Vista build and the DLL leaves it untouched (safe) — tell the maintainer to re-pin.
+
+How it works (RE notes)
+=======================
+Target = C:\Dynamix\Tribes\Tribes.exe (Borland T1Vista build, base 0x400000, no ASLR).
+  * GFXBitmap::Read  = FUN_005c7af8  (wrapped; fingerprints each loaded bitmap and
+       binds the one matching frame 0001). Layout: +0x10 w, +0x14 h, +0x1c depth,
+       +0x28 pixels(mip0), +0x38 mip-ptr array, +0x5c mipcount.
+  * Render tick      = FUN_00546dc4  (pre-hooked; advances the clock and memcpys the
+       current frame's mip pyramid into the bound bitmap each frame).
+  * Re-upload         = NOP the cache-hit JZ at 0x0057abef in the texture uploader
+       FUN_0057ab80 (membot patch #20, proven) so the atlas re-composites the source.
+Background: re/memdll_patches.md, re/bmpload.txt, re/texcache.txt, re/mem_t1targets.txt;
+DLL_RE_MANUAL.md for the plugin/detour conventions.
+
+KNOWN LIMITATION (v1, perf): the re-upload lever is global — while an animated
+texture is loaded, ALL textures re-upload each cache pass. If you see an FPS hit,
+set  force_reupload=0  (coming in v2: per-descriptor targeting). Also: only 8-bit
+paletted textures are animated; textures composited from detail sheets are not yet
+handled. Report results and we'll tune.
+
+force_reupload toggle: add a line  force_reupload | 0  to anim_textures.cfg to keep
+the lever off (animation won't refresh until v2 targeted invalidation — useful only
+for testing the capture/hook stages without the perf cost).

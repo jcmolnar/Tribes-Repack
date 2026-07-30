@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "_comment": [
+    "Player Setup preview BACKDROPS. See BACKDROP_AUTHORING.md in this folder.",
+    "",
+    "This file is OPTIONAL. theme / transparent / gradient / grid are compiled into the client;",
+    "this file exists to retune their lighting and to add image backdrops.",
+    "",
+    "Image assets MUST live under config\\UI\\PlayerPreview\\Backdrops\\ -- the client refuses any",
+    "other path, so a manifest can never be used to read a file elsewhere on the machine.",
+    "PNG, animated GIF and BMP are supported; an animated GIF plays on its own.",
+    "Validate with:  python tools/player_preview_validate.py"
+  ],
+
+  "backdrops": [
+    { "id": "theme",       "label": "Current Interface Theme", "type": "theme",       "lighting": "theme"  },
+    { "id": "transparent", "label": "Transparent",             "type": "transparent", "lighting": "theme"  },
+    { "id": "gradient",    "label": "Gradient",                "type": "gradient",    "lighting": "studio" },
+    { "id": "grid",        "label": "Grid",                    "type": "grid",        "lighting": "rim"    }
+  ]
+}

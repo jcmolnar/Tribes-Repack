@@ -1,0 +1,56 @@
+HudBot 0.5 - Rules for Replacements
+
+!!! IMPORTANT !!!
+
+PATHS IN "REPLACEMENTS/" & ZIP FILES ARE IGNORED, YOU MAY USE ANY DIRECTORY 
+STRUCTURE YOU LIKE. 
+
+ALL TGAS ARE LOADED BEFORE ANY ZIPS ARE LOADED, AND TGAS FOUND INSIDE ZIPS
+THAT HAVE ALREADY BEEN LOADED WILL BE REJECTED
+
+!!! IMPORTANT !!!
+
+
+
+RULES FOR REPLACEMENTS
+
+A list of supported texture replacements is in 
+"Tribes/HudBot/Supported Replacements.txt". Not all of these are guaranteed to 
+work 100%, but enough should that it won't matter. Default textures that have
+a width/height that are NOT POWERS OF 2 will be a little tricky to replace.
+
+For example, h_reticle.bmp is 9x9 pixels. Tribes internally resizes this to 
+16x16 pixels and only references the topleft area of the texture, so if you
+made a custom reticle, you would have to center it in the top left.
+
+Example 3x3 Texture:
+111
+1X1
+111
+
+Tribes will resize this to 4x4 (closest power of 2, searching up):
+111.
+1X1.
+111.
+....
+
+But will NOT reference the extra area, so you will not be able to use it
+for your replacements.
+
+
+HudBot searches in "HudBot/Replacements" for replacement textures/zips.
+First every .TGA is loaded, then every .ZIP is loaded, this means you can
+override skins inside a .ZIP by putting a .TGA in the Replacements directory,
+much like you override Tribes files inside .VOLs by putting them in 
+"Tribes/base", etc..
+
+
+!!!! SUGGESTION !!!!
+
+It is suggested your store a single replacement "set" per ZIP, such as 
+Bliss.Rollercoaster.Sky.Blue.ZIP, BadBilly.Weapons.ZIP, etc, so players
+can easily see what a ZIP contains. This will save us from having a 15mb
+"skins.ZIP" that makes it impossible to easily remove/replace individual 
+elements of the pack.
+
+!!!! SUGGESTION !!!!

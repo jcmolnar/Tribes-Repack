@@ -1,0 +1,102 @@
+{
+  "format": 1,
+  "kind": "skin",
+  "name": "Winamp Classic 2.x",
+  "author": "Native Tribes",
+  "notes": [
+    "kind=skin: this replaces SHAPES as well as colours. It is not a colour preset.",
+    "Authentic Winamp 2.x, per Joe's correction to the first pass.",
+    "",
+    "The first attempt put phosphor green on EVERY widget edge, which is the one thing Winamp",
+    "never does. Real 2.x is three separate materials:",
+    "  1. chassis  -- dark brushed metallic slate (#2A2D34 -> #1B1D22)",
+    "  2. buttons  -- raised metal caps with a LIGHT top/left and DARK bottom/right bevel",
+    "                 (#787C88 highlight against #101014 shadow). Not outlines. Not green.",
+    "  3. the LCD  -- the ONLY green thing: time readout, marquee, spectrum analyser, as",
+    "                 phosphor #00FF00 inside a black cutout.",
+    "",
+    "'bevel: 1' is what turns a flat stroke into a raised plate: the shader lights the top/left",
+    "edges and shadows the bottom/right, using the palette's edge and edgeShadow.",
+    "",
+    "'edgeOverride' on 'energised' is what isolates the LCD -- that style keeps its phosphor",
+    "green while every other widget stays metal. A single global accent could not do this."
+  ],
+  "select": {
+    "style": "plate"
+  },
+  "palette": {
+    "base": "#2A2D34",
+    "baseBottom": "#1B1D22",
+    "primary": "#4E525D",
+    "primaryBottom": "#32353E",
+    "edge": "#787C88",
+    "edgeShadow": "#101014",
+    "disabled": "#1F2126",
+    "disabledEdge": "#3A3D46",
+    "text": "#E1E2E5",
+    "textDim": "#77787A"
+  },
+  "styles": {
+    "chamfer": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "bevel": 1
+    },
+    "plate": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "ringMode": 0,
+      "bevel": 1
+    },
+    "bracket": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "ringMode": 1,
+      "seg": 6,
+      "bevel": 1
+    },
+    "keyed": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "notch": 2,
+      "under": 1,
+      "bevel": 1
+    },
+    "blade": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "skew": 0,
+      "bevel": 1
+    },
+    "energised": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "bar": 1,
+      "scan": 0.08,
+      "bevel": 0,
+      "edgeOverride": "#00FF00"
+    },
+    "segmented": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "ringMode": 2,
+      "seg": 4,
+      "bevel": 1
+    },
+    "rail": {
+      "cham": 0,
+      "corners": 0,
+      "ring": 1.0,
+      "rail": 0.5,
+      "notch": 0,
+      "bevel": 1
+    }
+  }
+}

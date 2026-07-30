@@ -1,0 +1,114 @@
+<!DOCTYPE
+ html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+ "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	<meta name="keywords" content="starsiege, tribes, hudbot" />
+	<meta name="description" content="Hudbot" />
+	
+
+	<title>Hudbot $prefs and variables</title>
+	<link rel="stylesheet" href="style.css" type="text/css" id="style" />
+
+</head>
+
+<body>
+	<div class="navbar">
+		<a href="./">Home</a>
+	</div>
+
+	<div class="boxy float_right">
+		Quick Links
+		
+		<ul>
+			<li><a href="#info">Info Variables</a></li>
+			<li><a href="#prefs">$prefs</a></li>
+			<li><a href="#callbacks">Callbacks</a></li>
+		</ul>
+	</div>
+
+
+	<h1>Hudbot $prefs, functions, and variables</h1>
+
+	<div><a id="info"></a></div>
+	<h2>Informational Variables</h2>
+		<h3>$Speed</h3> <p>Your speed in meters/second</p>
+		<h3>$Energy</h3> <p>Your energy ( 0->100 )</p>
+		<h3>$Health</h3> <p>Your health ( 0->100 )</p>
+		<h3>$Ammo</h3> <p>The ammo count for your currently selected weapon</p>
+		<h3>$Waypoint::Distance</h3> <p>The distance to your current waypoint</p>
+		<h3>$clientMessageType</h3> <p>Set to the current message type when onClientMessage is called. 0/1 = Server Red / White, 2 = Global, 3 = Teamchat, 4 = Command Status</p>
+		
+	<div><a id="prefs"></a></div>
+	<h2>$prefs</h2>
+		<h3>$pref::hudbotTerrain, Default = true, Range TRUE/FALSE</h3>
+		<p>Enables or disables the hudbot terrain mip-map generation. Disabling this will cause custom hudbot terrains to stop working, but will allow for custom non-hudbot terrains to work again. Your command map will still be black with custom non-hudbot terrains, and isn't that useful when you aren't cheating!</p>
+	
+		<h3>$pref::ScreenSize, Default = 30.0, Range 1.0 -> 150.0</h3>
+		<p>Controls terrain detail level, lower is better. A low ScreenSize will minimize terrain warping at the cost of higher cpu usage</p>
+
+		<h3>$pref::ShowMatchedTextures, Default FALSE, Range TRUE/FALSE</h3>
+		<p>Setting this to true will cause HudBot to color every texture it can replace white (regardless of whether a custom user texture is present)</p>
+		<p>Terrain textures will be colored by Mip level</p>
+
+		<p>After changing this variable, you will need to force Tribes to reload it's graphics to OpenGL. This may be done by hitting Escape twice (going to the options screen/back)</p>
+
+		<h3>$pref::ShowWeapon, Default TRUE, Range TRUE/FALSE</h3>
+		<p>Setting this to false will turn off rendering your weapon in first/third person mode. Useful for getting a little extra screen space.</p>
+
+
+		<h3>$pref::RadarWidth, Default 160, Range 0 -> inf</h3>
+		<p>Controls how wide (in pixels) the RadarHUD is.</p>
+
+		<h3>$pref::RadarZoom, Default 4.0, Range 0.0 -> inf</h3>
+		<p>Controls how zoomed OUT the RadarHUD is. The higher the numbers,
+	    the further zoomed OUT the radar is.</p>
+
+		<h3>$pref::RadarStencil, Default TRUE, Range TRUE/FALSE</h3>
+		<p>Set this to false to force the RadarHUD to render as a square (no circle stencil)</p>
+
+		<h3>$pref::RadarAlpha, Default 1.0f, Range 0.0 -> 1.0</h3>
+		<p>Adjusts the RadarHUD alpha.</p>
+
+		<h3>$pref::SkyRotationSpeed, Default 0.0f, Range inf</h3>
+		<p>The speed at which the sky rotates. Will probably make you ill if you use it.</p>
+
+		<h3>$pref::ForceTrilinear, Default TRUE, Range TRUE/FALSE</h3>
+		<p>Forces Tribes to use Trilinear filtering on all MipMapped textures. The ceiling in the entryway on the Stonehenge base is a good place to notice the Bilinear filtering artifacts that Trilinear fixes.</p>
+
+		<p>After changing this variable, hit ESC twice (aka go to the options screen and back) to force Tribes to reload textures</p>
+		
+		<h3>$pref::happyJump, Default FALSE, range TRUE/FALSE</h3>
+		<p>
+		Enables <a href="../project.tribes/t1_happyjump_patch">HappyJump</a>, the built in ski script, to be bound to "Turn Left". When true, you can bind your jump key to "Turn Left" and use it instead of a ski script.
+		</p>
+		
+	<div><a id="callbacks"></a></div>
+	<h2>Callbacks</h2>
+		<h3>$MouseEnable, Default FALSE, Range TRUE/FALSE</h3>
+		<p>
+			Setting $MouseEnable to TRUE will enable Hudbot's mouse callbacks. These provide the position of the mouse cursor and the state of the mouse buttons when the GUI mouse is activated.
+		</p>
+		<p>
+			Callbacks activated:
+		</p>
+		<ul>
+			<li>function onMouseActive( %is_active )</li>
+			<li>function onMouseMove( %x, %y )</li>
+			<li>function onMouseRMB( %is_down )</li>
+			<li>function onMouseLMB( %is_down )</li>
+		</ul>
+		
+	<div><a id="localsound"></a></div>
+	<h3>onLocalSound( %cl, %sfx )</h3>
+		<p>onLocalSound is similar to onClientMessage, except for local sounds. %cl is the client id and %sfx is the name of the .wav that will be played. If you return anything other than "True" or a non-zero value, the sound will be muted.</p>
+		
+	<h3>ScriptGUI::playGui::onPreDraw / ScriptGUI::playGui::onPostDraw</h3>
+	<p>
+	See the <a href="scriptgl.html">ScriptGL Documentation</a>.
+	</p>
+</body>
+</html>
+

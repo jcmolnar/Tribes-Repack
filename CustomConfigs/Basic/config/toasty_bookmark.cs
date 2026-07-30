@@ -1,0 +1,10 @@
+$ToastyBM1 = "HillKingLT | perc 30 | January 25, 2024 at 10:06 PM | 77M";
+$ToastyBM2 = "HillKingLT | perc 30 | January 25, 2024 at 10:06 PM | 77M";
+$ToastyBM1 = "StonehengeLT | xpealidocious | January 26, 2024 at 10:54 AM | 53M";
+$ToastyBM2 = "StonehengeLT | bugs_ | January 26, 2024 at 10:54 AM | 70M";
+$ToastyBM1 = "LotusLT | FiST | January 29, 2024 at 19:05 PM | 57M";
+$ToastyBM2 = "LotusLT | FiST | January 29, 2024 at 19:05 PM | 60M";
+$ToastyBM1 = "ArenaMadnessLT | xpealidocious | February 15, 2024 at 10:30 AM | 68M";
+$ToastyBM1 = "CoronaHillsLT | kustom | February 16, 2024 at 11:00 PM | 120M";
+$ToastyBM1 = "RaindanceLT | Romulus or Remus | February 23, 2024 at 11:20 PM | 81M";
+$ToastyBM1 = "StonehengeLT | pheer.dll | March 04, 2024 at 21:31 PM | 53M";

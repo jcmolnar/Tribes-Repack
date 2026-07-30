@@ -1,0 +1,84 @@
+Functions
+=============
+Parameters in [] are optional
+
+String::timestamp()
+Time::Epoch()
+
+String::len(%str) (about 10 times faster)
+String::getsubstr(%str,%begin,%len) (fixed the %len limit that came with tribes) (string::newgetsubstr is now pointless)
+String::replace(%str,%old,%new) (5 - 10 times faster, 50x faster if your using the old tribe script functions)
+String::replaceAll(%str,%old,%new)
+
+String::right(%str, %amt) //Gets %amt of the rightmost characters abcde, 3 = cde
+String::left(%str, %amt) //Gets left most characters
+String::rpad(%str, %pad) //Pads %pad on the righthand side *doesn't crop it to length*
+String::lpad(%str, %pad) //Pads on left
+
+String::clipTrailing(%str, [%alpha]) (String::clipTrailing(%str, "1234567890") == clipTrailingNumbers(%str))
+	%alpha is a list of characters that will be clipped from the end
+	if %alpha does not exist (String::clipTrailing(%str) it assumes 0-9, but is optimized)
+
+
+String::CopyUntil(%str, %find) Copies until it finds %find as a value/str...does not include %find in copy (case senstive)
+
+String::getWord(%str, %seperator, %word);
+	examples used to test this
+	echo(String::getWord("show",",", 0));
+	echo(String::getWord("showthis,wohs",",", 0));
+	echo(String::getWord("dontshow,wohs",",", 1));
+	echo(String::getWord(",,,,,wer,sdfert,,,,,,wertysdgf,aedfrgtrt",",", 3));
+	echo(String::getWord("wer,sdfasf,,",",", 2));
+	echo(String::getWord("show,asdf,asdf, wer",", ", 0));
+	echo(String::getWord("show,asdf,asdf, wer",", ", 1));
+	echo(String::getWord("show,asdf,asdf, wer",", ", 2));
+	echo(String::getWord(", , , , show,asdf,asdf, wer",", ", 0));
+	echo(String::getWord(", , , , show,asdf,asdf, wer",", ", 1));
+	echo(String::getWord("show,asdf,asdf, , , , , , , , , wer, , , , , , , , , , , , , ",", ", 1));
+	echo(String::getWord("show,asdf,asdf, wer, , , , , , , , , , , , , ",", ", 2));
+
+String::LCS(%str1, %str2, [%ignoreCase]);
+
+getWordCount(%str, [%sep]) //%sep must be only 1 character long, but is optional (space is considered the default if %sep is not given)
+
+String::offset(%str, %offset); (500x faster than a Tribes implementation, this offset text by a certain amount)
+String::ReverseHexTranslation(%str); (Should revert mostly back to readable text...not recommended for server side stuff)
+
+String::Char(%str, %num); (Returns the character at the position %num [%num 0 - length-1]) returns "" if %num exceed length
+
+String::CharN(%str, %num); (Returns the number value of the character at the position %num [%num 0 - length-1]) returns -1 on error
+
+String::RemoveWords(%str, %words); (Returns %str with the %words removed, truncates multiple spaces and leaves an extra space at the end)
+	This should be roughly 100x faster than a tribes script
+
+String::Shuffle(%str); (Returns a string of the shuffled words)
+
+Word::FindWord(%str, %find, [%sep])
+	This will return the word # (eg. word::findword("zero one two", one) = 1)
+	%sep is optional, if it is not included a space will be used.  %sep must have length 1
+	*Fixed, as previous version didn't bother to account for additional characters (Reported by Phantom)
+
+Word::getSubWord(%str, %begWordIndex, %length, [%sep])
+	This will return the string starting from %begWordIndex and continue for %length (much like string::getsubstr except with words)
+	%sep is optional, if it is not included a space will be used.  %sep must have length 1
+
+File::OpenFile(%path, %append) (restricted to temp,recordings,config, base/missions)
+	If you use this you must call CloseFile or else the file will be locked up.  You can only open one file at a time.
+File::OFExportString(%string)
+	File must be open, this makes things just a bit quicker
+File::CloseFile()
+	Call this every time you open a file
+
+File::ExportString(%path, %string, %append) (restricted to temp,recordings,config, base/missions)
+File::Import(path, variableArray, [limit]) (restricted to temp,recordings,config, base/missions)
+e.g. File::Import("temp\\text.txt", "readVar"); will read text.txt file and put each line into
+	the $readVar...to get a certain line just use $readVar[3]
+[limit] is the most lines to read
+I suggest clearing the variable you choose before reading in, but $variableArray::count will equal how many lines were read in
+
+getIntRunTime();
+getRunTime();
+
+Vars
+============
+$[variableArray]::count from File::Import, the lines read in

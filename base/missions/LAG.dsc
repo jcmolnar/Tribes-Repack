@@ -1,0 +1,4 @@
+$MDESC::Type = "{Flip} 2002";
+$MDESC::Text = "<s3><f1>Mission Type: <f0> Football" @
+         "\n\n<f1>Made By:<f0> {Flip}";
+
