@@ -23,6 +23,15 @@ hunt for.
   1. Double-click  ModernTribes.exe
   2. Play.
 
+Windows SmartScreen note: the first time you run a freshly
+downloaded copy, Windows may show "Windows protected your PC /
+Unknown publisher". That is normal for an unsigned community
+build with no download history -- click "More info" and then
+"Run anyway". You can avoid it entirely by right-clicking the
+downloaded .zip BEFORE extracting, choosing Properties, and
+ticking "Unblock". Players who update through the in-game
+Update button will never see the warning.
+
 Out of the box it runs whatever modlist.txt selects. To change
 mods, see the next section.
 
