@@ -1,4 +1,4 @@
-$Server::Address = "LOOPBACK:28001";
+$Server::Address = "IP:75.157.156.225:28000";
 $Server::AllowRape = "false";
 $Server::allowRepair = "1";
 $Server::AntiRape = "true";

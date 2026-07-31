@@ -157,7 +157,7 @@
 EditActionMap("ActionMap.sae");
 
 // View Commander screen, with last used map, in default mode 0
-//bindCommand(keyboard0, make, "c", TO, "CmdHud::turnOn(Default, 0);");
+//bindCommand(keyboard0, make, "c", TO, "CmdHud::turnOn(Default, 0);");
 //The previous key bind causes a glitch if the server disabled the command screen.
 //This is the original "c" bind, placed here to force reset. --phantom
 bindCommand(keyboard0, make, "c", TO, "remoteEval(2048, ToggleCommandMode);");
@@ -296,7 +296,15 @@ function CmdHUD::GuiOpen(%gui) {
 		CmdHUD::turnOn(Default, 0);
 		$CmdHUD::CommandTurret = true;
 		}
-	
+
+	// NATIVE-PORT (beta, verified manually): full-screen command map on every
+	// command-screen open -- sizes the map frames to the live screen and re-fits
+	// the map natively (cmdMapResync; no world rebuild). $pref::cmdMapFull = 0
+	// opts back into the authored small-map layout.
+	if ($CmdHUD::guiOpen == 2 && $pref::cmdMapFull != "0") {
+		schedule("CmdHUD::FullLayout();", 0.1);
+		}
+
 	CmdHUD::DebugEcho("$CmdHUD::guiOpen = " @ $CmdHUD::guiOpen @ ", $CmdHUD::lastGuiOpen = " @ $CmdHUD::lastGuiOpen);
 	}
 
@@ -733,4 +741,63 @@ if ($PrestoPref::InvCamera) {
 	Event::Detach(eventGuiOpen, CamHud::EnterGui);
 	Event::Detach(eventGuiClose, CamHud::ExitGui);
 	Event::Detach(eventClientMessage, CamHud::onClientMessage);
+	}
+
+// ============================================================================
+// NATIVE-PORT (beta, staged v2): full-screen command map -- MANUAL TEST FUNCTION.
+//
+// v1 died inside RebuildCommandMap() (the software world re-render; [CMDMAP]
+// stopped at step 7). v2 never rebuilds and never creates objects: it resizes
+// the frame the LIVE map already sits in and calls the new native
+// cmdMapResync(), which re-fits the map control to the frame and recomputes
+// the overlay scale -- the GPU plan view then simply draws bigger.
+//
+// With the command screen open, run from the console:
+//
+//    CmdHUD::FullLayout();
+//
+// If anything misbehaves, the LAST [CMDMAP] line names the step.
+// ============================================================================
+function CmdHUD::FullLayout() {
+	%sw = String::getWord(Control::getExtent(CommandGui), 0);
+	%sh = String::getWord(Control::getExtent(CommandGui), 1);
+	echo("[CMDMAP] 1 screen ext = " @ %sw @ " x " @ %sh);
+	if (%sw == "" || %sw < 640) {
+		echo("[CMDMAP] abort: no usable screen extent");
+		return;
+		}
+
+	%pw = String::getWord(Control::getExtent(CommandPanel), 0);
+	%px = String::getWord(Control::getPosition(CommandPanel), 0);
+	%py = String::getWord(Control::getPosition(CommandPanel), 1);
+	echo("[CMDMAP] 2 panel ext.w = " @ %pw @ "  pos = " @ %px @ "," @ %py);
+	if (%pw == "") {
+		echo("[CMDMAP] abort: CommandPanel not found");
+		return;
+		}
+
+	%mapX = 0;
+	if (%px + (%pw / 2) < (%sw / 2)) {
+		Control::setPosition(CommandPanel, 0, %py);
+		%mapX = %pw;
+		echo("[CMDMAP] 3 panel pinned LEFT, map starts at x=" @ %mapX);
+		}
+	else {
+		Control::setPosition(CommandPanel, %sw - %pw, %py);
+		echo("[CMDMAP] 3 panel pinned RIGHT, map starts at x=0");
+		}
+	%mapW = %sw - %pw;
+	%mapH = %sh;
+
+	// Resize BOTH map frames to the same big rect -- whichever one the live map
+	// is in becomes the fullscreen host; the hidden one is harmless.
+	echo("[CMDMAP] 4 sizing map frames to " @ %mapX @ ",0 " @ %mapW @ " x " @ %mapH);
+	Control::setPosition(SmallMapFrame, %mapX, 0);
+	Control::setExtent(SmallMapFrame, %mapW, %mapH);
+	Control::setPosition(BigMapFrame, %mapX, 0);
+	Control::setExtent(BigMapFrame, %mapW, %mapH);
+
+	echo("[CMDMAP] 5 refitting the live map (cmdMapResync, no rebuild)...");
+	%ok = cmdMapResync();
+	echo("[CMDMAP] 6 resync returned " @ %ok);
 	}
