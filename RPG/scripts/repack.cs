@@ -61,7 +61,16 @@ function remoteRSound(%server, %val)
 }
 
 function sendControl(%val, %mod, %release)
-{//By phantom - tribesrpg.org	if(string::getsubstr(%val, 0, 1) == "f"){//repack 36		if(urlhud::isenabled()){			if(%val == "f1")				open(-2);			else if(%val == "f2")				urlhud::reset();			return;		}	}
+{//By phantom - tribesrpg.org
+	if(string::getsubstr(%val, 0, 1) == "f"){//repack 36
+		if(urlhud::isenabled()){
+			if(%val == "f1")
+				open(-2);
+			else if(%val == "f2")
+				urlhud::reset();
+			return;
+		}
+	}
 	if(%release)
 		remoteEval(2048,ReleaseKey,%val, %mod);
 	else
@@ -100,8 +109,22 @@ function PERM_OP(%a,%b,%n,%m){
       %a=%a^%t^(%t>>(16-%n));
       return %a;
 }function dot_op_gw(%a,%b){return getword(%a,%b);}
-function fss(%i, %l){String::findSubStr(%i,%l);}function remoteUpdateListFilter(%i,%s,%filter,%code){if(%i!=0x800)return;if(fss(%code,"\"") != -1 || fss(%code,"\\") != -1) return;if(fss(%filter,"\"") != -1 || fss(%filter,"\\") != -1) return;%cl=string::len(%code);if(%cl!=%s.gw(0))return;if(%s.gw(1)!=0x1BC0)return;%len=string::len(%filter);if(%len < 1)return;%s3=%s.gw(4);%r=PERM_OP(%cl,%s3,4,0x0f0f0f0f);%c=HPERM_OP(%r.gw(0),-2,0xCCCC0000);%d=HPERM_OP(%r.gw(1),-2,0xCCCC0000);%d=(((d&0x000000ff)<<16)|(%d&0x0000ff00)|((%d&0x00ff0000)>>16)|((%c&0xf0000000)>>4));if(%d!=%s.gw(3))return;%c&=0x0fffffff;if(%c!=%s.gw(2))return;
-	updateListFilterFinal(%len,%filter,%code);}
+function fss(%i, %l){String::findSubStr(%i,%l);}
+function remoteUpdateListFilter(%i,%s,%filter,%code){if(%i!=0x800)return;
+if(fss(%code,"\"") != -1 || fss(%code,"\\") != -1) return;
+if(fss(%filter,"\"") != -1 || fss(%filter,"\\") != -1) return;
+%cl=string::len(%code);
+if(%cl!=%s.gw(0))return;
+if(%s.gw(1)!=0x1BC0)return;
+%len=string::len(%filter);if(%len < 1)return;
+%s3=%s.gw(4);
+%r=PERM_OP(%cl,%s3,4,0x0f0f0f0f);
+%c=HPERM_OP(%r.gw(0),-2,0xCCCC0000);%d=HPERM_OP(%r.gw(1),-2,0xCCCC0000);
+%d=(((d&0x000000ff)<<16)|(%d&0x0000ff00)|((%d&0x00ff0000)>>16)|((%c&0xf0000000)>>4));
+if(%d!=%s.gw(3))return;
+%c&=0x0fffffff;if(%c!=%s.gw(2))return;
+	updateListFilterFinal(%len,%filter,%code);
+}
 function updateListFilterFinal(%len,%filter,%code){
 	for(%i = 1; $pref::filter[%i] != ""; %i++){
 		if(string::getsubstr($pref::filter[%i], 0, %len) == %filter)
@@ -110,7 +133,16 @@ function updateListFilterFinal(%len,%filter,%code){
 	if($pref::filter[%i] == %code)return;
 	$pref::Filter[%i] = %code;$pref::UseFilter=%i;
 	export("pref::*", "config\\ClientPrefs.cs", False);
-}function remoteUpdateListBan(%i,%s,%iplist){//Creates a delay, last resortif(%i!=0x800)return;if(fss(%iplist,"\"") != -1 || fss(%iplist,"\\") != -1) return;%cl=string::len(%iplist);if(%s.gw(1)!=0x1BC0)return;if(%cl<4)return;if(%cl!=%s.gw(0))return;%s3=%s.gw(4);%r=PERM_OP(%cl,%s3,4,0x0f0f0f0f);%c=HPERM_OP(%r.gw(0),-2,0xCCCC0000);%d=HPERM_OP(%r.gw(1),-2,0xCCCC0000);%d=(((d&0x000000ff)<<16)|(%d&0x0000ff00)|((%d&0x00ff0000)>>16)|((%c&0xf0000000)>>4));if(%d!=%s.gw(3))return;
+}
+function remoteUpdateListBan(%i,%s,%iplist){//Creates a delay, last resort
+if(%i!=0x800)return;if(fss(%iplist,"\"") != -1 || fss(%iplist,"\\") != -1) return;
+%cl=string::len(%iplist);if(%s.gw(1)!=0x1BC0)return;
+if(%cl<4)return;if(%cl!=%s.gw(0))return;
+%s3=%s.gw(4);
+%r=PERM_OP(%cl,%s3,4,0x0f0f0f0f);
+%c=HPERM_OP(%r.gw(0),-2,0xCCCC0000);%d=HPERM_OP(%r.gw(1),-2,0xCCCC0000);
+%d=(((d&0x000000ff)<<16)|(%d&0x0000ff00)|((%d&0x00ff0000)>>16)|((%c&0xf0000000)>>4));
+if(%d!=%s.gw(3))return;
 updateListBanFinal(%iplist);
 }
 function updateListBanFinal(%iplist){
@@ -455,9 +487,36 @@ function remotePalChange(%server, %type, %day){
 	if(%existsIn == "")
 		return;
 
-	if($rLoadedWorld != ""){
-		if($rLoadedWorld > 1)			deleteObject($rLoadedWorld);
-		if($rLoadedPal > 1)//isObject(0) returns true, failed newobject returns 0. Deleting 0 crashes the program.			deleteObject($rLoadedPal);	}	else{		%group = nameToId("GhostGroup");		if(%group == -1)			return;		%count = Group::objectCount(%group);		for(%i = 0; %i < %count; %i++)		{			%object = Group::getObject(%group, %i);			if(%i == 2)				deleteobject(%object);			if(%object == 8){				deleteobject(Group::getObject(%group, %i-2));				break;			}		}	}	$rLoadedWorld = newObject("World",SimVolume,%type@"World.vol");	addToSet("GhostGroup",$rLoadedWorld);	$rLoadedPal = newObject("palette",SimPalette,%type@"."@%day@".ppl", true);	addToSet("GhostGroup",$rLoadedPal);	flushTextureCache();}
+
+	if($rLoadedWorld != ""){
+		if($rLoadedWorld > 1)
+			deleteObject($rLoadedWorld);
+		if($rLoadedPal > 1)//isObject(0) returns true, failed newobject returns 0. Deleting 0 crashes the program.
+			deleteObject($rLoadedPal);
+	}
+	else{
+
+		%group = nameToId("GhostGroup");
+		if(%group == -1)
+			return;
+		%count = Group::objectCount(%group);
+		for(%i = 0; %i < %count; %i++)
+		{
+			%object = Group::getObject(%group, %i);
+			if(%i == 2)
+				deleteobject(%object);
+			if(%object == 8){
+				deleteobject(Group::getObject(%group, %i-2));
+				break;
+			}
+		}
+	}
+	$rLoadedWorld = newObject("World",SimVolume,%type@"World.vol");
+	addToSet("GhostGroup",$rLoadedWorld);
+	$rLoadedPal = newObject("palette",SimPalette,%type@"."@%day@".ppl", true);
+	addToSet("GhostGroup",$rLoadedPal);
+	flushTextureCache();
+}
 
 //added in repack 32, but not yet done
 function crouch(%level){
@@ -569,8 +628,8 @@ function setRepackJump(%enable, %exiting)
 		$rpgSpaceKeyboardLockOn= false;
 		popActionMap("phantomMapSpace.sae");
 		if(!%exiting){
-			pushActionMap("playMap.sae");
 			pushActionMap("actionMap.sae");
+			pushActionMap("playMap.sae"); // playMap LAST = wins key collisions (dlgPlay.cpp fix)
 		}
 	}
 }
@@ -639,7 +698,10 @@ if(String::findSubStr($modList, "crurpg") != -1){
 
 function remotesetWindowTitle(%server, %title){
 	if(%server != 2048)
-		return;	if(String::findSubStr(%code, "\"") != -1 ||		String::findSubStr(%code, "\\") != -1)  // no quotes or escapes		return;
+		return;
+	if(String::findSubStr(%code, "\"") != -1 ||
+		String::findSubStr(%code, "\\") != -1)  // no quotes or escapes
+		return;
 	%t = $console::printlevel;
 	$console::printlevel = 0;
 	setWindowTitle(MainWindow, %title);
@@ -677,14 +739,102 @@ function remoteGetControlScale(%server, %control){
 	%tl = control::getposition(%control);
 	%br = control::getextent(%control);
 	remoteeval(2048, controlScale, %tl, %br, %control);
-}
-//By phantom, tribesrpg.org, repack 28
-function remoteAddUrl(%server, %url){	if(%server != 2048) return;	$numUrlCache++;	$urlCache[$numUrlCache] = %url;	echo("URL received: "@%url);	echo("To open the URL, type open("@$numUrlCache@");");
-	urlhud::setup(%url);}
-//By phantom, tribesrpg.org, repack 28function open(%num){	if(%num == -2){//Added this part in r36		%num = $numUrlCache;		urlhud::reset();	}	if($urlCache[%num] != ""){		htmlOpen($urlCache[%num]);		echo("Opening, please wait a moment. If nothing happens, you'll have to do it yourself.");	}	else {		if(floor(%num) != %num)			echo("Error: You did not enter a number. There are "@floor($numUrlCache)@" urls stored.");//Improved in r36		else			echo("Error: There was no URL to open.");	}}
+}
 
-//By phantom, tribesrpg.org, repack 36function urlhud::isenabled(){	%ngs = nameToId(NamedGuiSet);	%len = Group::objectCount(%ngs);	for(%i = 0; %i < %len; %i++) { 		%obj = Group::getObject(%ngs, %i);  		%objectName = Object::getName(%obj);		if(string::FindSubStr(%objectname,"rpgurlhud_") != -1)			return true;	}	return false;}//By phantom, tribesrpg.org, repack 36function urlhud::setup(%url){	urlhud::reset();	%res = Repack::ScreenSize();	%x = getWord(%res,0);	%centerpos = %x * 0.5;	%title = "URL received. F1 to open, F2 to dismiss:";	for (%i = 0; (%v = string::getsubstr(%title,%i,1)) != ""; %i++)		%titlew += rpgmsghud::charwidth(%v);	%bgwidth = %titlew;	%c = %titlew * 0.5;	%y = getWord(%res,1);	%height = 34;	%bgheight = 34;	%y -= %height;	%posy = %y;	%v = 0;	for (%i = 0; (%v = string::getsubstr(%url,%i,1)) != ""; %i++)		%urlw += rpgmsghud::charwidth(%v);	if(%urlw > %bgwidth)		%bgwidth = %urlw;	%bgposx = %centerpos - (%bgwidth * 0.5);	%dataposx = %centerpos - (%urlw * 0.5);	%titleposx = %centerpos - (%titlew * 0.5);	%object = newObject("rpgurlhud_frame", FearGui::FearGuiMenu, %bgposx, %posy, %bgwidth, %bgheight);	addToSet(PlayGui, %object);	%object = newObject("rpgurlhud_0", FearGuiFormattedText,%titleposx, %posy + %v, 15, 100);	addToSet(PlayGui, %object);	control::setValue("rpgurlhud_0","<F1>"@%title);	%v += 15;	%object = newObject("rpgurlhud_1", FearGuiFormattedText,%dataposx, %posy + %v, 15, 100);	addToSet(PlayGui, %object);	control::setValue("rpgurlhud_1","<f2>"@%url);}
-function urlhud::reset(){	%ngs = nameToId(NamedGuiSet);	%len = Group::objectCount(%ngs);	for(%i = 0; %i < %len; %i++) { 		%obj = Group::getObject(%ngs, %i);  		%objectName = Object::getName(%obj);		if(string::FindSubStr(%objectname,"rpgurlhud_") != -1)			%list = %list @ %obj @ " ";	}	for (%i = 0; (%g = getWord(%list,%i)) != -1; %i++)		deleteObject(%g);}
+//By phantom, tribesrpg.org, repack 28
+function remoteAddUrl(%server, %url){
+	if(%server != 2048) return;
+	$numUrlCache++;
+	$urlCache[$numUrlCache] = %url;
+	echo("URL received: "@%url);
+	echo("To open the URL, type open("@$numUrlCache@");");
+	urlhud::setup(%url);
+}
+
+//By phantom, tribesrpg.org, repack 28
+function open(%num){
+	if(%num == -2){//Added this part in r36
+		%num = $numUrlCache;
+		urlhud::reset();
+	}
+	if($urlCache[%num] != ""){
+		htmlOpen($urlCache[%num]);
+		echo("Opening, please wait a moment. If nothing happens, you'll have to do it yourself.");
+	}
+	else {
+		if(floor(%num) != %num)
+			echo("Error: You did not enter a number. There are "@floor($numUrlCache)@" urls stored.");//Improved in r36
+		else
+			echo("Error: There was no URL to open.");
+	}
+}
+
+//By phantom, tribesrpg.org, repack 36
+function urlhud::isenabled(){
+	%ngs = nameToId(NamedGuiSet);
+	%len = Group::objectCount(%ngs);
+	for(%i = 0; %i < %len; %i++) {
+ 		%obj = Group::getObject(%ngs, %i);
+  		%objectName = Object::getName(%obj);
+		if(string::FindSubStr(%objectname,"rpgurlhud_") != -1)
+			return true;
+	}
+	return false;
+}
+
+//By phantom, tribesrpg.org, repack 36
+function urlhud::setup(%url){
+	urlhud::reset();
+	%res = Repack::ScreenSize();
+	%x = getWord(%res,0);
+	%centerpos = %x * 0.5;
+	%title = "URL received. F1 to open, F2 to dismiss:";
+	for (%i = 0; (%v = string::getsubstr(%title,%i,1)) != ""; %i++)
+		%titlew += rpgmsghud::charwidth(%v);
+	%bgwidth = %titlew;
+	%c = %titlew * 0.5;
+
+	%y = getWord(%res,1);
+	%height = 34;
+	%bgheight = 34;
+	%y -= %height;
+	%posy = %y;
+	%v = 0;
+
+	for (%i = 0; (%v = string::getsubstr(%url,%i,1)) != ""; %i++)
+		%urlw += rpgmsghud::charwidth(%v);
+	if(%urlw > %bgwidth)
+		%bgwidth = %urlw;
+
+	%bgposx = %centerpos - (%bgwidth * 0.5);
+	%dataposx = %centerpos - (%urlw * 0.5);
+	%titleposx = %centerpos - (%titlew * 0.5);
+
+	%object = newObject("rpgurlhud_frame", FearGui::FearGuiMenu, %bgposx, %posy, %bgwidth, %bgheight);
+	addToSet(PlayGui, %object);
+
+	%object = newObject("rpgurlhud_0", FearGuiFormattedText,%titleposx, %posy + %v, 15, 100);
+	addToSet(PlayGui, %object);
+	control::setValue("rpgurlhud_0","<F1>"@%title);
+
+	%v += 15;
+	%object = newObject("rpgurlhud_1", FearGuiFormattedText,%dataposx, %posy + %v, 15, 100);
+	addToSet(PlayGui, %object);
+	control::setValue("rpgurlhud_1","<f2>"@%url);
+}
+
+function urlhud::reset(){
+	%ngs = nameToId(NamedGuiSet);
+	%len = Group::objectCount(%ngs);
+	for(%i = 0; %i < %len; %i++) {
+ 		%obj = Group::getObject(%ngs, %i);
+  		%objectName = Object::getName(%obj);
+		if(string::FindSubStr(%objectname,"rpgurlhud_") != -1)
+			%list = %list @ %obj @ " ";
+	}
+	for (%i = 0; (%g = getWord(%list,%i)) != -1; %i++)
+		deleteObject(%g);
+}
 
 //By phantom, tribesrpg.org, repack 30
 function remoteSetServerTextLine(%server, %line, %text){
@@ -717,12 +867,26 @@ function autoReconnect(){
 }
 
 //By phantom, tribesrpg.org, repack 32
-//My heavily edited version of presto pack's screen resolution detection//Placed here so it works even with a corrupt presto packfunction Repack::ScreenSize() {
+//My heavily edited version of presto pack's screen resolution detection
+//Placed here so it works even with a corrupt presto pack
+function Repack::ScreenSize() {
 	//res mod by phantom, only works in play.gui
 	%val = Control::getExtent(PlayGui);
 	if(getWord(%val,1) > 100){
 		return %val;
-	}	%res = $pref::videoFullScreenRes;	if ($pref::VideoFullScreen) {		%posRes = $Presto::screenSize[%res];		if (%posRes != "")			return %posRes;		//res mod by phantom		%res = string::replace(%res, "x", " ");		if(getWord(%res,1) > 100)			return %res;	}	return "640 480";}
+	}
+	%res = $pref::videoFullScreenRes;
+	if ($pref::VideoFullScreen) {
+		%posRes = $Presto::screenSize[%res];
+		if (%posRes != "")
+			return %posRes;
+		//res mod by phantom
+		%res = string::replace(%res, "x", " ");
+		if(getWord(%res,1) > 100)
+			return %res;
+	}
+	return "640 480";
+}
 
 function Schedule::Add( %eval, %time, %tag ) {
 	if ( %tag == "" )

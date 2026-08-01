@@ -164,6 +164,7 @@ if($pref::OOBGridStyle == "")        { $pref::OOBGridStyle = 5; }
 if($pref::OOBGridSpeed == "")        { $pref::OOBGridSpeed = 1; }
 if($pref::OOBGridSpacing == "")      { $pref::OOBGridSpacing = 32; }
 if($pref::OOBGridColor == "")        { $pref::OOBGridColor = "0.3 0.3 0.6"; }
+if($pref::OOBGridHue == "")          { $pref::OOBGridHue = 240; }
 if($pref::OOBGridColorOutside == "") { $pref::OOBGridColorOutside = "1 0 0"; }
 
 //====================================================================================

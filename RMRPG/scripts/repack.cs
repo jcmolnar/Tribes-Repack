@@ -492,11 +492,36 @@ function remotePalChange(%server, %type, %day){
 	if(%existsIn == "")
 		return;
 
-	if($rLoadedWorld != ""){
+
+	if($rLoadedWorld != ""){
 		if($rLoadedWorld > 1)
 			deleteObject($rLoadedWorld);
 		if($rLoadedPal > 1)//isObject(0) returns true, failed newobject returns 0. Deleting 0 crashes the program.
-			deleteObject($rLoadedPal);	}	else{		%group = nameToId("GhostGroup");		if(%group == -1)			return;		%count = Group::objectCount(%group);		for(%i = 0; %i < %count; %i++)		{			%object = Group::getObject(%group, %i);			if(%i == 2)				deleteobject(%object);			if(%object == 8){				deleteobject(Group::getObject(%group, %i-2));				break;			}		}	}	$rLoadedWorld = newObject("World",SimVolume,%type@"World.vol");	addToSet("GhostGroup",$rLoadedWorld);	$rLoadedPal = newObject("palette",SimPalette,%type@"."@%day@".ppl", true);	addToSet("GhostGroup",$rLoadedPal);	flushTextureCache();}
+			deleteObject($rLoadedPal);
+	}
+	else{
+
+		%group = nameToId("GhostGroup");
+		if(%group == -1)
+			return;
+		%count = Group::objectCount(%group);
+		for(%i = 0; %i < %count; %i++)
+		{
+			%object = Group::getObject(%group, %i);
+			if(%i == 2)
+				deleteobject(%object);
+			if(%object == 8){
+				deleteobject(Group::getObject(%group, %i-2));
+				break;
+			}
+		}
+	}
+	$rLoadedWorld = newObject("World",SimVolume,%type@"World.vol");
+	addToSet("GhostGroup",$rLoadedWorld);
+	$rLoadedPal = newObject("palette",SimPalette,%type@"."@%day@".ppl", true);
+	addToSet("GhostGroup",$rLoadedPal);
+	flushTextureCache();
+}
 
 //This stuff is used in the main server for game-assisted control alterations
 //added in repack 18
@@ -599,8 +624,8 @@ function setRepackJump(%enable, %exiting)
 		$rpgSpaceKeyboardLockOn= false;
 		popActionMap("phantomMapSpace.sae");
 		if(!%exiting){
-			pushActionMap("playMap.sae");
 			pushActionMap("actionMap.sae");
+			pushActionMap("playMap.sae"); // playMap LAST = wins key collisions (dlgPlay.cpp fix)
 		}
 	}
 }

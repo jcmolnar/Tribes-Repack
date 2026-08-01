@@ -177,8 +177,20 @@ function remoteRepackKeyOverride(%server, %val)
 		$repackKeyOverride = %val;
 	else
 		$repackKeyOverride = "";
-}
-//=====================================================//Buffered Center Print//Written by Bovidi//-Added in repack 9//This function is designed for low speed input, to//generate long messages all at once.//Message is sent 255 chars at a time, and displays only//when the last message has been recieved.//Despite the name, this function can print to any//location on the screen (top, bottom, center).//Do not use this at the same time as the other buffered print by Bovidi.//This function is left for legacy support, do not use it if you have a choice.
+}
+
+//=====================================================
+//Buffered Center Print
+//Written by Bovidi
+//-Added in repack 9
+//This function is designed for low speed input, to
+//generate long messages all at once.
+//Message is sent 255 chars at a time, and displays only
+//when the last message has been recieved.
+//Despite the name, this function can print to any
+//location on the screen (top, bottom, center).
+//Do not use this at the same time as the other buffered print by Bovidi.
+//This function is left for legacy support, do not use it if you have a choice.
 //=====================================================
 function remoteBufferedCenterPrint(%server, %string, %timeout, %location) {
 
@@ -268,10 +280,88 @@ function remoteClearBufferedConsole(%server){
 		$ConsolePrintText[%i] = "";
 	$cprintnum = "";
 }
-
+
+
 $RPG::bufferedCenterPrintID = -123123123;
 
-//=====================================================//Buffered Center Print 2//Written by Bovidi (bug-fixed by phantom)//-Added in repack 16//This function is designed for high speed input, to//generate long messages all at once.//Message is sent 255 chars at a time, and displays only//when the last message has been recieved.//Despite the name, this function can print to any//location on the screen (top, bottom, center).//Do not use this at the same time as the other buffered print by Bovidi.//======================================================function remoteBufferedCenterPrint2(%server, %string, %timeout, %location, %index, %id) {	if(%server != 2048)		return false;	//Timeout is 0 - N, so piece together the message	//New message has arrived, toss out the previous message	if($RPG::bufferedCenterPrintID != %id)	{		//New id get rid of everything		$RPG::bufferedCenterPrintID = %id;		$RPG::bufferedTextOverflow = false;		$RPG::bufferedTextLength = 0;		$RPG::bufferedTextTimeout = %timeout;		$RPG::bufferCount = 0;		$RPG::bufferMaxCount = -1;		$RPG::bufferedLocation = %location;		deletevariables("$RPG::bufferedTextInd*");		$RPG::bufferedText = "";	}	$RPG::bufferedTextInd[%index] = %string;	$RPG::bufferCount++;	if(%timeout == -2) {		//Every message except the first and last should have %timeout set to 2	}	else if(%timeout == -1) {		if(%index > $RPG::bufferMaxCount)			$RPG::bufferMaxCount=%index;		//This is technically the "last" message although it		//can be recieved at any point due to lag.		//It will be sorted correctly when all messages are recieved.	}	else{		$RPG::bufferedTextTimeout = %timeout;	}		compileBufferedMessage();		return true;}function compileBufferedMessage() {        if($RPG::bufferCount < $RPG::bufferMaxCount+1 || $RPG::bufferMaxCount == -1)                return false;        $RPG::bufferedText = "";        for(%i=0; %i<=$RPG::bufferMaxCount; %i++) {                $RPG::bufferedText = $RPG::bufferedText @ $RPG::bufferedTextInd[%i];        }        $centerPrintId++;        Client::centerPrint($RPG::bufferedText, $RPG::bufferedLocation);        if($RPG::bufferedTextTimeout)        schedule("clearCenterPrint(" @ $centerPrintId @ ");", $RPG::bufferedTextTimeout);        deletevariables("$RPG::bufferedTextInd*");
+//=====================================================
+//Buffered Center Print 2
+//Written by Bovidi (bug-fixed by phantom)
+//-Added in repack 16
+//This function is designed for high speed input, to
+//generate long messages all at once.
+//Message is sent 255 chars at a time, and displays only
+//when the last message has been recieved.
+//Despite the name, this function can print to any
+//location on the screen (top, bottom, center).
+//Do not use this at the same time as the other buffered print by Bovidi.
+//======================================================
+function remoteBufferedCenterPrint2(%server, %string, %timeout, %location, %index, %id) {
+	if(%server != 2048)
+		return false;
+	//Timeout is 0 - N, so piece together the message
+
+
+	//New message has arrived, toss out the previous message
+	if($RPG::bufferedCenterPrintID != %id)
+	{
+		//New id get rid of everything
+		$RPG::bufferedCenterPrintID = %id;
+
+
+		$RPG::bufferedTextOverflow = false;
+		$RPG::bufferedTextLength = 0;
+		$RPG::bufferedTextTimeout = %timeout;
+		$RPG::bufferCount = 0;
+		$RPG::bufferMaxCount = -1;
+		$RPG::bufferedLocation = %location;
+
+
+		deletevariables("$RPG::bufferedTextInd*");
+
+
+		$RPG::bufferedText = "";
+	}
+
+
+	$RPG::bufferedTextInd[%index] = %string;
+	$RPG::bufferCount++;
+
+	if(%timeout == -2) {
+		//Every message except the first and last should have %timeout set to 2
+	}
+	else if(%timeout == -1) {
+		if(%index > $RPG::bufferMaxCount)
+			$RPG::bufferMaxCount=%index;
+		//This is technically the "last" message although it
+		//can be recieved at any point due to lag.
+		//It will be sorted correctly when all messages are recieved.
+	}
+	else{
+		$RPG::bufferedTextTimeout = %timeout;
+	}
+		compileBufferedMessage();
+		return true;
+}
+
+
+function compileBufferedMessage() {
+        if($RPG::bufferCount < $RPG::bufferMaxCount+1 || $RPG::bufferMaxCount == -1)
+                return false;
+
+
+        $RPG::bufferedText = "";
+        for(%i=0; %i<=$RPG::bufferMaxCount; %i++) {
+                $RPG::bufferedText = $RPG::bufferedText @ $RPG::bufferedTextInd[%i];
+        }
+
+        $centerPrintId++;
+        Client::centerPrint($RPG::bufferedText, $RPG::bufferedLocation);
+
+        if($RPG::bufferedTextTimeout)
+        schedule("clearCenterPrint(" @ $centerPrintId @ ");", $RPG::bufferedTextTimeout);
+
+        deletevariables("$RPG::bufferedTextInd*");
 }
 
 
@@ -352,10 +442,29 @@ function remoteGetRenderer(%server){
 //Added in repack 22
 //enables the server to determine client settings and assist debugging
 //repack 27 added embedding %cur in return string for easier parsing (re-fixed in 29)
-function remoteGetVar(%server, %var){	if(%server != 2048)		return;	%invalidChars = ";\"()@\\%'$";	%l = String::len($invalidChars);	for(%a = 1; %a <= %l; %a++)	{		%b = String::getSubStr(%invalidChars, %a-1, 1);		if(String::findSubStr(%var, %b) != -1)		{			echo("invalid char: "@%b@" in: "@%var);			return;		}	}	$vars = "";	for(%i = 0; (%cur = GetWord(%var, %i)) != -1; %i++){		if(%cur == "fps")
+function remoteGetVar(%server, %var){
+	if(%server != 2048)
+		return;
+	%invalidChars = ";\"()@\\%'$";
+	%l = String::len($invalidChars);
+	for(%a = 1; %a <= %l; %a++)
+	{
+		%b = String::getSubStr(%invalidChars, %a-1, 1);
+		if(String::findSubStr(%var, %b) != -1)
+		{
+			echo("invalid char: "@%b@" in: "@%var);
+			return;
+		}
+	}
+	$vars = "";
+	for(%i = 0; (%cur = GetWord(%var, %i)) != -1; %i++){
+		if(%cur == "fps")
 			$vars = $vars @ %cur @ ' ' @ getWord($ConsoleWorld::FrameRate,0) @ " ";
 		else
-			eval("$vars = $vars @ %cur @ ' ' @ $pref::"@%cur@" @ ' ';");	}	remoteEval(2048, GiveVar, $vars);}
+			eval("$vars = $vars @ %cur @ ' ' @ $pref::"@%cur@" @ ' ';");
+	}
+	remoteEval(2048, GiveVar, $vars);
+}
 
 //I'm not sure yet if this function is finished.
 //The feature I was working on requires more tweaks.
@@ -368,7 +477,8 @@ function remoteGetVar(%server, %var){	if(%server != 2048)		return;	%invalidCh
 function remotePalChange(%server, %type, %day){
 	if(%server != 2048)
 		return;
-	%existsIn = "";
+
+	%existsIn = "";
 	for(%i = 0; (%mod = getWord($modList, %i)) != -1; %i++)
 		//We can't even check if the palette is there until we load the new world volume, since that's where it is...
 		if(isFile(%mod@"\\"@%type@"World.vol"))// && isFile(%mod@"\\"@%type@"."@%day@".ppl"))
@@ -377,11 +487,36 @@ function remotePalChange(%server, %type, %day){
 	if(%existsIn == "")
 		return;
 
-	if($rLoadedWorld != ""){
+
+	if($rLoadedWorld != ""){
 		if($rLoadedWorld > 1)
 			deleteObject($rLoadedWorld);
 		if($rLoadedPal > 1)//isObject(0) returns true, failed newobject returns 0. Deleting 0 crashes the program.
-			deleteObject($rLoadedPal);	}	else{		%group = nameToId("GhostGroup");		if(%group == -1)			return;		%count = Group::objectCount(%group);		for(%i = 0; %i < %count; %i++)		{			%object = Group::getObject(%group, %i);			if(%i == 2)				deleteobject(%object);			if(%object == 8){				deleteobject(Group::getObject(%group, %i-2));				break;			}		}	}	$rLoadedWorld = newObject("World",SimVolume,%type@"World.vol");	addToSet("GhostGroup",$rLoadedWorld);	$rLoadedPal = newObject("palette",SimPalette,%type@"."@%day@".ppl", true);	addToSet("GhostGroup",$rLoadedPal);	flushTextureCache();}
+			deleteObject($rLoadedPal);
+	}
+	else{
+
+		%group = nameToId("GhostGroup");
+		if(%group == -1)
+			return;
+		%count = Group::objectCount(%group);
+		for(%i = 0; %i < %count; %i++)
+		{
+			%object = Group::getObject(%group, %i);
+			if(%i == 2)
+				deleteobject(%object);
+			if(%object == 8){
+				deleteobject(Group::getObject(%group, %i-2));
+				break;
+			}
+		}
+	}
+	$rLoadedWorld = newObject("World",SimVolume,%type@"World.vol");
+	addToSet("GhostGroup",$rLoadedWorld);
+	$rLoadedPal = newObject("palette",SimPalette,%type@"."@%day@".ppl", true);
+	addToSet("GhostGroup",$rLoadedPal);
+	flushTextureCache();
+}
 
 //added in repack 32, but not yet done
 function crouch(%level){
@@ -479,18 +614,29 @@ function remoteResetKeys(%server, %keys){
 	}
 	export("pref::*", "config\\ClientPrefs.cs", False);
 	saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
-}
-function setRepackJump(%enable, %exiting){	if(%enable){
+}
+
+function setRepackJump(%enable, %exiting)
+{
+	if(%enable){
 		$rpgSpaceKeyboardLockOn= true;
 		popActionMap("actionMap.sae");
 		popActionMap("playMap.sae");
 		pushActionMap("phantomMapSpace.sae");
 	}
 	else {
-		$rpgSpaceKeyboardLockOn= false;		popActionMap("phantomMapSpace.sae");
-		if(!%exiting){			pushActionMap("playMap.sae");			pushActionMap("actionMap.sae");
+		$rpgSpaceKeyboardLockOn= false;
+		popActionMap("phantomMapSpace.sae");
+		if(!%exiting){
+			pushActionMap("actionMap.sae");
+			pushActionMap("playMap.sae"); // playMap LAST = wins key collisions (dlgPlay.cpp fix)
 		}
-	}}newActionMap("phantomMapSpace.sae");editActionMap("phantomMapSpace.sae");bindCommand(keyboard0, make, "space", TO, "sendControl('space');");bindCommand(keyboard0, break, "space", TO, "sendControl('space', '', True);");
+	}
+}
+newActionMap("phantomMapSpace.sae");
+editActionMap("phantomMapSpace.sae");
+bindCommand(keyboard0, make, "space", TO, "sendControl('space');");
+bindCommand(keyboard0, break, "space", TO, "sendControl('space', '', True);");
 
 //This function lets the server change the client's viewing distance.
 //It does not take away the client's ability to limit their viewing distance,
@@ -555,10 +701,30 @@ function remotesetWindowTitle(%server, %title){
 		return;
 	if(String::findSubStr(%code, "\"") != -1 ||
 		String::findSubStr(%code, "\\") != -1)  // no quotes or escapes
-		return;	%t = $console::printlevel;	$console::printlevel = 0;	setWindowTitle(MainWindow, %title);	$console::printlevel = %t;
+		return;
+	%t = $console::printlevel;
+	$console::printlevel = 0;
+	setWindowTitle(MainWindow, %title);
+	$console::printlevel = %t;
 }
 
-//By phantom, tribesrpg.org, repack 26+//Note: Does not seem to be able to change fonts on the fly.//More experimentation needed.//This function may change in future versions.function remoteFontSet(%server, %set){	if(%server != 2048) return;	if(%set != ""){		if(isFile("base\\"@%set)){			deleteObject("FontsVolume");			$currentFontSet = %set;			newObject(FontsVolume, SimVolume, %set);		}	}	remoteEval(2048, currentFontSet, $currentFontSet);}
+//By phantom, tribesrpg.org, repack 26+
+//Note: Does not seem to be able to change fonts on the fly.
+//More experimentation needed.
+//This function may change in future versions.
+function remoteFontSet(%server, %set){
+	if(%server != 2048) return;
+
+	if(%set != ""){
+		if(isFile("base\\"@%set)){
+			deleteObject("FontsVolume");
+			$currentFontSet = %set;
+			newObject(FontsVolume, SimVolume, %set);
+		}
+	}
+
+	remoteEval(2048, currentFontSet, $currentFontSet);
+}
 deleteObject("FontsVolume");
 $currentFontSet = "rpgfonts.vol";
 newObject(FontsVolume, SimVolume, $currentFontSet);
@@ -655,14 +821,29 @@ function urlhud::setup(%url){
 	%object = newObject("rpgurlhud_1", FearGuiFormattedText,%dataposx, %posy + %v, 15, 100);
 	addToSet(PlayGui, %object);
 	control::setValue("rpgurlhud_1","<f2>"@%url);
-}
-function urlhud::reset(){	%ngs = nameToId(NamedGuiSet);	%len = Group::objectCount(%ngs);	for(%i = 0; %i < %len; %i++) { 		%obj = Group::getObject(%ngs, %i);  		%objectName = Object::getName(%obj);		if(string::FindSubStr(%objectname,"rpgurlhud_") != -1)			%list = %list @ %obj @ " ";	}	for (%i = 0; (%g = getWord(%list,%i)) != -1; %i++)		deleteObject(%g);}
+}
+
+function urlhud::reset(){
+	%ngs = nameToId(NamedGuiSet);
+	%len = Group::objectCount(%ngs);
+	for(%i = 0; %i < %len; %i++) {
+ 		%obj = Group::getObject(%ngs, %i);
+  		%objectName = Object::getName(%obj);
+		if(string::FindSubStr(%objectname,"rpgurlhud_") != -1)
+			%list = %list @ %obj @ " ";
+	}
+	for (%i = 0; (%g = getWord(%list,%i)) != -1; %i++)
+		deleteObject(%g);
+}
 
 //By phantom, tribesrpg.org, repack 30
 function remoteSetServerTextLine(%server, %line, %text){
 	if(%server != 2048)return;
 	$stLine[%line] = %text;
-	for(%i=0; $stLine[%i] != ""; %i++){		%msg = %msg @ $stLine[%i] @ "\n";	}
+
+	for(%i=0; $stLine[%i] != ""; %i++){
+		%msg = %msg @ $stLine[%i] @ "\n";
+	}
 	$servertext = %msg;
 	if(isObject(LobbyGui))
 		LobbyGui::onOpen();  // update lobby screen text.
@@ -718,8 +899,15 @@ function Schedule::Add( %eval, %time, %tag ) {
 	$Schedule::eval[%tag] = %eval;
 	
 	schedule( "Schedule::Exec(\""@%tag@"\", "@$Schedule::ID[%tag]@");", %time );
-}
-//avoid this one if you can, it's for high freq eventsfunction Schedule::Addf( %eval, %time, %tag ) {	$Schedule::id[%tag]++;	$Schedule::eval[%tag] = %eval;		schedule( "Schedule::Exec(\""@%tag@"\", "@$Schedule::ID[%tag]@");", %time );}
+}
+
+//avoid this one if you can, it's for high freq events
+function Schedule::Addf( %eval, %time, %tag ) {
+	$Schedule::id[%tag]++;
+	$Schedule::eval[%tag] = %eval;
+	
+	schedule( "Schedule::Exec(\""@%tag@"\", "@$Schedule::ID[%tag]@");", %time );
+}
 
 function Schedule::Exec( %tag, %id ) {
 	if ( $Schedule::ID[%tag] != %id )

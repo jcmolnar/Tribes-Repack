@@ -157,3 +157,4 @@ for(%i = 0; (%pg = getWord($PrefGuard::list, %i)) != -1; %i++) {
 		$pref::[%pg] = $PrefGuard::val[%pg];
 	}
 }
+echo("XSKYPROBE isFile=" @ isFile("xskyprobe_test.png"));  // TEMP probe, removed after test

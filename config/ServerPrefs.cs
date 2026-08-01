@@ -1,4 +1,4 @@
-$Server::Address = "IP:107.174.205.194:28006";
+$Server::Address = "IP:144.202.54.147:28005";
 $Server::AllowRape = "false";
 $Server::allowRepair = "1";
 $Server::AntiRape = "true";
