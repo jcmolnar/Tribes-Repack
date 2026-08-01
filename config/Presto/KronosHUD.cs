@@ -18,17 +18,24 @@
 // pace the reliable stream for dial-up, which makes every server menu
 // round-trip (skill points, shop pushes, roster) feel sluggish on a LAN /
 // broadband. 30 pkt/s + 450B is the stock protocol maximum - both ends
-// clamp, so this is safe against any server.
-$pref::PacketRate = 30;
-$pref::PacketSize = 450;
+// clamp, so this is safe against any server. GUARDED: this file runs from
+// autoexec, AFTER the player's ClientPrefs, so an unconditional write here
+// stomped the Options > Network settings on every boot (and the exit save
+// made it permanent). Defaults only apply when the pref has never been set;
+// clientDefaults.cs seeds these anyway, so this is a belt-and-braces seed.
+if($pref::PacketRate == "") { $pref::PacketRate = 30; }
+if($pref::PacketSize == "") { $pref::PacketSize = 450; }
 
 // Fullscreen must present through OpenGL. The stock 1.3 default fullscreen
 // driver is "Software" (windowed is OpenGL), so toggling fullscreen swapped
 // the renderer out from under ScriptGL - every HUD gl* call then ran with no
 // GL context and CRASHED the client. Forcing the fullscreen driver to OpenGL
 // (the renderer the game is already presenting with) fixes it; the pref is
-// saved back to ClientPrefs.cs so it sticks.
-$pref::VideoFullScreenDriver = "OpenGL";
+// saved back to ClientPrefs.cs so it sticks. Guarded like the windowed one
+// below: only rescue ""/Software -- never stomp another explicit choice.
+if($pref::VideoFullScreenDriver == "" || $pref::VideoFullScreenDriver == "Software") {
+	$pref::VideoFullScreenDriver = "OpenGL";
+}
 
 // The HUD draws through OpenGL, so the WINDOWED driver must be OpenGL too
 // (stock default is Software - the HUD would simply be invisible).

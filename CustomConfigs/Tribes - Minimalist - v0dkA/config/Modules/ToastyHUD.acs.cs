@@ -31,8 +31,8 @@ $ToastyHUD::NewRecord = false;
 $ToastyHUD::NewTop5Found = false;
 $ToastyHUD::FoundAllTop5 = false;
 
-$pref::ToastyScreenshot = false;
-$pref::ToastyCustomMode = true;
+if($pref::ToastyScreenshot == "") { $pref::ToastyScreenshot = false; }
+if($pref::ToastyCustomMode == "") { $pref::ToastyCustomMode = true; }
 
 $ToastyHUD::Count = 0;
 $ToastyHUD::BMCount = 0;

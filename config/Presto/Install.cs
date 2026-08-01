@@ -283,10 +283,12 @@ function rpStartup()
 	if($repackver > 0)
 		%rpver = $repackver;
 	if($pref::lastRepack >= %rpver)return;
-	$pref::packetrate=30;
-	editActionMap("actionMap.sae");
-	bindCommand(keyboard0, make, "n", TO, "sendControl(\"n\");");
-	bindCommand(keyboard0, make, "q", TO, "sendControl(\"q\");");
+	// GUTTED (Modern Tribes): this migration used to force $pref::packetrate=30
+	// and hard-rebind n/q into actionMap.sae on every repack version bump --
+	// stomping the player's Options > Network setting and their keybinds (the
+	// exact "hardcoded keys" class the beta bug reports called out). Network
+	// defaults now live guarded in config\clientDefaults.cs; binds belong to
+	// the player. Only the master-list refresh + browser filter remain.
 	//if($pref::lastRepack < %rpver){
 		updateListFilterFinal(8,"RPG MOD:","RPG MOD:5,0,rpg:3,1,Custom Ghetto");//Malicious flooding, harms players, needs to be stopped
 		//updateListBanFinal("IP:174.59.0.42");//DoS attacks, connection spam, attempted exploits

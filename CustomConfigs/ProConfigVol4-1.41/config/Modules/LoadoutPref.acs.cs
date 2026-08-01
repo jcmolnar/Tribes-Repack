@@ -1,3 +1,8 @@
+// GUARDED (Modern Tribes): these are the pack author's suggested loadouts.
+// This module runs on every config apply -- AFTER the player's ClientPrefs --
+// so unconditional writes here ERASED the player's own saved favorites and
+// the exit save made it permanent. Seed them only when the player has none.
+if($pref::favorites1_ == "") {
 $pref::favorites1_ = "Light Armor,Chaingun,Disc Launcher,Grenade Launcher,Targeting Laser,Energy Pack,Beacon,Grenade,Mine,Repair Kit,Bullet,Disc,Grenade Ammo,";
 $pref::favorites1__name = "Light Default";
 
@@ -24,7 +29,4 @@ $pref::favorites8__name = "HoF";
 
 $pref::favorites9_ = "Heavy Armor,Chaingun,Disc Launcher,Grenade Launcher,Mortar,Plasma Gun,Targeting Laser,Repair Pack,Beacon,Grenade,Mine,Repair Kit,Bullet,Disc,Grenade Ammo,Mortar Ammo,Plasma Bolt,";
 $pref::favorites9__name = "Heavy Repair";
-
-
-
-
+}

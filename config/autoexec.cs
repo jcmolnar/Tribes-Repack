@@ -143,3 +143,17 @@ exec("Presto\\KronosStats.cs");
 // TYPO'd var $PrestoPref(s):: (extra 's') while every setter writes $PrestoPref:: (no
 // 's'), so Presto's own toggle never worked. Set the variable the gate actually reads.
 $PrestoPrefs::ShowPackStatus = false;
+
+// PROTECTED-PREFS RESTORE -- paired with the snapshot at the end of
+// nativeDefaults.cs (the first exec above). Everything between there and here
+// runs AFTER the player's ClientPrefs, so any script in that chain that writes
+// one of the guarded prefs unconditionally would win the session and then be
+// exported into ClientPrefs forever (the "network settings keep resetting"
+// class). Re-assert the player's own values; a pref that was empty at snapshot
+// (fresh install) keeps whatever the chain seeded. KEEP THIS LAST IN THIS FILE.
+for(%i = 0; (%pg = getWord($PrefGuard::list, %i)) != -1; %i++) {
+	if($PrefGuard::val[%pg] != "" && $pref::[%pg] != $PrefGuard::val[%pg]) {
+		echo("[PREFGUARD] restoring $pref::" @ %pg @ " = " @ $PrefGuard::val[%pg] @ " (a boot script had changed it to " @ $pref::[%pg] @ ")");
+		$pref::[%pg] = $PrefGuard::val[%pg];
+	}
+}

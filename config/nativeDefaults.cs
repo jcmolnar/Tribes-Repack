@@ -146,3 +146,15 @@ echo("[NATIVE] defaults applied: net " @ $pref::PacketSize @ "/" @ $pref::Packet
 //                  bindDefault(keyboard0, break, "g", TO, IDACTION_MYTHING, 0);
 //              A user's existing binding always wins; keys are never stolen.
 //====================================================================================
+
+//====================================================================================
+// PROTECTED-PREFS SNAPSHOT (paired with the restore at the END of autoexec.cs).
+// nativeDefaults.cs is the FIRST thing autoexec runs, i.e. the earliest point after
+// the player's ClientPrefs has loaded. Snapshot the collision-prone prefs here; the
+// restore re-asserts them after the whole autoexec chain (Presto suite etc.) has run,
+// so no later script can stomp a value the player actually saved. Empty snapshot
+// (fresh install / new pref) restores nothing.
+$PrefGuard::list = "packetRate packetSize packetFrame PlayerFov netVehicleInterpolateTime netVehiclePredictForwardTime interpolateTime predictForwardTime";
+for(%i = 0; (%pg = getWord($PrefGuard::list, %i)) != -1; %i++) {
+	$PrefGuard::val[%pg] = $pref::[%pg];
+}
