@@ -462,6 +462,9 @@ function remoteKMPlayerCount(%server, %sent, %total)
 	$KM::plCount = %sent;
 	$KM::plTotal = %total;
 	$KM::plDirty = true;
+	// SCOREBOARD-REFRESH: stamp the Kronos push so scoreTick's base-server
+	// fallback (cfgPushBaseScoreRows) never overwrites a live Kronos roster.
+	$KM::kmFeedTime = GetSimTime();
 }
 
 // Character info lines. Stock base client.cs writes these into the
@@ -1624,9 +1627,64 @@ function KronosMenu::applyChatPos()
 	Control::setPosition("chatDisplayHud", floor($pref::Kronos::chatX * %sw), floor($pref::Kronos::chatY * %sh));
 }
 
+// SCOREBOARD-REFRESH (beta report: "Scoremenu does not refresh"): the roster used
+// to be fed exactly ONCE, at TAB-open (dlgPlay.cpp pushes cfgPushBaseScoreRows at
+// setScoresVisible; the Kronos request fired only when the server rebuilt a menu).
+// So ping/players/teams froze while the board was up, and a server change showed
+// the PREVIOUS server's rows. This tick runs every frame the play screen draws:
+// while the scoreboard is visible it re-requests the Kronos roster and re-runs the
+// native PlayerManager feed every 3s -- fed new data, show new data.
+function KronosMenu::scoreTick()
+{
+	if($Config::ScoresVisible != "true")
+		return;
+	%t = GetSimTime();
+	%dt = %t - $KM::scoreTickTime;
+	if($KM::scoreTickTime != "" && %dt >= 0 && %dt < 3.0)
+		return;
+	$KM::scoreTickTime = %t;
+
+	// Kronos roster (vanilla-safe: base servers just ignore the remoteEval)
+	remoteEval(2048, KMGetPlayers);
+
+	// Base-server fallback: live name/team/score/ping straight from the engine's
+	// PlayerManager. Only when no Kronos push has landed recently -- a Kronos
+	// server owns the rows and this must not overwrite them.
+	%kdt = %t - $KM::kmFeedTime;
+	if($KM::kmFeedTime == "" || %kdt > 6.0 || %kdt < 0)
+		cfgPushBaseScoreRows();
+}
+
+// SCOREBOARD-REFRESH: a new connection or mission means the old roster is fiction.
+// Clear everything the panels render from so the first frame on the new server is
+// empty rather than stale; scoreTick repopulates within 3s of opening the board.
+function KronosMenu::rosterReset()
+{
+	// ROSTER ONLY -- never touch $KM::active/$KM::count/$KM::title here. The server
+	// MENU (incl. a base server's one-shot team-select push via remoteNewMenu, the
+	// ONLY setter of $KM::active) can already be up when eventMissionInfo fires;
+	// clearing it killed the base-server TAB board and the team-select screen for
+	// the whole session, because base servers never resend the menu (beta report
+	// 2026-07-31). Kronos survived only because it rebuilds menus constantly.
+	$KM::plCount = 0;
+	$KM::plTotal = 0;
+	$KM::selId = "";
+	$KM::plDirty = true;
+	$KM::plReqTime = "";
+	$KM::scoreTickTime = "";
+	$KM::kmFeedTime = "";
+	$KM::lvPrefix = "Lv ";
+	for(%i = 0; %i < 4; %i++)
+	{
+		$KM::colTitle[%i] = "";
+	}
+}
+
 function ScriptGL::playGui::onPostDraw(%dimensions)
 {
 	%dim = KronosMenu::screenDim(%dimensions);
+
+	KronosMenu::scoreTick();
 
 	KronosMenu::render(%dim);
 
@@ -1794,3 +1852,7 @@ if($Mode::PlayMode)
 	KronosMenu::applyChatPos();
 
 echo("KronosMenu: modern TAB menu loaded (Hudbot mouse input)");
+
+// SCOREBOARD-REFRESH: purge the roster whenever the connection or mission changes.
+Event::Attach(eventConnectionAccepted, "KronosMenu::rosterReset();", attachKMRosterReset);
+Event::Attach(eventMissionInfo, "KronosMenu::rosterReset();", attachKMRosterReset2);

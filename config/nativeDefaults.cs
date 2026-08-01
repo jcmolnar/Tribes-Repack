@@ -37,12 +37,18 @@
 // Applied as a FLOOR, not an assignment: a user who deliberately went higher keeps their value.
 // Set $pref::netKeepSaved = 1 before this runs to opt out entirely.
 //------------------------------------------------------------------------------
-if($pref::netKeepSaved != 1)
+// ONE-SHOT (2026-07-31): this floor used to re-apply EVERY boot, so a player who
+// deliberately set lower values in Options > Network was silently re-floored on the
+// next start -- testers found $pref::netKeepSaved = 1 as the workaround, which proves
+// the collision. Now it migrates legacy modem values ONCE (flagged by netFloorApplied)
+// and never touches a saved value again. netKeepSaved = 1 still opts out entirely.
+if($pref::netKeepSaved != 1 && $pref::netFloorApplied != 1)
 {
    if($pref::PacketSize == "" || $pref::PacketSize < 800)   { $pref::PacketSize = 800; }
    if($pref::PacketRate == "" || $pref::PacketRate < 60)    { $pref::PacketRate = 60; }
    // Lower is faster here -- it is a minimum interval in ms, so this one is a ceiling.
    if($pref::PacketFrame == "" || $pref::PacketFrame > 16)  { $pref::PacketFrame = 16; }
+   $pref::netFloorApplied = 1;
 }
 
 //------------------------------------------------------------------------------
@@ -146,6 +152,19 @@ echo("[NATIVE] defaults applied: net " @ $pref::PacketSize @ "/" @ $pref::Packet
 //                  bindDefault(keyboard0, break, "g", TO, IDACTION_MYTHING, 0);
 //              A user's existing binding always wins; keys are never stolen.
 //====================================================================================
+
+//====================================================================================
+// OOB BOUNDARY GRID (1.40 parity, GPU pass in rt.cpp grDrawOOBGrid). 1.40 pref names +
+// defaults; Style is ours: 0=classic static grid, 1=animated (default), 2=plasma.
+// rt.cpp treats OOBGridVisible unset as ON; seeded here so a future Options row reads 1.
+if($pref::OOBGridVisible == "")      { $pref::OOBGridVisible = 1; }
+if($pref::OOBGridAlpha == "")        { $pref::OOBGridAlpha = 0.45; }
+if($pref::OOBGridPercent == "")      { $pref::OOBGridPercent = 0.4; }
+if($pref::OOBGridStyle == "")        { $pref::OOBGridStyle = 5; }
+if($pref::OOBGridSpeed == "")        { $pref::OOBGridSpeed = 1; }
+if($pref::OOBGridSpacing == "")      { $pref::OOBGridSpacing = 32; }
+if($pref::OOBGridColor == "")        { $pref::OOBGridColor = "0.3 0.3 0.6"; }
+if($pref::OOBGridColorOutside == "") { $pref::OOBGridColorOutside = "1 0 0"; }
 
 //====================================================================================
 // PROTECTED-PREFS SNAPSHOT (paired with the restore at the END of autoexec.cs).
