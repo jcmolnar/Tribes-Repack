@@ -1,1 +1,0 @@
-Screenshots and temporary files are stored in this directory

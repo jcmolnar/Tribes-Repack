@@ -1,0 +1,355 @@
+{
+ "format": 1,
+ "id": "overstep",
+ "name": "Tribes Overstep",
+ "legacySourceId": "Tribes_Overstep",
+ "category": "conversion",
+ "releaseState": "partial",
+ "framework": 2,
+ "authoring": "manual",
+ "reference": {
+  "width": 1920,
+  "height": 1080
+ },
+ "source": {
+  "pack": "Tribes_Overstep",
+  "root": "CustomConfigs/Tribes_Overstep",
+  "converter": 0,
+  "note": "hand-authored from hud/packs/Tribes_Overstep.phase_a.cs; art imported to Assets/Packs/overstep/Modules"
+ },
+ "assets": {},
+ "parts": [
+  {
+   "id": "status",
+   "slot": "healthenergy",
+   "handle": "ModernHUD::Health",
+   "anchor": "bottom-center",
+   "offset": [
+    0,
+    -40
+   ],
+   "size": [
+    420,
+    120
+   ],
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawStatus",
+     "body": [
+      "ModernHUDPack::drawStatus(%screen);"
+     ]
+    }
+   ],
+   "legacy": {
+    "containers": [
+     "GHealth::Container",
+     "GEnergy::Container",
+     "GSpeed::Container"
+    ]
+   }
+  },
+  {
+   "id": "weapon",
+   "slot": "weapon",
+   "handle": "ModernHUD::Weapons",
+   "anchor": "bottom-left",
+   "offset": [
+    20,
+    -40
+   ],
+   "size": [
+    300,
+    120
+   ],
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawWeapons",
+     "body": [
+      "ModernHUDPack::drawWeapons(%screen);"
+     ]
+    }
+   ],
+   "legacy": {
+    "containers": [
+     "WeaponHUD::Container"
+    ]
+   }
+  },
+  {
+   "id": "items",
+   "slot": "items",
+   "handle": "ModernHUD::Items",
+   "anchor": "bottom-left",
+   "offset": [
+    20,
+    -10
+   ],
+   "size": [
+    200,
+    60
+   ],
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawItems",
+     "body": [
+      "ModernHUDPack::drawItems(%screen);"
+     ]
+    }
+   ],
+   "legacy": {
+    "containers": [
+     "ItemHUD::Container"
+    ]
+   }
+  },
+  {
+   "id": "ctfclock",
+   "slot": [
+    "ctf",
+    "clock"
+   ],
+   "handle": "ModernHUD::CtfClock",
+   "anchor": "top-center",
+   "offset": [
+    0,
+    20
+   ],
+   "size": [
+    306,
+    100
+   ],
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawCtfClock",
+     "body": [
+      "ModernHUDPack::drawCtfClock(%screen);"
+     ]
+    }
+   ],
+   "legacy": {
+    "containers": [
+     "CtfHUD::Container",
+     "clock::Container"
+    ]
+   }
+  },
+  {
+   "id": "score",
+   "slot": "ratings",
+   "handle": "ModernHUD::Score",
+   "anchor": "bottom-right",
+   "offset": [
+    -20,
+    -20
+   ],
+   "size": [
+    240,
+    80
+   ],
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawScore",
+     "body": [
+      "ModernHUDPack::drawScore(%screen);"
+     ]
+    }
+   ],
+   "legacy": {
+    "containers": [
+     "RatingsHUD::Container"
+    ]
+   }
+  },
+  {
+   "id": "repkit",
+   "slot": "repkit",
+   "handle": "ModernHUD::repkit",
+   "anchor": "top-left",
+   "offset": [
+    200,
+    200
+   ],
+   "size": [
+    130,
+    40
+   ],
+   "legacy": {
+    "containers": [
+     "aaRepKitHUD::Container"
+    ]
+   },
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawRepKit",
+     "body": [
+      "ModernHUDPack::drawRepKit(%screen);"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lowhealth",
+   "slot": "lowhealth",
+   "handle": "ModernHUD::lowhealth",
+   "anchor": "top-left",
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    72,
+    72
+   ],
+   "legacy": {
+    "containers": [
+     "LHHud::Container"
+    ]
+   },
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawLowHealth",
+     "body": [
+      "ModernHUDPack::drawLowHealth(%screen);"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "minimap",
+   "slot": "minimap",
+   "handle": "ModernHUD::MinimapFrame",
+   "anchor": "top-left",
+   "offset": [
+    0,
+    0
+   ],
+   "size": [
+    380,
+    380
+   ],
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawMinimapFrame",
+     "body": [
+      "ModernHUDPack::drawMinimapFrame(%screen);"
+     ]
+    }
+   ],
+   "legacy": {
+    "containers": [
+     "HUDOverlay::Container"
+    ]
+   }
+  },
+  {
+   "id": "flagpopup",
+   "slot": "flagpopup",
+   "handle": "ModernHUD::flagpopup",
+   "anchor": "bottom-center",
+   "offset": [
+    0,
+    60
+   ],
+   "size": [
+    1560,
+    67
+   ],
+   "legacy": {
+    "containers": [
+     "FlagPopup::Container"
+    ],
+    "modules": [
+     "Modules/FlagPopup/flagpopup.acs.cs"
+    ]
+   },
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawFlagPopup",
+     "body": [
+      "ModernHUDPack::drawFlagPopup(%screen);"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "toasty",
+   "slot": "toasty",
+   "handle": "ModernHUD::toasty",
+   "anchor": "bottom-right",
+   "offset": [
+    0,
+    40
+   ],
+   "size": [
+    401,
+    401
+   ],
+   "legacy": {
+    "containers": [
+     "ToastyHUD::Container"
+    ],
+    "modules": [
+     "Modules/ToastyHUD/ToastyHUD.acs.cs"
+    ]
+   },
+   "elements": [
+    {
+     "type": "script",
+     "at": [
+      0,
+      0
+     ],
+     "from": "ModernHUDPack::drawToasty",
+     "body": [
+      "ModernHUDPack::drawToasty(%screen);"
+     ]
+    }
+   ]
+  }
+ ]
+}

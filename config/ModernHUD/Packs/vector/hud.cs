@@ -172,6 +172,17 @@ function Vector::palette()
 
    if($pref::Vector::ColorPrimary != "") $Vector::Primary = $pref::Vector::ColorPrimary;
    if($pref::Vector::ColorAccent  != "") $Vector::Accent  = $pref::Vector::ColorAccent;
+
+   // Publish the same six colours to the framework's settings panel, so the K
+   // menu is themed by whatever theme the HUD is wearing. This is the ENTIRE
+   // colour contract between a pack and the shared menu engine -- a pack that
+   // sets nothing gets the framework's default blue.
+   $ModernHUD::MenuPrimary = $Vector::Primary;
+   $ModernHUD::MenuDim     = $Vector::Dim;
+   $ModernHUD::MenuAccent  = $Vector::Accent;
+   $ModernHUD::MenuText    = $Vector::Text;
+   $ModernHUD::MenuWarn    = $Vector::Warn;
+   $ModernHUD::MenuTitle   = "VECTOR";
 }
 
 // Switch theme live: repaint the pack AND the engine-wide colours it drives.
@@ -1042,20 +1053,24 @@ function ModernHUDPack::stockHuds()
    else
       $pref::hideCrosshairArt = "1";
 
-   Control::SetVisible(chatDisplayHud, true);
+   ModernHUD::stock(chatDisplayHud, true);
 
-   // The minimap switch drives the CONTROL -- see the note on the setting.
+   // The minimap switch drives the CONTROL -- see the note on the setting. It
+   // keeps the direct call and gets no ModernHUD::stock row: this pack already
+   // owns the concept under its own name, and two rows switching one control
+   // would fight on every assertion.
    if($pref::Vector::Minimap == 0)
       Control::SetVisible(Minimap, false);
    else
       Control::SetVisible(Minimap, true);
 
-   Control::SetVisible(clockHud,       true);   // Vector has no clock part
-   Control::SetVisible(healthHud,      false);
-   Control::SetVisible(jetPackHud,     false);
-   Control::SetVisible(weaponHud,      false);
-   Control::SetVisible(compassHud,     false);
-   Control::SetVisible(sensorHUD,      false);
+   // Defaults; the K panel's stock rows override them per player.
+   ModernHUD::stock(clockHud,       true);   // Vector has no clock part
+   ModernHUD::stock(healthHud,      false);
+   ModernHUD::stock(jetPackHud,     false);
+   ModernHUD::stock(weaponHud,      false);
+   ModernHUD::stock(compassHud,     false);
+   ModernHUD::stock(sensorHUD,      false);
 }
 
 function ModernHUDPack::detachRetained()
@@ -1071,6 +1086,79 @@ function ModernHUDPack::init()
 
 ModernHUD::require("ModernHUD/Core/Data/Team.cs");
 ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
+
+//------------------------------------------------------------------------------
+// The font list, built from what is ACTUALLY INSTALLED.
+//
+// ★Not a hard-coded five.★ glSetFont takes any installed family, so the old list
+// was a limit I imposed, not one the engine has. But CreateFontA silently
+// SUBSTITUTES for an unknown family rather than failing -- so offering a name
+// that is not present would appear to work and quietly render as something else.
+// glFontExists (scriptGL.cpp) asks Windows, and only the ones that answer are
+// offered. That makes the list honest on every machine instead of correct on
+// mine.
+//
+// Curated rather than "every installed family": a raw enumeration is 200+ entries
+// including symbol and script faces, which is worse UI than five. These are faces
+// that ship with Windows or Office and actually suit a game HUD -- condensed and
+// geometric grotesques for readability at speed, monospaced faces for numerics
+// that must not jitter as digits change.
+function Vector::fontScan()
+{
+   if($Vector::FontCount != "")
+      return;
+
+   %cand = "Bahnschrift Condensed;Bahnschrift;Agency FB;Eurostile;Franklin Gothic Medium;" @
+           "Trebuchet MS;Verdana;Tahoma;Segoe UI;Segoe UI Semibold;Calibri;Candara;Corbel;" @
+           "Century Gothic;Arial;Arial Narrow;Impact;Rockwell;Microsoft Sans Serif;" @
+           "Consolas;Cascadia Mono;Lucida Console;OCR A Extended;Copperplate Gothic Bold";
+
+   %n = 0;
+   %i = 0;
+   %cur = "";
+   %len = String::Length(%cand);
+
+   // No split-on-string helper here, so walk it. String::Explode exists but returns
+   // a packed string we would have to walk anyway.
+   for(%i = 0; %i <= %len; %i++)
+   {
+      %c = String::getSubStr(%cand, %i, 1);
+      if(%c == ";" || %i == %len)
+      {
+         if(%cur != "" && glFontExists(%cur) == 1)
+         {
+            $Vector::FontName[%n] = %cur;
+            %n++;
+         }
+         %cur = "";
+      }
+      else
+         %cur = %cur @ %c;
+   }
+
+   // Verdana ships on every Windows and is the atlas fallback, so it is the floor.
+   if(%n == 0)
+   {
+      $Vector::FontName[0] = "Verdana";
+      %n = 1;
+   }
+   $Vector::FontCount = %n;
+   echo("Vector: " @ %n @ " HUD fonts available");
+
+   // Build the enum spec for the font row from the SAME scanned list.
+   // ★The two used to disagree.★ The old K panel stepped an index over this array
+   // (every installed candidate), while the Options row carried a hand-written
+   // five-entry spec -- so the same setting offered a different set of fonts
+   // depending on which surface you opened, and a face picked in one could not be
+   // reached from the other. One list, built once, feeds both.
+   %spec = "";
+   for(%f = 0; %f < %n; %f++)
+   {
+      if(%f > 0) %spec = %spec @ ";";
+      %spec = %spec @ $Vector::FontName[%f] @ "|" @ $Vector::FontName[%f];
+   }
+   $Vector::FontSpec = %spec;
+}
 
 //------------------------------------------------------------------------------
 // Options rows. These render natively on the Configs tab under "Vector Settings"
@@ -1101,12 +1189,29 @@ ModernHUD::setting("int", "pref::Vector::Scale", "Reticle size (%)", "100",
    "50|300|5", "");
 
 // Any installed TrueType face. Rasterized fresh at each size (see Vector::tt), so
-// this is what keeps the HUD sharp instead of pixellating as it grows.
+// this is what keeps the HUD sharp instead of pixellating as it grows. The spec is
+// SCANNED (Vector::fontScan -> $Vector::FontSpec), not hard-coded: it lists only
+// faces this machine actually has, so no row can offer a font that would silently
+// fall back to Verdana.
+Vector::fontScan();
 ModernHUD::setting("enum", "pref::Vector::Font", "HUD font", "Verdana",
-   "Verdana|Verdana;Tahoma|Tahoma;Arial|Arial;Consolas|Consolas;Impact|Impact", "");
+   $Vector::FontSpec, "");
 
 // Opacity is TWO settings on purpose: some players want the aim point solid and
 // the readouts ghosted, which one slider cannot express.
+//
+// This pack multiplies its own alpha ($Vector::A), so it DECLINES the framework's
+// generic "HUD opacity" row -- two controls scaling the same pixels would fight.
+// Size is deliberately NOT declined: "Reticle size" is about the aim point alone,
+// so the framework's part-wide "HUD size" row remains a distinct, useful control.
+$ModernHUD::OwnOpacity = 1;
+
+// Same reason, for the crosshair: "Reticle" below already drives
+// $pref::hideCrosshairArt through stockHuds(), so the framework's generic
+// "Crosshair art" row would be a second switch on the same pref, and whichever
+// ran last would win.
+$ModernHUD::OwnCrosshairArt = 1;
+
 ModernHUD::setting("int", "pref::Vector::Opacity", "HUD opacity (%)", "100",
    "20|100|5", "");
 ModernHUD::setting("int", "pref::Vector::ReticleOpacity", "Reticle opacity (%)", "100",
@@ -1195,6 +1300,14 @@ function ModernHUDPack::draw(%screen)
 {
    Vector::palette();
 
+   // The shared settings panel renders in the pack's chosen face. Set per frame,
+   // not in palette(): the font is its own setting and changes without a theme
+   // change, and a stale menu font would be the one thing on screen still wearing
+   // the old face.
+   %mf = $pref::Vector::Font;
+   if(%mf == "") %mf = "Verdana";
+   $ModernHUD::MenuFont = %mf;
+
    // One place computes the scale, every draw helper reads it. Clamped here so a
    // hand-edited pref cannot produce a HUD too small to read or big enough to fill
    // the screen -- the same range the Options slider offers.
@@ -1233,11 +1346,10 @@ function ModernHUDPack::draw(%screen)
    // is hidden unconditionally so an old one cannot linger after an upgrade.
    ModernHUD::hide("ModernHUD::VectorItems");
 
-   // The settings panel paints LAST so it is on top of the HUD it configures.
-   Vector::menu(%screen);
+   // The settings panel is drawn by the FRAMEWORK, after this returns
+   // (ModernHUD::onDraw -> ModernHUD::menu), so it paints on top of the HUD it
+   // configures without this pack owning a menu engine.
 }
-
-// (menu body appended below)
 
 function ModernHUDPack::onGuiOpen(%gui)
 {
@@ -1251,40 +1363,39 @@ ModernHUDPack::stockHuds();
 ModernHUDPack::init();
 
 //==============================================================================
-// THE K PANEL -- Vector's own settings menu, on the key players already press.
+// THE K PANEL -- now the FRAMEWORK's, not this pack's.
 //
-// ★Why this exists.★ The settings were reachable only through Options -> Configs,
+// ★Why it exists.★ The settings were reachable only through Options -> Configs,
 // and only by selecting the config, escaping, and re-entering it. In practice
 // nobody finds them -- a setting a player cannot discover is a setting that does
-// not exist. K already means "configure my HUD", so the pack answers it:
+// not exist. K already means "configure my HUD", so a pack answers it:
 // $Config::HudListOwned tells the engine to keep the stock checkbox list hidden
-// (dlgPlay.cpp) and we draw here instead.
+// (dlgPlay.cpp) and the panel draws in its place.
 //
-// Interaction rides glMousePos ("x y lmb rmb"), added for this. A pack could
-// already draw anything but could not read the pointer, so nothing clickable was
-// possible from script. Rows are hit-tested against the same rectangles they are
-// drawn with, in the same surface pixels, so there is no coordinate mapping to
-// get wrong.
+// ★Why the engine moved.★ This was 250 lines of drag/hit-test/stepper code that
+// only Vector had, driving rows that duplicated -- by hand, with their own
+// min/max/step literals -- the ModernHUD::setting registry declared below. Every
+// other pack declared the same kind of rows and got no menu at all. The engine is
+// now Framework.cs (ModernHUD::menu), the rows ARE the registry, and this pack
+// contributes only what is genuinely its own: the palette and the themed frame.
+//
+// Interaction rides glMousePos ("x y lmb rmb"), added for this. Rows are
+// hit-tested against the same rectangles they are drawn with, in the same surface
+// pixels, so there is no coordinate mapping to get wrong.
+//
+// $Config::HudListOwned is set by ModernHUD::setting as soon as a pack registers
+// its first row, and cleared on unload -- it is no longer declared here.
 //==============================================================================
-$Config::HudListOwned = 1;
 
-// Was the pointer inside this rect on a FRESH left-click? Edge-triggered, so
-// holding the button does not run an arrow sixty times a second.
-function Vector::menuClicked(%mx, %my, %x, %y, %w, %h)
+// The framework's RESET DEFAULTS button restores every registered row; this hook
+// covers what the registry cannot know about -- the engine prefs this pack drives
+// and the derived palette.
+function ModernHUDPack::menuReset()
 {
-   if($Vector::MenuClick != 1)
-      return false;
-   if(%mx < %x || %mx >= %x + %w) return false;
-   if(%my < %y || %my >= %y + %h) return false;
-   return true;
+   Vector::defaults();
 }
 
-function Vector::menuOver(%mx, %my, %x, %y, %w, %h)
-{
-   if(%mx < %x || %mx >= %x + %w) return false;
-   if(%my < %y || %my >= %y + %h) return false;
-   return true;
-}
+
 
 function Vector::shapeName(%v)
 {
@@ -1324,65 +1435,6 @@ function Vector::reticleName(%v)
    return "TICKS";
 }
 
-//------------------------------------------------------------------------------
-// The font list, built from what is ACTUALLY INSTALLED.
-//
-// ★Not a hard-coded five.★ glSetFont takes any installed family, so the old list
-// was a limit I imposed, not one the engine has. But CreateFontA silently
-// SUBSTITUTES for an unknown family rather than failing -- so offering a name
-// that is not present would appear to work and quietly render as something else.
-// glFontExists (scriptGL.cpp) asks Windows, and only the ones that answer are
-// offered. That makes the list honest on every machine instead of correct on
-// mine.
-//
-// Curated rather than "every installed family": a raw enumeration is 200+ entries
-// including symbol and script faces, which is worse UI than five. These are faces
-// that ship with Windows or Office and actually suit a game HUD -- condensed and
-// geometric grotesques for readability at speed, monospaced faces for numerics
-// that must not jitter as digits change.
-function Vector::fontScan()
-{
-   if($Vector::FontCount != "")
-      return;
-
-   %cand = "Bahnschrift Condensed;Bahnschrift;Agency FB;Eurostile;Franklin Gothic Medium;" @
-           "Trebuchet MS;Verdana;Tahoma;Segoe UI;Segoe UI Semibold;Calibri;Candara;Corbel;" @
-           "Century Gothic;Arial;Arial Narrow;Impact;Rockwell;Microsoft Sans Serif;" @
-           "Consolas;Cascadia Mono;Lucida Console;OCR A Extended;Copperplate Gothic Bold";
-
-   %n = 0;
-   %i = 0;
-   %cur = "";
-   %len = String::Length(%cand);
-
-   // No split-on-string helper here, so walk it. String::Explode exists but returns
-   // a packed string we would have to walk anyway.
-   for(%i = 0; %i <= %len; %i++)
-   {
-      %c = String::getSubStr(%cand, %i, 1);
-      if(%c == ";" || %i == %len)
-      {
-         if(%cur != "" && glFontExists(%cur) == 1)
-         {
-            $Vector::FontName[%n] = %cur;
-            %n++;
-         }
-         %cur = "";
-      }
-      else
-         %cur = %cur @ %c;
-   }
-
-   // Verdana ships on every Windows and is the atlas fallback, so it is the floor.
-   if(%n == 0)
-   {
-      $Vector::FontName[0] = "Verdana";
-      %n = 1;
-   }
-   $Vector::FontCount = %n;
-   echo("Vector: " @ %n @ " HUD fonts available");
-}
-
 function Vector::fontIndex(%n)
 {
    Vector::fontScan();
@@ -1400,117 +1452,7 @@ function Vector::fontName(%i)
    return $Vector::FontName[%i];
 }
 
-//------------------------------------------------------------------------------
-// A stepper button: outlined square that FILLS with the accent under the pointer,
-// so it reads as pressable before you click it. Returns 1 if clicked this frame.
-//------------------------------------------------------------------------------
-function Vector::menuStep(%x, %y, %s, %glyph, %mx, %my)
-{
-   %over = Vector::menuOver(%mx, %my, %x, %y, %s, %s);
 
-   if(%over)
-   {
-      Vector::color($Vector::Primary, 255);
-      glRectangle(%x, %y, %s, %s);
-      Vector::tt(%x, %y + 1, %s, "16 20 24", %glyph, 255, 13, "c");
-   }
-   else
-   {
-      // 1px outline, drawn as four edges -- no filled rect, so the panel reads
-      // as flat and the buttons as the only raised things on it.
-      Vector::color($Vector::Primary, 130);
-      glRectangle(%x, %y, %s, 1);
-      glRectangle(%x, %y + %s - 1, %s, 1);
-      glRectangle(%x, %y, 1, %s);
-      glRectangle(%x + %s - 1, %y, 1, %s);
-      Vector::tt(%x, %y + 1, %s, $Vector::Primary, %glyph, 230, 13, "c");
-   }
-
-   if(Vector::menuClicked(%mx, %my, %x, %y, %s, %s))
-      return 1;
-   return 0;
-}
-
-//------------------------------------------------------------------------------
-// One settings row.
-//
-// Layout is a fixed rhythm rather than eyeballed offsets: label on the left
-// margin, and on the right a single grouped stepper [-][ value ][+] so the
-// control reads as one object instead of three scattered ones. That grouping was
-// the main thing wrong with the first pass -- the arrows sat at opposite ends of
-// the row with the value marooned between them.
-//------------------------------------------------------------------------------
-function Vector::menuItem(%x, %y, %w, %idx, %mx, %my, %label, %shown, %key, %step, %lo, %hi)
-{
-   // ★Compact by default.★ The first pass was mostly padding -- 30px rows, a
-   // 20px margin and a 118px value field on labels that are two words long. These
-   // are sized to the CONTENT: a 24px row still clears a 12px glyph with room to
-   // click, and the value field fits "TACTICAL AMBER", the longest string any row
-   // shows. Everything else is derived, so changing these four numbers rescales
-   // the panel coherently.
-   %rowH = 24;
-   %pad  = 14;
-   %bs   = 16;                       // stepper size
-   %vw   = 104;                      // value field
-
-   %bx = %x + %w - %pad - %bs;       // [+]
-   %vx = %bx - %vw;                  // value
-   %ax = %vx - %bs;                  // [-]
-   %by = %y + floor((%rowH - %bs) / 2);
-
-   %over = Vector::menuOver(%mx, %my, %x, %y, %w, %rowH);
-
-   if(%over)
-   {
-      // Accent wash that fades out to the right, plus a solid tick on the margin.
-      Vector::color($Vector::Primary, 55);
-      glGradientRect(%x + 2, %y, %w - 4, %rowH,
-                     getWord($Vector::Primary, 0), getWord($Vector::Primary, 1),
-                     getWord($Vector::Primary, 2), 0, "h");
-      Vector::color($Vector::Primary, 255);
-      glRectangle(%x + 2, %y + 4, 3, %rowH - 8);
-   }
-
-   %lc = $Vector::Text;
-   if(!%over) %lc = "150 165 180";
-
-   Vector::tt(%x + %pad, %y + 5, 200, %lc, %label, 245, 12, "l");
-   Vector::tt(%vx, %y + 5, %vw, $Vector::Accent, %shown, 255, 12, "c");
-
-   %d = 0;
-   if(Vector::menuStep(%ax, %by, %bs, "-", %mx, %my) == 1) %d = -%step;
-   if(Vector::menuStep(%bx, %by, %bs, "+", %mx, %my) == 1) %d = %step;
-
-   %cur = getVariable(%key);
-   if(%cur == "") %cur = %lo;
-
-   %isFont = 0;
-   if(%key == "pref::Vector::Font") %isFont = 1;
-   if(%isFont == 1)
-      %cur = Vector::fontIndex(%cur);
-
-   if(%d != 0)
-   {
-      %cur = %cur + %d;
-      if(%cur < %lo) %cur = %hi;
-      if(%cur > %hi) %cur = %lo;
-
-      if(%isFont == 1)
-         setVariable(%key, Vector::fontName(%cur));
-      else
-         setVariable(%key, %cur);
-
-      // Rows the engine only reads on CHANGE need a nudge; the rest are read per
-      // frame by the draw code and need nothing.
-      if(%key == "pref::Vector::Theme")       Vector::theme(%cur);
-      if(%key == "pref::Vector::WeaponAlpha") Vector::weapon();
-      if(%key == "pref::Vector::Minimap")     ModernHUDPack::stockHuds();
-      if(%key == "pref::Vector::MinimapOpacity") Vector::minimapAlpha();
-      if(%key == "pref::Vector::Reticle")     ModernHUDPack::stockHuds();
-   }
-
-   return %idx + 1;
-}
 
 //------------------------------------------------------------------------------
 // The panel.
@@ -1521,7 +1463,7 @@ function Vector::menuItem(%x, %y, %w, %idx, %mx, %my, %label, %shown, %key, %ste
 // element: it gets a solid near-black base, then a thin tint, so contrast comes
 // from the panel rather than from whatever happens to be behind it.
 //------------------------------------------------------------------------------
-function Vector::menuFrame(%x, %y, %w, %h, %head)
+function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
 {
    %theme = $pref::Vector::Theme;
 
@@ -1746,164 +1688,3 @@ function Vector::menuFrame(%x, %y, %w, %h, %head)
    glRectangle(%x + 3, %y + %head - 2, %w - 4, 2);
 }
 
-function Vector::menu(%screen)
-{
-   if($Config::HudListVisible != 1)
-   {
-      $Vector::MenuDown = "";
-      return;
-   }
-
-   %sw = getWord(%screen, 0);
-   %sh = getWord(%screen, 1);
-
-   // ★Reset the part scale before drawing ANYTHING.★ ModernHUD::part pushes a
-   // glPartScale for each part and it stays active until the end of the whole
-   // ScriptGL pass (ScriptGL_popPartScale, scriptGL.cpp:1546) -- so this menu,
-   // drawn after the last part, inherited that part's scale. Measured:
-   // $pref::hudScaleModernHUD::VectorItems = 1.1401 about origin (18,14) turned a
-   // panel at x=795 into one drawn at 18+(795-18)*1.1401 = 904, 490 wide, running
-   // off a 1265-wide screen -- and left every hit rect in unscaled coordinates
-   // while the pixels were scaled, which is where the pointer mismatch came from.
-   // glPartScale with scale 1 pops the active one and short-circuits before
-   // pushing (scriptGL.cpp:891), so this is an identity reset.
-   glPartScale(0, 0, 1);
-
-   %rows = 12;
-   %w    = 348;
-   %head = 34;
-   %foot = 34;
-   %h    = %head + %rows * 24 + %foot;
-
-   // ★Placed, then draggable.★ Default is right-aligned -- centre is where the
-   // reticle cluster lives, so the panel would cover the exact thing it
-   // configures. Drag the header to move it; the position persists like any other
-   // pref. Clamped every frame so a drag off-screen (or a resolution change) can
-   // never strand it somewhere unreachable.
-   %x = $pref::Vector::MenuX;
-   %y = $pref::Vector::MenuY;
-   if(%x == "") %x = %sw - %w - 40;
-   if(%y == "") %y = floor((%sh - %h) / 2);
-
-   // -- pointer, edge-detected -----------------------------------------------
-   %m   = glMousePos();
-   %mx  = getWord(%m, 0);
-   %my  = getWord(%m, 1);
-   %lmb = getWord(%m, 2);
-
-   $Vector::MenuClick = "";
-   if(%lmb == 1 && $Vector::MenuDown != 1)
-      $Vector::MenuClick = 1;
-   $Vector::MenuDown = %lmb;
-
-   // -- drag by the header ----------------------------------------------------
-   // Grab anywhere on the title bar. The grab OFFSET is stored, not the centre,
-   // so the panel does not jump under the cursor on the first frame.
-   if(%lmb != 1)
-      $Vector::Drag = "";
-   else if($Vector::Drag == 1)
-   {
-      %x = %mx - $Vector::DragDX;
-      %y = %my - $Vector::DragDY;
-   }
-   else if($Vector::MenuClick == 1 &&
-           Vector::menuOver(%mx, %my, %x, %y, %w, %head))
-   {
-      $Vector::Drag   = 1;
-      $Vector::DragDX = %mx - %x;
-      $Vector::DragDY = %my - %y;
-   }
-
-   // Clamp AFTER the drag so the header always stays grabbable.
-   if(%x < 0)            %x = 0;
-   if(%y < 0)            %y = 0;
-   if(%x > %sw - 60)     %x = %sw - 60;
-   if(%y > %sh - %head)  %y = %sh - %head;
-
-   $pref::Vector::MenuX = %x;
-   $pref::Vector::MenuY = %y;
-
-   // -- body / header ---------------------------------------------------------
-   Vector::menuFrame(%x, %y, %w, %h, %head);
-
-   %tw = Vector::ttWidth("VECTOR", 16);
-   Vector::tt(%x + 14, %y + 8, 200, $Vector::Primary, "VECTOR", 255, 16, "l");
-   // Baseline-aligned to the title, not top-aligned: the cap heights differ, so
-   // matching the tops leaves the smaller string floating.
-   Vector::tt(%x + 14 + %tw + 10, %y + 13, 200, "120 135 150", "HUD SETTINGS", 210, 10, "l");
-   Vector::tt(%x - 14, %y + 13, %w, "120 135 150", "K to close", 200, 10, "r");
-
-   // -- rows ------------------------------------------------------------------
-   %ry = %y + %head + 1;
-   %i  = 0;
-
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Colour theme",
-         Vector::themeName($pref::Vector::Theme), "pref::Vector::Theme", 1, 0, 13);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Reticle style",
-        Vector::reticleName($pref::Vector::Reticle), "pref::Vector::Reticle", 1, 0, 3);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Reticle size",
-        $pref::Vector::Scale @ " %", "pref::Vector::Scale", 5, 50, 300);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Weapon opacity",
-        $pref::Vector::WeaponAlpha @ " %", "pref::Vector::WeaponAlpha", 5, 0, 100);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Weapon cycle",
-        $pref::Vector::CycleMs @ " ms", "pref::Vector::CycleMs", 50, 200, 3000);
-   %ry = %ry + 24;
-   Vector::fontScan();
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "HUD font",
-        $pref::Vector::Font, "pref::Vector::Font", 1, 0, $Vector::FontCount - 1);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "HUD opacity",
-        $pref::Vector::Opacity @ " %", "pref::Vector::Opacity", 5, 20, 100);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Reticle opacity",
-        $pref::Vector::ReticleOpacity @ " %", "pref::Vector::ReticleOpacity", 5, 20, 100);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Minimap",
-        Vector::onOff($pref::Vector::Minimap), "pref::Vector::Minimap", 1, 0, 1);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Minimap shape",
-        Vector::shapeName($pref::miniMapSquare), "pref::miniMapSquare", 1, 0, 1);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Minimap opacity",
-        $pref::Vector::MinimapOpacity @ " %", "pref::Vector::MinimapOpacity", 5, 20, 100);
-   %ry = %ry + 24;
-   %i = Vector::menuItem(%x, %ry, %w, %i, %mx, %my, "Compass",
-        Vector::onOff($pref::miniMapCompass), "pref::miniMapCompass", 1, 0, 1);
-
-   // -- footer ----------------------------------------------------------------
-   %fy = %y + %h - %foot;
-   Vector::color($Vector::Primary, 70);
-   glRectangle(%x + 3, %fy, %w - 4, 1);
-
-   %bw = 118;
-   %bh = 18;
-   %bx = %x + 14;
-   %by = %fy + floor((%foot - %bh) / 2);
-   %over = Vector::menuOver(%mx, %my, %bx, %by, %bw, %bh);
-
-   if(%over)
-   {
-      Vector::color($Vector::Warn, 255);
-      glRectangle(%bx, %by, %bw, %bh);
-      Vector::tt(%bx, %by + 3, %bw, "16 20 24", "RESET DEFAULTS", 255, 10, "c");
-   }
-   else
-   {
-      Vector::color($Vector::Warn, 150);
-      glRectangle(%bx, %by, %bw, 1);
-      glRectangle(%bx, %by + %bh - 1, %bw, 1);
-      glRectangle(%bx, %by, 1, %bh);
-      glRectangle(%bx + %bw - 1, %by, 1, %bh);
-      Vector::tt(%bx, %by + 3, %bw, $Vector::Warn, "RESET DEFAULTS", 240, 10, "c");
-   }
-
-   if(%over && $Vector::MenuClick == 1)
-      Vector::defaults();
-
-   Vector::tt(%x - 14, %by + 5, %w, "90 105 118",
-              "drag title to move", 195, 9, "r");
-}

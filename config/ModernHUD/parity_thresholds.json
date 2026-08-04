@@ -1,0 +1,58 @@
+{
+  "_comment": [
+    "PHASE 5 acceptance thresholds. Numbers, not adjectives: the first review's",
+    "P2-3 point is that 'record the numbers' is not a gate, an allowed delta is.",
+    "A pack that cannot meet these is labelled partial/experimental in its",
+    "manifest rather than advertised as an identical conversion.",
+    "",
+    "The 2026-07-26 1094x846 captures are DIAGNOSTICS, not a baseline: they",
+    "report 99.87% and 99.94% changed pixels, which means the capture sequence",
+    "was broken (one side sat on a menu), not that the packs are 99% wrong."
+  ],
+
+  "capture": {
+    "resolutions": [[1920, 1080], [1024, 768], [1600, 900]],
+    "_resolutions_note": "authored 4:3 plus 16:9; add ultrawide when a tester has one",
+    "warmupFrames": 30,
+    "_warmup_note": "fonts and page textures must be resident before the shot, or the first frame diffs against itself",
+    "stableFrames": 5,
+    "_stable_note": "N identical consecutive frames before capturing, so animation never decides a result",
+
+    "preShotAssertions": [
+      "activeGui == 'playGui'",
+      "currentConfig == <the pack under test>",
+      "canvasSize == the requested resolution",
+      "serverTick / demo frame == the pinned value",
+      "cameraTransform == the pinned value"
+    ],
+    "maskedRegions": [
+      "fps counter", "match clock", "chat display", "kill feed",
+      "minimap contacts", "score digits that tick during capture"
+    ],
+    "_masked_note": "masked, not ignored: a diff INSIDE a mask is invisible, so masks stay as small as the moving text"
+  },
+
+  "visual": {
+    "maxChangedPixelsInsideDeclaredPart": 0.02,
+    "_inside_note": "2% absorbs antialiasing and font hinting, not a moved or missing element",
+    "maxChangedPixelsOutsideAnyDeclaredPart": 0.0,
+    "_outside_note": "ZERO by design. A pixel changing outside every declared part box means the pack draws where it did not declare, which is a finding in itself and the thing per-part thresholds cannot catch"
+  },
+
+  "performance": {
+    "_baseline": "the legacy config it converts, same scene, same resolution",
+    "maxModernHudCpuMsPerFrame": 1.5,
+    "maxTotalFrameTimeDeltaPct": 5.0,
+    "maxDrawCallDeltaPct": 10.0,
+    "maxRetainedControlDelta": 0,
+    "_controls_note": "a converted pack should retain FEWER controls than its legacy original, never more; >0 means a detach was missed",
+    "maxResourceGrowthBytesPerSwapCycle": 0
+  },
+
+  "lifecycle": {
+    "_comment": "counts must return to baseline after each cycle; a drift is a leak",
+    "cycles": ["A->B->A", "pack->default->pack", "menu open/close", "join/leave", "alt-tab", "resize"],
+    "trackedCounts": ["SimObject", "ModernHUD handles", "event handlers", "schedules", "mounted volumes"],
+    "maxDriftPerCycle": 0
+  }
+}

@@ -1,9 +1,11 @@
-$pref::hudPositionsToastyHUD::Container = "1044 503||1 1.00653 0";
+$pref::hudPositionsAmmoHUD::Container = "553 11||0.696195 0.019153 0";
+$pref::hudPositionsToastyHUD::Container = "954 298||1 1.00653 0";
 $pref::hudPositionsRadarRing::Container = "8 21||0.00558659 0.0241102 0";
 $pref::hudPositionsRadarOverlay::Container = "5 17||0.00351124 0.0196987 0";
-$pref::hudPositionsGSpeed::Container = "959 733||0.987642 0.836758 0";
-$pref::hudPositionsGHealth::Container = "886 73||1.00911 0.0836197 0";
-$pref::hudPositionsGEnergy::Container = "882 94||1.00227 0.107675 0";
+$pref::hudPositionsGSpeed::Container = "863 558||0.979569 0.831595 0";
+$pref::hudPositionsGHealth::Container = "805 56||1.02157 0.0838323 0";
+$pref::hudPositionsGEnergy::Container = "799 72||1.01139 0.107784 0";
 $pref::hudPositionsclock::Container = "171 4||0.11018 0.00347524 0";
 $pref::hudPositionsLegendzFPSHUD::Container = "27 3||0.0166052 0.00262009 0";
-$pref::hudPositionsChatOverlay::Container = "1 2||0.428839 0.0166359 0";
+$pref::hudPositionsCTFHUD::Container = "754 4||0.976684 0.00658979 0";
+$pref::hudPositionsChatOverlay::Container = "11 0||0.428839 0.0166359 0";

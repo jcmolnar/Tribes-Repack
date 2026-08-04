@@ -1,1 +1,0 @@
-xFont::LoadFonts();

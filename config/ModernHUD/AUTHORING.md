@@ -240,7 +240,8 @@ ModernHUD::setting(type, prefKey, label, default, spec, apply)
 | `apply` | console command run whenever the value CHANGES (may be `""`) |
 
 Declaring a setting gives you a row on **Options → Configs → `<Pack>` Settings**,
-and the value is captured by HUD presets. Prefs persist for free — the client's
+**and** a row in the in-game **K menu** (§8) — one declaration, both surfaces, and
+no menu code to write. The value is captured by HUD presets. Prefs persist for free — the client's
 exit-time `export("pref::*")` sweep saves every `$pref::`, so a pack never needs
 `export()` (which the format forbids anyway).
 
@@ -397,42 +398,59 @@ do **not** exist in the browser client, so a pack meant for both cannot use them
 
 ---
 
-## 8. Building an interactive panel (the K menu pattern)
+## 8. The K menu — you get it for free
 
-A pack can own the `K` key and draw its own settings UI. This is the recommended
-way to expose settings, because Options → Configs is three navigations deep and
-players do not find it.
+**Do not write a settings panel.** The framework owns one, it is drawn for every
+pack, and its rows ARE your `ModernHUD::setting` registry (section 4). Declare
+settings and a player can change them in game, on the key they already press.
+
+This was Vector's hand-written panel — 250 lines of drag, hit-test and stepper
+code that only one pack had, driving rows that duplicated the registry by hand.
+It now lives in `Framework.cs` (`ModernHUD::menu`) and every pack shares it.
+
+**What you get without writing anything:**
+
+- a draggable, clamped panel on `K`, drawn over the HUD it configures
+- one row per registered setting, `[-][ value ][+]`, wrapping enums / clamping ints
+- **HUD opacity** and **HUD size** rows, supplied by the framework, that scale
+  every part drawn through `ModernHUD::part` / `imageRect` / `bar` / `markup` /
+  `digitsBox`
+- RESET DEFAULTS, restoring every row to the default your pack declared
+- paging when the rows outnumber the screen
+
+**What you may override, and nothing else:**
 
 ```
-$Config::HudListOwned = 1;        // claim the key; stock hud list stays hidden
+// Palette — set these from your theme; unset means the framework's blue.
+$ModernHUD::MenuPrimary = "0 200 255";
+$ModernHUD::MenuDim     = "0 62 78";
+$ModernHUD::MenuAccent  = "255 190 60";
+$ModernHUD::MenuText    = "235 245 255";
+$ModernHUD::MenuWarn    = "255 60 60";
+$ModernHUD::MenuTitle   = "VECTOR";      // heading; defaults to the pack id
+$ModernHUD::MenuFont    = "Verdana";     // any face glFontExists() confirms
+
+// Decline a framework row you already provide. Two controls scaling the same
+// pixels is worse than none.
+$ModernHUD::OwnOpacity = 1;
+$ModernHUD::OwnScale   = 1;
+
+// Your own panel chrome, if the default frame is not your look.
+function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head) { ... }
+
+// Extra work RESET DEFAULTS cannot know about (engine prefs you drive, a
+// derived palette). Called after the rows are restored.
+function ModernHUDPack::menuReset() { ... }
 ```
 
-The engine publishes `$Config::HudListVisible` (`"1"`/`"0"`) on every K press. In
-your draw:
+`$Config::HudListOwned` is set for you as soon as you register your first row,
+and cleared on unload. A pack that registers no settings still gets the two
+framework rows; the stock hud list is never shown for a master pack.
 
-```
-if($Config::HudListVisible != 1) return;
-glPartScale(0, 0, 1);             // MANDATORY -- see the note in section 3
-
-%m   = glMousePos();
-%mx  = getWord(%m, 0);
-%my  = getWord(%m, 1);
-%lmb = getWord(%m, 2);
-
-// edge-detect, or a held button fires sixty times a second
-$Pack::Click = "";
-if(%lmb == 1 && $Pack::Down != 1) $Pack::Click = 1;
-$Pack::Down = %lmb;
-```
-
-Hit-test against the same rectangles you drew, in the same surface pixels. For
-dragging, store the grab **offset** rather than recentering on the cursor, and
-clamp after the drag so the panel can never be moved somewhere unreachable.
-
-A pack that does not set `$Config::HudListOwned` is unaffected — the stock hud
-list behaves exactly as before.
-
----
+**Applies are not yours to run.** The native watcher
+(`modernHudPacks.cpp MHSettings_tick`) notices any registered pref changing and
+runs that row's apply command — the same path the Options page uses. Running it
+from a menu handler as well double-fires every one.
 
 ## 9. How it works underneath
 

@@ -451,19 +451,21 @@ function ModernHUDPack::stockHuds()
    // ★The WHOLE set, not just the ones we want on.★ Stock visibility is global
    // client state; a pack that lists only its own leaves the rest wherever the
    // previous pack put them -- a measured defect, not a hypothetical.
+   // ModernHUD::stock is Control::SetVisible with a player row in front of it:
+   // the value here is this pack's DEFAULT, and the K panel's row overrides it.
    Control::SetVisible(crosshairHud,   true);
-   Control::SetVisible(chatDisplayHud, true);
-   Control::SetVisible(Minimap,        true);
-   // ★Left ON deliberately.★ Vantage has no clock part -- a real match clock
+   ModernHUD::stock(chatDisplayHud, true);
+   ModernHUD::stock(Minimap,        true);
+   // ★Defaulted ON deliberately.★ Vantage has no clock part -- a real match clock
    // needs its own data layer (gameclock.acs.cs maintains $clock::* off a
    // server message), and shipping a part that silently draws nothing is worse
    // than shipping none. The stock clock is a working clock; use it.
-   Control::SetVisible(clockHud,       true);
-   Control::SetVisible(healthHud,      false);
-   Control::SetVisible(jetPackHud,     false);
-   Control::SetVisible(weaponHud,      false);
-   Control::SetVisible(compassHud,     false);
-   Control::SetVisible(sensorHUD,      false);
+   ModernHUD::stock(clockHud,       true);
+   ModernHUD::stock(healthHud,      false);
+   ModernHUD::stock(jetPackHud,     false);
+   ModernHUD::stock(weaponHud,      false);
+   ModernHUD::stock(compassHud,     false);
+   ModernHUD::stock(sensorHUD,      false);
 }
 
 function ModernHUDPack::detachRetained()

@@ -3,11 +3,14 @@
   "framework": 2,
   "id": "vantage",
   "name": "Vantage",
+  "category": "original",
+  "releaseState": "partial",
   "authoring": "manual",
-  "reference": { "width": 1920, "height": 1080 },
-
+  "reference": {
+    "width": 1920,
+    "height": 1080
+  },
   "assets": {},
-
   "prefs": {
     "$pref::miniMapSquare": "True",
     "$pref::miniMapWidth": "180",
@@ -15,30 +18,79 @@
     "$pref::miniMapRotate": "False",
     "$pref::miniMapCompass": "True"
   },
-
   "stockHuds": [
-    { "name": "crosshairHud",   "class": "FearGui::Crosshair",          "visible": true  },
-    { "name": "chatDisplayHud", "class": "FearGui::FearGuiChatDisplay", "visible": true  },
-    { "name": "Minimap",        "class": "FearGui::Minimap",            "visible": true  },
-    { "name": "clockHud",       "class": "FearGui::ClockHud",           "visible": true  },
-    { "name": "healthHud",      "class": "FearGui::HealthHud",          "visible": false },
-    { "name": "jetPackHud",     "class": "FearGui::JetHud",             "visible": false },
-    { "name": "weaponHud",      "class": "FearGui::WeaponHud",          "visible": false },
-    { "name": "compassHud",     "class": "FearGui::CompassHud",         "visible": false },
-    { "name": "sensorHUD",      "class": "FearGui::SensorHud",          "visible": false }
+    {
+      "name": "crosshairHud",
+      "class": "FearGui::Crosshair",
+      "visible": true
+    },
+    {
+      "name": "chatDisplayHud",
+      "class": "FearGui::FearGuiChatDisplay",
+      "visible": true
+    },
+    {
+      "name": "Minimap",
+      "class": "FearGui::Minimap",
+      "visible": true
+    },
+    {
+      "name": "clockHud",
+      "class": "FearGui::ClockHud",
+      "visible": true
+    },
+    {
+      "name": "healthHud",
+      "class": "FearGui::HealthHud",
+      "visible": false
+    },
+    {
+      "name": "jetPackHud",
+      "class": "FearGui::JetHud",
+      "visible": false
+    },
+    {
+      "name": "weaponHud",
+      "class": "FearGui::WeaponHud",
+      "visible": false
+    },
+    {
+      "name": "compassHud",
+      "class": "FearGui::CompassHud",
+      "visible": false
+    },
+    {
+      "name": "sensorHUD",
+      "class": "FearGui::SensorHud",
+      "visible": false
+    }
   ],
-
   "parts": [
     {
       "id": "vitals",
       "slot": "healthenergy",
       "handle": "ModernHUD::VantageVitals",
       "anchor": "bottom-center",
-      "offset": [0, 96],
-      "size": [260, 22],
+      "offset": [
+        0,
+        96
+      ],
+      "size": [
+        260,
+        22
+      ],
       "elements": [
-        { "type": "script", "at": [0, 0], "from": "Vantage::Vitals",
-          "body": ["Vantage::Vitals(%x, %y, %partW);"] }
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::Vitals",
+          "body": [
+            "Vantage::Vitals(%x, %y, %partW);"
+          ]
+        }
       ]
     },
     {
@@ -46,11 +98,26 @@
       "slot": "weapon",
       "handle": "ModernHUD::VantageWeapon",
       "anchor": "bottom-right",
-      "offset": [18, 96],
-      "size": [220, 34],
+      "offset": [
+        18,
+        96
+      ],
+      "size": [
+        220,
+        34
+      ],
       "elements": [
-        { "type": "script", "at": [0, 0], "from": "Vantage::Weapon",
-          "body": ["Vantage::Weapon(%x, %y, %partW);"] }
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::Weapon",
+          "body": [
+            "Vantage::Weapon(%x, %y, %partW);"
+          ]
+        }
       ]
     },
     {
@@ -58,11 +125,26 @@
       "slot": "ctf",
       "handle": "ModernHUD::VantageCtf",
       "anchor": "top-center",
-      "offset": [0, 14],
-      "size": [420, 34],
+      "offset": [
+        0,
+        14
+      ],
+      "size": [
+        420,
+        34
+      ],
       "elements": [
-        { "type": "script", "at": [0, 0], "from": "Vantage::Ctf",
-          "body": ["Vantage::Ctf(%x, %y, %partW);"] }
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::Ctf",
+          "body": [
+            "Vantage::Ctf(%x, %y, %partW);"
+          ]
+        }
       ]
     },
     {
@@ -70,15 +152,29 @@
       "slot": "items",
       "handle": "ModernHUD::VantageItems",
       "anchor": "top-left",
-      "offset": [18, 14],
-      "size": [150, 56],
+      "offset": [
+        18,
+        14
+      ],
+      "size": [
+        150,
+        56
+      ],
       "elements": [
-        { "type": "script", "at": [0, 0], "from": "Vantage::Items",
-          "body": ["Vantage::Items(%x, %y, %partW);"] }
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::Items",
+          "body": [
+            "Vantage::Items(%x, %y, %partW);"
+          ]
+        }
       ]
     }
   ],
-
   "adapters": [
     {
       "part": "scoreboard",

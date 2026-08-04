@@ -1,1 +1,0 @@
-Exported game stat files are stored in this directory
