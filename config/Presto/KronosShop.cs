@@ -61,13 +61,41 @@ function remoteKShopClose(%server)
 		KronosInput::blur();
 }
 
-// Coin balances for bank mode pane headers (carried / banked)
-function remoteKBankCoins(%server, %coins, %bank)
+// Build the exact display value from int32-safe million chunks and remainder.
+function KronosShop::formatBankParts(%chunks, %remainder)
+{
+	%chunks = floor(%chunks);
+	%remainder = floor(%remainder);
+	if(%chunks <= 0)
+		return KronosShop::commafy(%remainder);
+
+	%tail = %remainder @ "";
+	while(String::len(%tail) < 6)
+		%tail = "0" @ %tail;
+	return KronosShop::commafy(%chunks) @ "," @
+		String::getSubStr(%tail, 0, 3) @ "," @ String::getSubStr(%tail, 3, 3);
+}
+
+// Coin balances for bank mode pane headers (carried / banked). Bank data is
+// packed as "millionChunks remainder" so no >int32 value crosses remoteEval.
+function remoteKBankCoins(%server, %coins, %bankParts)
 {
 	if(%server != 2048)
 		return;
 	$KS::coins = %coins;
-	$KS::bank = %bank;
+	%chunks = GetWord(%bankParts, 0);
+	%remainder = GetWord(%bankParts, 1);
+	$KS::bankText = KronosShop::formatBankParts(%chunks, %remainder);
+
+	// The amount field remains int32-safe. With a multi-million-chunk bank,
+	// withdrawal is limited only by the carried-coin headroom.
+	%headroom = 2000000000 - floor(%coins);
+	if(%headroom < 0)
+		%headroom = 0;
+	if(%chunks > 0 || %remainder > %headroom)
+		$KS::bankWithdrawMax = %headroom;
+	else
+		$KS::bankWithdrawMax = %remainder;
 }
 
 // Own inventory row. %kind: "d" = ItemData (%ref = index, stock
@@ -293,7 +321,7 @@ function KronosShop::render(%dimensions)
 	if($KS::open == "bank")
 	{
 		KronosShop::renderPane("inv", $KSL::lx, $KSL::ly, "Your Items   " @ $KS::cGold @ "Coins: " @ $KS::cGreen @ "$" @ KronosShop::commafy($KS::coins));
-		KronosShop::renderPane("st", $KSL::rx, $KSL::ry, "Bank Storage   " @ $KS::cGold @ "Bank: " @ $KS::cGreen @ "$" @ KronosShop::commafy($KS::bank));
+		KronosShop::renderPane("st", $KSL::rx, $KSL::ry, "Bank Storage   " @ $KS::cGold @ "Bank: " @ $KS::cGreen @ "$" @ $KS::bankText);
 	}
 	else
 	{
@@ -1123,7 +1151,10 @@ function KronosShop::doAction(%act)
 	}
 	if(%verb == "wdcoins")
 	{
-		KronosShop::beginBankAmt("wdcoin", "", $KS::bank, "Withdraw " @ $KS::cGold @ "Coins");
+		// The server computes the exact int32-safe wallet headroom. Do not send a
+		// displayed/chunked bank value through the numeric amount modal.
+		remoteEval(2048, KBWAll);
+		schedule("remoteEval(2048, KShopSync);", 0.5);
 		return;
 	}
 	if(%verb == "withdraw")
@@ -1491,7 +1522,8 @@ $KS::scroll[st] = 0;
 $KS::visible[inv] = 0;
 $KS::visible[st] = 0;
 $KS::coins = 0;
-$KS::bank = 0;
+$KS::bankText = "0";
+$KS::bankWithdrawMax = 0;
 $KS::amtOp = "";
 $KS::amtRef = "";
 $KS::amtMax = 0;

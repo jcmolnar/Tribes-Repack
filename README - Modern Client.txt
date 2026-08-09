@@ -109,7 +109,20 @@ delete  config\play.gui  -- a fresh one is created next launch.
  HOSTING A SERVER
 -------------------------------------------------------------
 
-  Host Server.bat  -- starts a dedicated server.
+  TribesHost.exe  -- everything in one window. Start here.
+  (Host Server.bat opens the same tool.)
+
+Pick a profile (Base Tribes, Tribes RPG, or Red Moon RPG),
+pick a map, type a server name, press Start. TribesHost
+writes the same config files listed below, launches the
+dedicated server, and keeps it running: if the server
+crashes it restarts it after 5 seconds, and if it keeps
+crashing it STOPS and shows a red crash-loop warning with
+the log, instead of hiding the problem behind endless
+restarts. It also shows live status -- players, current
+map, uptime, restart count -- and has one-click buttons
+for the Windows Firewall rule and a UPnP router
+port-forward.
 
 WHAT YOU CAN HOST
   Base Tribes and the mods that ship with server settings in
@@ -124,38 +137,34 @@ WHAT YOU CAN HOST
   live, persistent server -- its world, characters and
   server-side systems live there, not in this package. What
   ships here is the client side plus the underlying Tribes
-  RPG mod, so selecting "-mod rpg" and hosting gives you a
+  RPG mod, so hosting the Tribes RPG profile gives you a
   plain Tribes RPG server of your own, NOT a copy of Kronos.
   To play Kronos, just join it from the server browser.
 
-TO START ONE
+THE OLD WAY (still works)
   1. Pick the mod in modlist.txt, exactly as for playing.
-  2. Set your server name and port in config\ServerPrefs.cs.
-  3. Run Host Server.bat.
+  2. Set your server name and port in config\ServerPrefs.cs
+     (base) or config\rpgserv.cs / rmrpgserv.cs (RPG mods).
+  3. Run:  InfiniteSpawn.exe *ModernTribes.exe -dedicated
 
-The launcher runs the client through InfiniteSpawn.exe, which
-restarts the server automatically if it ever crashes. To start
-one by hand, note the '*' prefix -- that is how InfiniteSpawn
-is told which program to launch, so keep it:
+  InfiniteSpawn restarts a crashed server, but silently --
+  a crash-looping server can look like a healthy one, so
+  check its restart counter and console.log before calling
+  a test clean. TribesHost edits the same files as this
+  path, so the two stay in sync.
 
-  InfiniteSpawn.exe *ModernTribes.exe -dedicated
-
-IMPORTANT: because a crashed server is restarted for you, a
-server that is crash-looping can look like a healthy one.
-Before you call a test clean, check InfiniteSpawn's restart
-counter and read console.log.
-
-Server settings, in the config folder:
+Server settings, in the config folder (TribesHost edits
+these for you; hand-editing still works):
 
   config\ServerPrefs.cs
       Server name, port, maximum players, and the general
-      engine defaults. Start here.
+      engine defaults for base Tribes hosting.
 
   config\rpgserv.cs
       Tribes RPG server settings (default port 28001).
       Admin login requires ALL FIVE $AdminPassword slots to
-      be filled -- they ship blank, which means admin is
-      disabled until you set them.
+      be filled -- TribesHost fills all five from its Admin
+      password box. They ship blank (admin disabled).
 
   config\rmrpgserv.cs
       Red Moon server settings (default port 28002).
@@ -163,12 +172,15 @@ Server settings, in the config folder:
       before hosting publicly. Become admin in game with:
           SAD("yourpassword");
 
-Hosting from home: forward the UDP port your server uses in
-your router. Your server announces itself to the public
-Tribes master list; set $Server::HostPublicGame = "false" in
-config\ServerPrefs.cs if you would rather keep it private.
+Hosting from home: your router must forward the server's
+UDP port to this PC. TribesHost's "Forward port on router
+(UPnP)" button does this automatically if your router
+allows it, and "Allow in Windows Firewall" opens the port
+locally. Your server announces itself to the public Tribes
+master list unless you untick "Public server".
 
-Console output goes to console.log in this folder.
+Console output goes to console.log in this folder (also
+shown live at the bottom of TribesHost).
 
 
 -------------------------------------------------------------
@@ -179,6 +191,9 @@ The client keeps itself up to date. It checks at startup and,
 when a new build is out, offers to download only the files
 that actually changed -- each one hash-verified. You never
 need to re-download the whole package by hand.
+
+If you host with TribesHost, close it before applying an
+update so its own file can be replaced.
 
 News and downloads:  kingdomofkronos.com/beta
 
@@ -221,5 +236,12 @@ playing or hosting, and console.log from this folder.
   Community repack lineage (r1-41)  phantom
   Native client rebuild, Kronos
   HUD, and this package ........... Jobo
+
+Upscaled textures in this package were produced with the
+4xNomos8kDAT model by Philip Hofmann (Phhofm), used under
+CC BY 4.0:
+
+  https://huggingface.co/Phips/4xNomos8kDAT
+  https://creativecommons.org/licenses/by/4.0/
 
 Starsiege: TRIBES (c) 1998 Sierra On-Line / Dynamix.

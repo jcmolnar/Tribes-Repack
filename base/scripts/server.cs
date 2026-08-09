@@ -144,6 +144,13 @@ function createServer(%mission, %dedicated)
 	exec(Mine);
 	exec(AI);
 	exec(InteriorLight);
+
+   // NATIVE-PORT (SpoonBot phase 1): this placement is load-bearing in BOTH directions --
+   // AFTER exec(AI) above, so the payload's AI::* definitions win the last-wins addFunction
+   // race (consoleInternal.cpp:695); and BEFORE preloadServerDataBlocks() below, because the
+   // payload declares 5 datablocks (SoundBotRepairItem + 4x TreePoint*). Inert at 0.
+   if($Server::SpoonBots == 1 && $Server::BotBrain != 1)
+      exec("spoonbot\\spoonbot_load.cs");
    
    Server::storeData();
 
@@ -322,6 +329,13 @@ function Server::finishMissionLoad()
    // mission AND on every change. Inert unless $Apoc::autoRun is set (config\apocalypse.cs).
    if($Apoc::autoRun == 1)
       schedule("Apoc::autoStart();", 5);
+
+   // NATIVE-PORT (SpoonBot phase 2): same rationale as the Apoc hook above -- this is the only
+   // point that survives a mission CHANGE, because Server::loadMission deletes and re-creates
+   // ConsoleScheduler (:259/:268) and discards anything scheduled earlier. Phase 1 only DEFINED
+   // the payload; this initialises it per mission. MissionStart self-gates on $matchStarted.
+   if($Server::SpoonBots == 1 && $Server::BotBrain != 1)
+      schedule("SpoonBot::MissionStart();", 5);
 
    return "True";
 }

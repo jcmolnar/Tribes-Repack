@@ -36,6 +36,17 @@ $Server::MinVotesPct = 0.5;
 $Server::VoteFailTime = 30; // 30 seconds if your vote fails + $Server::MinVoteTime
 
 $Server::TourneyMode = false;
+
+// NATIVE-PORT (SpoonBot): default OFF. $Server:: not $pref:: -- export("pref::*")
+// sweeps the whole namespace at exit and would persist this into every install.
+// Takes effect on the NEXT createServer, i.e. a server restart, not a mission change.
+$Server::SpoonBots = 0;
+
+// NATIVE-PORT (Track C4): route bots over the native nav graph
+// (config\nav\<mission>.nav)
+// instead of SpoonBot treefiles. DEFAULT OFF -- Track A is unchanged unless this is set,
+// and with it off not one line of hooks_nav.cs is even exec'd. Requires SpoonBots = 1.
+$Server::SpoonBotsNativeNav = 0;
 $Server::TeamDamageScale = 0;
 
 $Server::Info = "Default TRIBES server setup\nAdmin: Unknown\nEmail: Unknown";

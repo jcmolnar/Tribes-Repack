@@ -10,7 +10,7 @@
 // That ordering is the whole point: these values must win over the saved prefs, because the saved
 // prefs are the problem.
 //
-// ★NOT included here: diagnostics.★ $pref::srvProfLog, ghostSkipDiag, frameProfile and hitchMs
+// ???NOT included here: diagnostics.??? $pref::srvProfLog, ghostSkipDiag, frameProfile and hitchMs
 // stay OFF by default -- they exist to be switched on for a measured run. Apocalypse still sets
 // those itself and clears them afterward.
 //
@@ -29,7 +29,7 @@
 // often a CLIENT sends its own moves and acks (gPacketSendTime, netPacketStream.cpp:361), so 96
 // means input leaves the client about ten times a second, which is felt directly as lag.
 //
-// ★These are NEGOTIATED, and the receiver takes the conservative side★ -- max(updateDelay), i.e.
+// ???These are NEGOTIATED, and the receiver takes the conservative side??? -- max(updateDelay), i.e.
 // the lower rate, and min(packetSize) (netPacketStream.cpp:365-368). So raising the server alone
 // achieves nothing if the client is still on modem values, and vice versa. Both ends need it,
 // which is why this lives in a file both ends exec.
@@ -55,7 +55,7 @@ if($pref::netKeepSaved != 1 && $pref::netFloorApplied != 1)
 // 2. AI OBSTACLE TRAVERSAL.
 //
 // jetTowardLoc/JetSkill were complete in aiObj.cpp but compiled out behind _JETNAVDEV_, which was
-// defined nowhere. ★There is no navigation graph in ANY Tribes build★ -- aiGraph.cpp sits behind
+// defined nowhere. ???There is no navigation graph in ANY Tribes build??? -- aiGraph.cpp sits behind
 // INCLUDE_AI_GRAPH_CODE (defined nowhere) and the shipped 1.40 binary has no Graph symbols
 // either, so bots steer in straight lines and grind into walls. Jet nav is the only mitigation
 // the engine has.
@@ -103,7 +103,7 @@ if($pref::aiScanPerTick == "") { $pref::aiScanPerTick = 4; }
 // with no manual step. Defaults are the PLAYABLE ones: 15 bots, stock movement and projectile
 // speed, infinite ammo/energy, faster target acquisition.
 //
-// ★Comments live OUTSIDE the braced block, and the block ECHOES.★ The first version buried a
+// ???Comments live OUTSIDE the braced block, and the block ECHOES.??? The first version buried a
 // 15-line comment inside `if($dedicated) { ... }` and the block silently did not run -- no error,
 // no banner, and auto-start never fired while the file's closing echo still printed, so it looked
 // like it had worked. Keep the body to statements, and keep the proof-of-execution echo.
@@ -114,7 +114,7 @@ if($dedicated)
 {
    $pref::consoleLogBuffer = 0;
    exec("apocalypse.cs");
-   // ★Assigned, not defaulted.★ `if($Apoc::autoRun == "")` does not work here: exec'ing the
+   // ???Assigned, not defaulted.??? `if($Apoc::autoRun == "")` does not work here: exec'ing the
    // harness runs Apoc::defaults(), which has already set it to "0", so the empty-test never
    // matches and auto-run stayed off while the banner happily reported success. Edit this line
    // to 0 for a plain dedicated server with no bots.
@@ -166,6 +166,41 @@ if($pref::OOBGridSpacing == "")      { $pref::OOBGridSpacing = 32; }
 if($pref::OOBGridColor == "")        { $pref::OOBGridColor = "0.3 0.3 0.6"; }
 if($pref::OOBGridHue == "")          { $pref::OOBGridHue = 240; }
 if($pref::OOBGridColorOutside == "") { $pref::OOBGridColorOutside = "1 0 0"; }
+
+//====================================================================================
+// DIAGNOSTIC-PREF RESET.
+//
+// WHY THIS EXISTS. Measured 2026-08-05 on a bot server: $pref::fireDiag had been left on
+// since a projectile-origin hunt on 2026-07-28 and was writing 3 lines PER SHOT. With
+// $Console::logMode 1 -- which a dedicated server sets, and which OPENS AND CLOSES the log
+// file on every single line -- ten bots in combat drove msPerFrame to 132.25 (7.5 fps) on
+// a 32 ms tick. Clearing it took the same server to 3.91 ms/frame. A 34x swing from one
+// forgotten debug flag.
+//
+// It is not a one-off. export("pref::*", "config\ClientPrefs.cs") at exit sweeps the WHOLE
+// namespace, so every diagnostic anyone ever enables is persisted forever and silently.
+// Ten of them were found on at once. The cost is invisible in normal play -- one human
+// shooting occasionally -- and only shows up under sustained load, which is exactly what
+// bots produce.
+//
+// So: force them OFF at boot. This runs from autoexec.cs AFTER ClientPrefs has loaded, and
+// assigns unconditionally, so it beats any persisted value. Enable a diagnostic at RUNTIME
+// while you need it; do not rely on it surviving a restart. To keep one across restarts,
+// remove it from this list rather than fighting the mechanism.
+//
+// Escape hatch: set $DiagReset::skip = 1 before autoexec runs to disable the whole block.
+//====================================================================================
+if($DiagReset::skip != 1) {
+	$DiagReset::list = "fireDiag frameProfile heapDiag aiTaskDiag mouseDiag netTimeoutDiag playerPreviewDiag uiBtnDiag uiRectDiag localSkinDebug uiThemeCoverageDiag ghostSkipDiag srvProfLog allocProfile";
+	$DiagReset::n = 0;
+	for(%i = 0; (%dg = getWord($DiagReset::list, %i)) != -1; %i++) {
+		if($pref::[%dg] != "" && $pref::[%dg] != "0") {
+			echo("[DIAGRESET] $pref::" @ %dg @ " was " @ $pref::[%dg] @ " -- forcing 0 (see nativeDefaults.cs)");
+			$DiagReset::n = $DiagReset::n + 1;
+		}
+		$pref::[%dg] = "0";
+	}
+}
 
 //====================================================================================
 // PROTECTED-PREFS SNAPSHOT (paired with the restore at the END of autoexec.cs).
