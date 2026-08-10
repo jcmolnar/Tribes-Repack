@@ -3,23 +3,72 @@ $curVoteAction = "";
 $curVoteOption = "";
 $curVoteCount = 0;
 
+// NATIVE-PORT (player report: "the list is 30+ long and doesn't let you click past ~12").
+//
+// This menu listed EVERY mission type in one shot. Stock never had to page it because stock
+// shipped a handful of types; a repack registers one type per map pack, so this is 30+ rows.
+// Two things break at that length, and both come from the same place -- a menu row's HOTKEY IS
+// THE FIRST CHARACTER OF ITS LABEL (ChatMenu::addMenuString, chatmenu.cpp):
+//
+//   * from row 10 on, "10Open Call" hands the engine key '1' -- already taken by row 1 -- and
+//     leaks the rest of the number into the visible text ("0Open Call", "1Football", ...).
+//     addMenuString REJECTS the duplicate, so those rows have no working key at all.
+//   * the client draws every row it is sent, so the list runs off the bottom of the screen,
+//     and the rows past the panel are unreachable by mouse as well.
+//
+// The fix is the one the sibling function below already uses for the MISSION list: 7 per page
+// plus a "More types..." row, which keeps every page inside keys 1-8 and inside the screen.
+// changeMissionTypePage is separate from changeMissionMenu on purpose -- processMenuOptions
+// calls Admin::changeMissionMenu(%clientId, %opt == "cmission") with a BOOLEAN second argument,
+// so this function's second parameter could not be reused as a page offset.
 function Admin::changeMissionMenu(%clientId)
 {
+   Admin::changeMissionTypePage(%clientId, 0);
+}
+
+function Admin::changeMissionTypePage(%clientId, %first)
+{
+   if(%first == "")
+      %first = 0;
+
    Client::buildMenu(%clientId, "Pick Mission Type", "cmtype", true);
-   %index = 1;
 	//DEMOBUILD - the demo build only has one "type" of missions
 	if ($MList::TypeCount < 2) $TypeStart = 0;
 	else $TypeStart = 1;
+
+   // %eligible counts non-Training types (what the player sees), %shown counts rows placed
+   // on THIS page. Paging has to key off the eligible count, not %type, or a page boundary
+   // that lands on a Training entry would silently drop or repeat a row.
+   %eligible = 0;
+   %shown = 0;
    for(%type = $TypeStart; %type < $MLIST::TypeCount; %type++)
       if($MLIST::Type[%type] != "Training")
       {
-         Client::addMenuItem(%clientId, %index @ $MLIST::Type[%type], %type @ " 0");
-         %index++;
+         if(%eligible >= %first)
+         {
+            if(%shown > 6)
+            {
+               Client::addMenuItem(%clientId, %shown+1 @ "More types...", "more " @ %eligible);
+               break;
+            }
+            Client::addMenuItem(%clientId, %shown+1 @ $MLIST::Type[%type], %type @ " 0");
+            %shown = %shown + 1;
+         }
+         %eligible = %eligible + 1;
       }
 }
 
 function processMenuCMType(%clientId, %options)
 {
+   // "More types..." from the page above -- next page of the TYPE list. (The mission list has
+   // its own "more", handled in processMenuCMission; the two never collide because each menu
+   // is processed by its own function.)
+   if(getWord(%options, 0) == "more")
+   {
+      Admin::changeMissionTypePage(%clientId, getWord(%options, 1));
+      return;
+   }
+
    %curItem = 0;
    %option = getWord(%options, 0);
    %first = getWord(%options, 1);

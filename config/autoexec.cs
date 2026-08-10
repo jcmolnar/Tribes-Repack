@@ -144,6 +144,42 @@ exec("Presto\\KronosStats.cs");
 // 's'), so Presto's own toggle never worked. Set the variable the gate actually reads.
 $PrestoPrefs::ShowPackStatus = false;
 
+// ---- AIM-LATENCY DIAGNOSTICS (temporary, 2026-08-09) ---------------------------------
+// Armed here rather than in ServerPrefs.cs on purpose: that file is rewritten on every
+// quit AND ships in the updater manifest, so edits there get clobbered or trigger repair
+// prompts. This file is a user hook and survives.
+//
+// Both are SERVER-side -- they are read in Player::serverUpdateMove, which only runs in
+// the process that is HOSTING. Setting them in a client you are merely playing in does
+// nothing. Both are scoped to humans (never bots) and summarised at 1 Hz.
+//
+//   moveDropDiag -- one heartbeat line a second:
+//     [MOVEDROP] peakDebt=2/5 moves=31 | dropped=0 in 0 overflow(s), 0.0 deg yaw lost
+//     peakDebt is the number that matters. The server discards moves above 5, and those
+//     moves were ALREADY ACKED, so their rotation is lost and the view snaps back by that
+//     much. Peak 1-2 = smooth delivery, loss impossible on this path. Peak 6+ = bursts
+//     are arriving and rotation IS being thrown away.
+//   aimLagDiag   -- prints the measured aim correction, in degrees, per shot.
+//
+// DELETE THIS BLOCK when the investigation is done. Neither costs anything when the
+// server is idle, but they are probes, not features.
+$pref::moveDropDiag = 1;
+$pref::aimLagDiag   = 1;
+
+// viewSnapDiag is CLIENT-side -- it is read in Player::readPacketData, which only the process
+// you PLAY in reaches. Harmless here: the dedicated server execs the same file and simply never
+// hits that code. This is the one that measures the SNAP ITSELF rather than a cause:
+//   [VIEWSNAP] 12 corrections/s: worst yaw=118.4 pitch=3.1 deg, avg yaw=1.20 deg
+// A few degrees of "worst" is ordinary staleness that the move replay puts back. A worst yaw in
+// the tens or hundreds is the snapback, and if it lands in the same second as a [MOVEDROP]
+// overflow on the server, the two are the same event.
+$pref::viewSnapDiag = 1;
+
+// NOT enabling $pref::viewLagDiag: it measures how far the camera LEADS, which is a different
+// question and would add per-turn noise. $pref::aimLagFix and $pref::viewLag both already
+// default ON in code, so nothing needs setting for the fixes themselves.
+// --------------------------------------------------------------------------------------
+
 // PROTECTED-PREFS RESTORE -- paired with the snapshot at the end of
 // nativeDefaults.cs (the first exec above). Everything between there and here
 // runs AFTER the player's ClientPrefs, so any script in that chain that writes

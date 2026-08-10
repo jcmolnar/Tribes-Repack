@@ -396,7 +396,14 @@ function KronosMenu::handleClick(%x, %y)
 		&& %y >= $KML::menuRowY0)
 	{
 		%row = floor((%y - $KML::menuRowY0) / $KML::rowH);
-		if(%row < $KM::count && %row < $KM::MaxZones)
+		// $KM::MaxZones (15) used to gate this as well, and it was simply wrong: the
+		// renderer draws, tints and HOVER-HIGHLIGHTS all $KM::count rows, so on a long
+		// menu (a repack's 30+ mission types) rows 16+ lit up under the cursor and then
+		// swallowed the click. $KM::count is the real bound and the loop above already
+		// applies it. Rows drawn past the bottom of the screen are still unreachable --
+		// that is a paging problem, fixed at the source in base\scripts\admin.cs, which
+		// now sends the mission-type list 7 at a time like the mission list always has.
+		if(%row < $KM::count)
 			KronosMenu::clickOption(%row);
 		return;
 	}
