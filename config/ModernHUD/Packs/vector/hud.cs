@@ -1063,6 +1063,11 @@ function ModernHUDPack::stockHuds()
       Control::SetVisible(Minimap, false);
    else
       Control::SetVisible(Minimap, true);
+   // Chat/minimap resize handoff: the dynamic visibility above never passes the
+   // stock() chokepoint, so the minimap was NOT an editor target in this pack.
+   // Register explicitly -- visibility still gates hit testing, so a hidden
+   // minimap stays untargetable and the switch's semantics are unchanged.
+   ModernHUD::editTarget(Minimap);
 
    // Defaults; the K panel's stock rows override them per player.
    ModernHUD::stock(clockHud,       true);   // Vector has no clock part
@@ -1688,3 +1693,6 @@ function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
    glRectangle(%x + 3, %y + %head - 2, %w - 4, 2);
 }
 
+
+// Font-scope Stage 3: load-completion sentinel -- MUST stay the final statement.
+$ModernHUD::LoadComplete = "vector";

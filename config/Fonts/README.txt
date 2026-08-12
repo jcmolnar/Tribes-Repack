@@ -40,3 +40,20 @@ DIFFERENT bytes. Which one you actually got depended on load order.
 This folder is the one deterministic answer: what is here wins.
 
 Removing a font from this folder restores whatever the game used before.
+
+--------------------------------------------------------------------------------
+FONT SCOPE V2 ($pref::fontScopeV2, restart-scoped)
+--------------------------------------------------------------------------------
+Under the v2 scope rules the sentence "it replaces that font EVERYWHERE" above
+needs qualifying:
+
+- A file dropped in THIS folder (config\Fonts root) still replaces that font
+  everywhere: shell, HUD, every config -- including the console, when the
+  replacement is complete (self-contained, or with its page sheets beside it).
+- Sets\<name> picked as the GAME-WIDE Font Set styles the shell and the HUD.
+  It never touches the console.
+- Sets\<name> picked as a config's own Font Set (Options -> Configs) styles
+  that config's HUD TEXT ONLY -- shell, menus and console are untouched.
+- A PFT always takes its page sheets from ITS OWN directory. Partial page sets
+  are tolerated (chars on missing sheets do not render), but sheets are never
+  borrowed from another directory.

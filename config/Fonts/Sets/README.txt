@@ -16,3 +16,8 @@ contain falls back to the pack's font, then to the shared set in config\Fonts.
 
 "Pack default" in the dropdown means "use no set" -- each HUD pack's own fonts
 answer again.
+
+FONT SCOPE V2: as the game-wide Font Set a folder here styles shell + HUD
+(never the console). As a per-config Font Set it styles that config's HUD text
+only. Ship each PFT's page sheets IN the set folder: pages are resolved from
+the PFT's own directory only, never borrowed from another set or the root.

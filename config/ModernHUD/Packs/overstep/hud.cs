@@ -133,6 +133,11 @@ function ModernHUDPack::stockHuds()
    ModernHUD::stock(healthHud, false);
    ModernHUD::stock(weaponHud, false);
    Control::SetVisible(ChatDisplayHUD, true);
+   // Chat/minimap resize handoff: this pack drives chat visibility directly
+   // (no settings row), so it never passed the stock() chokepoint and the chat
+   // was NOT an editor target here. Explicit registration, visibility logic
+   // unchanged.
+   ModernHUD::editTarget(ChatDisplayHUD);
    ModernHUD::stock(Minimap, true);
    Control::SetVisible(reticleCompass, false);
 }
@@ -213,6 +218,12 @@ function ModernHUDPack::handle(%name, %defaultPos, %w, %h)
       // identical semantics and is pack-qualified (Phase 1).
       ModernHUD::restorePos(%index);
       addToSet(playGui, %handle);
+
+      // E2 addendum: this pack keeps its own copy of handle() (it predates the
+      // framework's), so it must also register its handle ids as editor
+      // targets -- the framework chokepoint never sees them.
+      HudEditor::addTarget(%handle);
+
       $ModernHUD::AppliedReset[%name] = $ModernHUD::ResetGeneration;
 
       // ★This pack is authored against a 2560x1440 canvas, so a restored ABSOLUTE
@@ -918,12 +929,17 @@ ModernHUD::component("overstep", "toasty",     "toasty",     "ModernHUDPack::dra
 // ModernHUD::attach, not Event::Attach: the framework records these and drops them
 // in detachAll() when the pack unloads. A raw Event::Attach would survive a config
 // swap and keep firing this pack's handlers under the next pack.
-ModernHUD::attach("eventFlagGrab",      "ModernHUDPack::flagPopupShow");
-ModernHUD::attach("eventFlagPickup",    "ModernHUDPack::flagPopupShow");
-ModernHUD::attach("eventFlagDrop",      "ModernHUDPack::flagPopupEnd");
-ModernHUD::attach("eventFlagCap",       "ModernHUDPack::flagPopupEnd");
+// Canonical Presto TeamTrak names: the tracker emits eventFlagTaken/Dropped/
+// Captured (args teamFlag, client); the Grab/Pickup/Drop/Cap aliases have no
+// installed emitter, so the popup never fired.
+ModernHUD::attach("eventFlagTaken",     "ModernHUDPack::flagPopupShow");
+ModernHUD::attach("eventFlagDropped",   "ModernHUDPack::flagPopupEnd");
+ModernHUD::attach("eventFlagCaptured",  "ModernHUDPack::flagPopupEnd");
 ModernHUD::attach("eventChangeMission", "ModernHUDPack::flagPopupReset");
 ModernHUD::attach("eventServerMessage", "ModernHUDPack::toastyMessage");
 
 ModernHUDPack::prefs();
 ModernHUD::legacyMap();
+
+// Font-scope Stage 3: load-completion sentinel -- MUST stay the final statement.
+$ModernHUD::LoadComplete = "overstep";

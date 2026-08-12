@@ -2,11 +2,14 @@ ModernHUD::attach("eventConnectionAccepted", "Team::Reset");
 ModernHUD::attach("eventChangeMission", "Team::Init");
 ModernHUD::attach("eventMatchStarted", "Team::Init");
 
-ModernHUD::attach("eventFlagGrab", "Team::Flag::Taken");
-ModernHUD::attach("eventFlagPickup", "Team::Flag::Taken");
-ModernHUD::attach("eventFlagDrop", "Team::Flag::Dropped");
-ModernHUD::attach("eventFlagCap", "Team::Flag::Captured");
-ModernHUD::attach("eventFlagReturn", "Team::Flag::Returned");
+// Canonical Presto TeamTrak event names (TeamTrak.cs emits Taken/Dropped/
+// Captured/Returned with args (teamFlag, client)). The previous aliases
+// (eventFlagGrab/Pickup/Drop/Cap/Return) exist in no installed emitter, so the
+// flag state never left "home".
+ModernHUD::attach("eventFlagTaken", "Team::Flag::Taken");
+ModernHUD::attach("eventFlagDropped", "Team::Flag::Dropped");
+ModernHUD::attach("eventFlagCaptured", "Team::Flag::Captured");
+ModernHUD::attach("eventFlagReturned", "Team::Flag::Returned");
 
 ModernHUD::attach("eventTeamAdd", "Team::onTeamAdd");
 ModernHUD::attach("eventClientJoin", "Team::onClientJoin");
@@ -71,7 +74,17 @@ function Team::Score( %team ) {
 
 // Team Flag Events
 
+// $pref::ModernHUD::FlagDiag = 1 traces every transition: event, team, client,
+// resolved name, old -> new location.
+function Team::Flag::diag( %evt, %team, %cl, %new ) {
+	if ( $pref::ModernHUD::FlagDiag )
+		echo( "[FLAG] " @ %evt @ " team=" @ %team @ " cl=" @ %cl
+			@ " (" @ Client::GetName(%cl) @ ") "
+			@ $Team::Flag::Location[%team] @ " -> " @ %new );
+}
+
 function Team::Flag::Dropped( %team, %cl ) {
+	Team::Flag::diag( "Dropped", %team, %cl, "field" );
 	$Team::Flag::Location[%team] = "field";
 	$Team::Flag::Timer[%team] = $Team::Flag::TimerStart;
 	$Team::Flag::TimerTag[%team]++;
@@ -80,6 +93,7 @@ function Team::Flag::Dropped( %team, %cl ) {
 }
 
 function Team::Flag::Taken( %team, %cl ) {
+	Team::Flag::diag( "Taken", %team, %cl, %cl );
 	if ( $Team::Flag::Location[%team] == "field" )
 		$Team::Flag::TimerTag[%team]++;
 	
@@ -87,6 +101,7 @@ function Team::Flag::Taken( %team, %cl ) {
 }
 
 function Team::Flag::Captured( %team, %cl ) {
+	Team::Flag::diag( "Captured", %team, %cl, "home" );
 	$Team::Flag::Location[0] = "home";
 	$Team::Flag::Location[1] = "home";
 	
@@ -94,6 +109,7 @@ function Team::Flag::Captured( %team, %cl ) {
 }
 
 function Team::Flag::Returned( %team, %cl ) {
+	Team::Flag::diag( "Returned", %team, %cl, "home" );
 	$Team::Flag::TimerTag[%team]++;
 	$Team::Flag::Location[%team] = "home";
 }

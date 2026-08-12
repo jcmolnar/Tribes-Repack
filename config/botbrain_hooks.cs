@@ -83,6 +83,11 @@ function Flag::onCollision(%this, %object)
                Game::refreshClientScore(%playerClient);
                messageAll(0, Client::getName(%playerClient) @ " receives 5 point capture bonus.");
                %aiId = Player::getClient(%object);
+               // BOTBRAIN 0A: the AUTHORITATIVE capture event. This block is the single
+               // funnel point for every capture (physical collisions and the C++ touch
+               // assist both route through Flag::onCollision); C++ joins it to the active
+               // offensive attempt. The [BBFLAG] CARRIED->HOME machine is the cross-check.
+               BotBrain::CaptureEvent(%object, %flag);
             }
          }
       }

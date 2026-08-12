@@ -10,7 +10,7 @@
 // That ordering is the whole point: these values must win over the saved prefs, because the saved
 // prefs are the problem.
 //
-// ???NOT included here: diagnostics.??? $pref::srvProfLog, ghostSkipDiag, frameProfile and hitchMs
+// ★NOT included here: diagnostics.★ $pref::srvProfLog, ghostSkipDiag, frameProfile and hitchMs
 // stay OFF by default -- they exist to be switched on for a measured run. Apocalypse still sets
 // those itself and clears them afterward.
 //
@@ -29,7 +29,7 @@
 // often a CLIENT sends its own moves and acks (gPacketSendTime, netPacketStream.cpp:361), so 96
 // means input leaves the client about ten times a second, which is felt directly as lag.
 //
-// ???These are NEGOTIATED, and the receiver takes the conservative side??? -- max(updateDelay), i.e.
+// ★These are NEGOTIATED, and the receiver takes the conservative side★ -- max(updateDelay), i.e.
 // the lower rate, and min(packetSize) (netPacketStream.cpp:365-368). So raising the server alone
 // achieves nothing if the client is still on modem values, and vice versa. Both ends need it,
 // which is why this lives in a file both ends exec.
@@ -37,25 +37,64 @@
 // Applied as a FLOOR, not an assignment: a user who deliberately went higher keeps their value.
 // Set $pref::netKeepSaved = 1 before this runs to opt out entirely.
 //------------------------------------------------------------------------------
-// ONE-SHOT (2026-07-31): this floor used to re-apply EVERY boot, so a player who
-// deliberately set lower values in Options > Network was silently re-floored on the
-// next start -- testers found $pref::netKeepSaved = 1 as the workaround, which proves
-// the collision. Now it migrates legacy modem values ONCE (flagged by netFloorApplied)
-// and never touches a saved value again. netKeepSaved = 1 still opts out entirely.
-if($pref::netKeepSaved != 1 && $pref::netFloorApplied != 1)
+if($pref::netKeepSaved != 1)
 {
    if($pref::PacketSize == "" || $pref::PacketSize < 800)   { $pref::PacketSize = 800; }
    if($pref::PacketRate == "" || $pref::PacketRate < 60)    { $pref::PacketRate = 60; }
    // Lower is faster here -- it is a minimum interval in ms, so this one is a ceiling.
    if($pref::PacketFrame == "" || $pref::PacketFrame > 16)  { $pref::PacketFrame = 16; }
-   $pref::netFloorApplied = 1;
 }
+
+//------------------------------------------------------------------------------
+// FONT SCOPE Stage 5: one-time Font Set preference reset (release migration).
+//
+// Under the OLD global font chain, a Font Set pick silently restyled the shell
+// and even the console, and stuck across sessions (the bug the whole font-scope
+// work fixes). Every install's saved pref::ModernHUD::FontSet* values therefore
+// encode choices made against the WRONG behavior -- reset them exactly once so
+// everyone returns to stock faces and re-picks under the v2 rules. The marker
+// survives the exit export("pref::*") sweep, so this can never run twice.
+// Same wildcard convention export() uses (no leading $).
+//------------------------------------------------------------------------------
+// ★Explicit empty-assignments, not deleteVariables.★ Measured: the wildcard delete
+// ran (echo fired) but the native publisher still read the old value through
+// Console->getVariable -- script assignment is the one bridge PROVEN two-way by the
+// whole prefs system, so it is the one this migration uses. Empty = unset to every
+// reader. The seven shipped pack ids are enumerated; a third-party pack's key
+// surviving is harmless (it only applies while that pack is current, and its owner
+// chose it).
+if($pref::fontSetResetV2 == "")
+{
+   $pref::ModernHUD::FontSet = "";
+   $pref::ModernHUD::FontSet::basic = "";
+   $pref::ModernHUD::FontSet::overstep = "";
+   $pref::ModernHUD::FontSet::proconfig = "";
+   $pref::ModernHUD::FontSet::vantage = "";
+   $pref::ModernHUD::FontSet::vector = "";
+   $pref::ModernHUD::FontSet::vodka = "";
+   $pref::ModernHUD::FontSet::xloader = "";
+   $pref::fontSetResetV2 = 1;
+   echo("[FONTSCOPE] one-time Font Set preference reset applied");
+}
+
+//------------------------------------------------------------------------------
+// FONT SCOPE: the boot publication (rev-9 font-context plan, Stage 1).
+//
+// ClientPrefs has just loaded (we run from the top of autoexec.cs) and the shell
+// GUIs have NOT been constructed yet -- console.cs builds them AFTER autoexec
+// returns. Publishing here is the only point where both hold; measured with the
+// $pref::cfgDiag [FNTSLOT] lines, the first shell fonts seed inside console.cs,
+// so the later native publish in main.cpp (kept as the safety net) is too late
+// for them. Also snapshots the restart-scoped $pref::fontScopeV2 and closes the
+// StockBaseline provenance window. Harmless no-op on builds without the command.
+//------------------------------------------------------------------------------
+FontScope::bootPublish();
 
 //------------------------------------------------------------------------------
 // 2. AI OBSTACLE TRAVERSAL.
 //
 // jetTowardLoc/JetSkill were complete in aiObj.cpp but compiled out behind _JETNAVDEV_, which was
-// defined nowhere. ???There is no navigation graph in ANY Tribes build??? -- aiGraph.cpp sits behind
+// defined nowhere. ★There is no navigation graph in ANY Tribes build★ -- aiGraph.cpp sits behind
 // INCLUDE_AI_GRAPH_CODE (defined nowhere) and the shipped 1.40 binary has no Graph symbols
 // either, so bots steer in straight lines and grind into walls. Jet nav is the only mitigation
 // the engine has.
@@ -103,7 +142,7 @@ if($pref::aiScanPerTick == "") { $pref::aiScanPerTick = 4; }
 // with no manual step. Defaults are the PLAYABLE ones: 15 bots, stock movement and projectile
 // speed, infinite ammo/energy, faster target acquisition.
 //
-// ???Comments live OUTSIDE the braced block, and the block ECHOES.??? The first version buried a
+// ★Comments live OUTSIDE the braced block, and the block ECHOES.★ The first version buried a
 // 15-line comment inside `if($dedicated) { ... }` and the block silently did not run -- no error,
 // no banner, and auto-start never fired while the file's closing echo still printed, so it looked
 // like it had worked. Keep the body to statements, and keep the proof-of-execution echo.
@@ -114,20 +153,12 @@ if($dedicated)
 {
    $pref::consoleLogBuffer = 0;
    exec("apocalypse.cs");
-   // ???Assigned, not defaulted.??? `if($Apoc::autoRun == "")` does not work here: exec'ing the
+   // ★Assigned, not defaulted.★ `if($Apoc::autoRun == "")` does not work here: exec'ing the
    // harness runs Apoc::defaults(), which has already set it to "0", so the empty-test never
    // matches and auto-run stayed off while the banner happily reported success. Edit this line
    // to 0 for a plain dedicated server with no bots.
    $Apoc::autoRun = 0;
-   // ===================================================================================
-   // RELEASE BLOCKER -- see re\RELEASE_BLOCKERS.md item 1.
-   // The assignment above ARMS the stress harness on EVERY dedicated server. Deliberate
-   // for testing; it must be 0 (or removed) before the client ships.
-   // ===================================================================================
-   if($Apoc::autoRun == 1)
-      echo("[NATIVE] ***** APOCALYPSE HARNESS ARMED (autoRun=1 botTarget=" @ $Apoc::botTarget @ ") -- NOT FOR RELEASE *****");
-   else
-      echo("[NATIVE] dedicated: apocalypse harness AVAILABLE, not armed (autoRun=" @ $Apoc::autoRun @ ")");
+   echo("[NATIVE] dedicated: harness loaded, autoRun=" @ $Apoc::autoRun @ " botTarget=" @ $Apoc::botTarget);
 }
 
 echo("[NATIVE] defaults applied: net " @ $pref::PacketSize @ "/" @ $pref::PacketRate @ "/" @ $pref::PacketFrame @ "  aiJetNav=" @ $pref::aiJetNav @ "  aiScanPerTick=" @ $pref::aiScanPerTick);
@@ -154,62 +185,32 @@ echo("[NATIVE] defaults applied: net " @ $pref::PacketSize @ "/" @ $pref::Packet
 //====================================================================================
 
 //====================================================================================
-// OOB BOUNDARY GRID (1.40 parity, GPU pass in rt.cpp grDrawOOBGrid). 1.40 pref names +
-// defaults; Style is ours: 0=classic static grid, 1=animated (default), 2=plasma.
-// rt.cpp treats OOBGridVisible unset as ON; seeded here so a future Options row reads 1.
-if($pref::OOBGridVisible == "")      { $pref::OOBGridVisible = 1; }
-if($pref::OOBGridAlpha == "")        { $pref::OOBGridAlpha = 0.45; }
-if($pref::OOBGridPercent == "")      { $pref::OOBGridPercent = 0.4; }
-if($pref::OOBGridStyle == "")        { $pref::OOBGridStyle = 5; }
-if($pref::OOBGridSpeed == "")        { $pref::OOBGridSpeed = 1; }
-if($pref::OOBGridSpacing == "")      { $pref::OOBGridSpacing = 32; }
-if($pref::OOBGridColor == "")        { $pref::OOBGridColor = "0.3 0.3 0.6"; }
-if($pref::OOBGridHue == "")          { $pref::OOBGridHue = 240; }
-if($pref::OOBGridColorOutside == "") { $pref::OOBGridColorOutside = "1 0 0"; }
-
-//====================================================================================
 // DIAGNOSTIC-PREF RESET.
 //
 // WHY THIS EXISTS. Measured 2026-08-05 on a bot server: $pref::fireDiag had been left on
 // since a projectile-origin hunt on 2026-07-28 and was writing 3 lines PER SHOT. With
-// $Console::logMode 1 -- which a dedicated server sets, and which OPENS AND CLOSES the log
-// file on every single line -- ten bots in combat drove msPerFrame to 132.25 (7.5 fps) on
-// a 32 ms tick. Clearing it took the same server to 3.91 ms/frame. A 34x swing from one
-// forgotten debug flag.
+// $Console::logMode 1 -- which a dedicated server sets, and which OPENS AND CLOSES the
+// log file on every single line -- ten bots in combat drove msPerFrame to 132.25
+// (7.5 fps) against a 32 ms tick. Clearing it took the same server to 3.91 ms/frame.
+// A 34x swing from one forgotten debug flag.
 //
-// It is not a one-off. export("pref::*", "config\ClientPrefs.cs") at exit sweeps the WHOLE
-// namespace, so every diagnostic anyone ever enables is persisted forever and silently.
-// Ten of them were found on at once. The cost is invisible in normal play -- one human
-// shooting occasionally -- and only shows up under sustained load, which is exactly what
-// bots produce.
+// It is not a one-off. export("pref::*") at exit sweeps the WHOLE namespace, so every
+// diagnostic anyone ever enables is persisted forever and silently. TEN were found on at
+// once. The cost is invisible in normal play -- one human shooting occasionally -- and
+// only appears under sustained load, which is exactly what bots produce.
 //
-// So: force them OFF at boot. This runs from autoexec.cs AFTER ClientPrefs has loaded, and
-// assigns unconditionally, so it beats any persisted value. Enable a diagnostic at RUNTIME
-// while you need it; do not rely on it surviving a restart. To keep one across restarts,
-// remove it from this list rather than fighting the mechanism.
+// Forces them OFF at boot. Runs from autoexec.cs AFTER ClientPrefs has loaded and assigns
+// unconditionally, so it beats any persisted value. Enable a diagnostic at RUNTIME while
+// you need it; to keep one across restarts, remove it from this list.
 //
-// Escape hatch: set $DiagReset::skip = 1 before autoexec runs to disable the whole block.
+// Escape hatch: set $DiagReset::skip = 1 before autoexec runs.
 //====================================================================================
 if($DiagReset::skip != 1) {
 	$DiagReset::list = "fireDiag frameProfile heapDiag aiTaskDiag mouseDiag netTimeoutDiag playerPreviewDiag uiBtnDiag uiRectDiag localSkinDebug uiThemeCoverageDiag ghostSkipDiag srvProfLog allocProfile";
-	$DiagReset::n = 0;
 	for(%i = 0; (%dg = getWord($DiagReset::list, %i)) != -1; %i++) {
 		if($pref::[%dg] != "" && $pref::[%dg] != "0") {
 			echo("[DIAGRESET] $pref::" @ %dg @ " was " @ $pref::[%dg] @ " -- forcing 0 (see nativeDefaults.cs)");
-			$DiagReset::n = $DiagReset::n + 1;
 		}
 		$pref::[%dg] = "0";
 	}
-}
-
-//====================================================================================
-// PROTECTED-PREFS SNAPSHOT (paired with the restore at the END of autoexec.cs).
-// nativeDefaults.cs is the FIRST thing autoexec runs, i.e. the earliest point after
-// the player's ClientPrefs has loaded. Snapshot the collision-prone prefs here; the
-// restore re-asserts them after the whole autoexec chain (Presto suite etc.) has run,
-// so no later script can stomp a value the player actually saved. Empty snapshot
-// (fresh install / new pref) restores nothing.
-$PrefGuard::list = "packetRate packetSize packetFrame PlayerFov netVehicleInterpolateTime netVehiclePredictForwardTime interpolateTime predictForwardTime";
-for(%i = 0; (%pg = getWord($PrefGuard::list, %i)) != -1; %i++) {
-	$PrefGuard::val[%pg] = $pref::[%pg];
 }

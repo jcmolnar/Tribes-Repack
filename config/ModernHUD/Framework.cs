@@ -311,6 +311,11 @@ function ModernHUD::unload()
    if(isFunction("ModernHUD::purgeHandles"))
       ModernHUD::purgeHandles();
 
+   // E2 addendum: drop every editor-target id this pack registered. The native
+   // load path clears too; this belt covers a script-driven unload so a stale
+   // id can never carry into the next pack's session.
+   HudEditor::clearTargets();
+
    ModernHUD::sweepDeadHuds();
 }
 
@@ -554,6 +559,17 @@ function ModernHUD::stock(%ctrl, %default)
       Control::SetVisible(crosshairHud, true);
       return;
    }
+
+   // E2 addendum: stock() is an approved editor-target chokepoint. A stock HUD
+   // a pack intentionally exposes becomes movable in the owned K editor by
+   // exact current id (the native command resolves the plain name).
+   // Registration is independent of the player's ON/OFF choice -- visibility
+   // still decides whether a registered target can actually be hit. Transient
+   // message controls, crosshair plumbing, and displaced legacy containers
+   // never come through here, so they are never registered. Delegates to the
+   // explicit API so a pack with its own visibility logic can register the
+   // control WITHOUT taking a settings row (ModernHUD::editTarget).
+   ModernHUD::editTarget(%ctrl);
 
    // ★Compare against QUOTED strings, never against a bare 0.★ The generator emits
    // `true`/`false` here, and compare() (eval.cpp:367-380) promotes the whole
@@ -1393,6 +1409,13 @@ function ModernHUD::handle(%name, %defaultPos, %w, %h)
       $Hud::Count = %n + 1;
       ModernHUD::restorePos(%n);
       addToSet(playGui, %handle);
+
+      // E2 addendum: this creation is one of the TWO approved registration
+      // chokepoints (the other is ModernHUD::stock). The exact numeric id joins
+      // the native editor-target registry; while a ModernHUD-owned K panel is
+      // open, nothing outside that registry can hover, outline, or capture.
+      HudEditor::addTarget(%handle);
+
       $ModernHUD::AppliedReset[%name] = $ModernHUD::ResetGeneration;
 
       // A saved position from a bigger canvas can be off-screen entirely; place it
@@ -1678,7 +1701,18 @@ function ModernHUD::dockTo(%name, %target, %dx, %dy, %fallback, %partW, %partH)
 
    %handle = $ModernHUD::Handle[%name];
    if(isObject(%handle))
+   {
       Hud::setSessionPos(%handle, %x, %y);
+
+      // ★A docked part is a DECORATION, and a decoration is not an editor
+      // target★ (chat/minimap resize handoff): its geometry is derived from the
+      // owner every draw, so a grip on it would be a second, lying handle on
+      // one visible HUD -- vodka's chat border and radar art must follow the
+      // real chat/minimap, never compete with them. The handle registered
+      // itself in ModernHUD::handle; revoke it here, every draw, so no path
+      // that re-registers survives. removeTarget is idempotent.
+      ModernHUD::editorDecoration(%name);
+   }
 
    // SIZE to the live target too, not just position: the authored frame (e.g.
    // v0dkA's 664x89 ChatBG) was drawn for the pack's authored chat extent, so on
@@ -1710,6 +1744,28 @@ function ModernHUD::hide(%name)
    %handle = $ModernHUD::Handle[%name];
    if(isObject(%handle))
       Control::SetVisible(%handle, false);
+}
+
+//----------------------------------------------------------------------------
+// Explicit editor-target API (chat/minimap resize handoff).
+//
+// ModernHUD::stock couples registration to the visibility/settings-row
+// machinery, but a pack may drive a native control's visibility from its own
+// logic (Overstep's chat, Vector's minimap) and that control still needs to be
+// editable. editTarget is registration ALONE; stock delegates to it.
+//----------------------------------------------------------------------------
+function ModernHUD::editTarget(%ctrl)
+{
+   HudEditor::addTarget(%ctrl);
+}
+
+// The inverse: a decorative handle (a border or ring that follows a real
+// owner) must not be a competing editor target. One visible HUD, one grip.
+function ModernHUD::editorDecoration(%name)
+{
+   %handle = $ModernHUD::Handle[%name];
+   if(%handle != "")
+      HudEditor::removeTarget(%handle);
 }
 
 // Fixed-size image draw (0 w/h = native size).
@@ -1762,16 +1818,70 @@ function ModernHUD::digitsBox(%x, %y, %folder, %value, %alpha, %spacing, %box, %
 
 // Detach one retained container a generated part replaces.
 //
-// SetVisible(false) BEFORE removeFromSet, always: while the control still has a
+// ★Resolve the NUMERIC handle from the Hud registry, never isObject(name):★
+// every retained container name carries "::" (CTFHUD::Container, ...), and names
+// containing "::" do not round-trip through isObject(name) in this console (see
+// ModernHUD::handle above). The old guard therefore skipped ALL work, and the
+// invisible legacy box stayed in playGui winning editor hit tests over the
+// ModernHUD part that replaced it.
+//
+// SetVisible(false) BEFORE removal, always: while the control still has a
 // root, hiding it contributes its old rectangle to the canvas damage list.
 // Removing first clears root, so those pixels can never be invalidated and the
 // old HUD stays on screen as a frozen second copy.
+//
+// Remove through Module::hudRemove so the dense $Hud registry compacts and
+// Hud::OnGuiOpen cannot re-adopt the container on the next gui transition; it
+// also deletes the object and clears the name map and module owner. Idempotent:
+// once removed the name-map entry is blank and the call does nothing.
 function ModernHUD::detachContainer(%name)
 {
-   if(isObject(%name))
+   %h = $Hud::Huds[%name];
+   if(%h == "")
+      return;
+   if(!isObject(%h))
    {
-      Control::SetVisible(%name, false);
-      removeFromSet(playGui, %name);
+      // Stale name-map entry pointing at an already-deleted object.
+      $Hud::Huds[%name] = "";
+      return;
+   }
+
+   Control::SetVisible(%h, false);
+
+   for(%i = $Hud::Count - 1; %i >= 0; %i--)
+   {
+      if($Hud::Huds[%i, name] == %name)
+      {
+         if($pref::hudSlotDiag)
+            echo("[HUDPOS] detachContainer " @ %name @ " id=" @ %h @ " idx=" @ %i);
+         Module::hudRemove(%i);
+         return;
+      }
+   }
+
+   // In the name map but not the dense index (already compacted out): finish
+   // the removal directly.
+   removeFromSet(playGui, %h);
+   deleteObject(%h);
+   $Hud::Huds[%name] = "";
+}
+
+// Read-only inventory of every registered editor-interactive HUD: index, name,
+// numeric id, liveness, geometry, owning module, and whether it is a ModernHUD
+// edit handle. For diagnosing invisible click-eating containers (E2).
+function ModernHUD::hudInventory()
+{
+   echo("[HUDINV] count=" @ $Hud::Count);
+   for(%i = 0; %i < $Hud::Count; %i++)
+   {
+      %nm = $Hud::Huds[%i, name];
+      %h = $Hud::Huds[%i];
+      echo("[HUDINV] " @ %i @ " [" @ %nm @ "] id=" @ %h
+         @ " live=" @ isObject(%h)
+         @ " pos=" @ Control::GetPosition(%h)
+         @ " ext=" @ Control::GetExtent(%h)
+         @ " owner=" @ $Module::hudOwner[%nm]
+         @ " mhHandle=" @ ($ModernHUD::HandleRegistered[%nm] != ""));
    }
 }
 

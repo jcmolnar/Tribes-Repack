@@ -543,3 +543,6 @@ Event::Attach(eventGuiOpen, ModernHUDPack::onGuiOpen);
 ModernHUDPack::prefs();
 ModernHUDPack::stockHuds();
 ModernHUDPack::init();
+
+// Font-scope Stage 3: load-completion sentinel -- MUST stay the final statement.
+$ModernHUD::LoadComplete = "vantage";
