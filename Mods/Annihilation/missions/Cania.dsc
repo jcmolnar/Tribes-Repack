@@ -1,0 +1,4 @@
+$MDESC::Text = "<s3><f1>Mission Type: <f0> Capture the Flag\n<f1>Plane: <f0> Cania, Domain of Mephistopheles, Eighth Level of Baator, the Nine Hells\n<f1>Weather: <f0> Snow and ice\n<f1>Time of Day: <f0> Night\n<f1># of Teams: <f0> 2\n\n<f1>Briefing:<f0> The call for maps has been answered..."@
+	"\n\n<f1>Cania, the eighth level of Baator opens it's maw to you... enter and die, as all who have entered before you have done. Mephistopheles pits two teams against eachother for a chance to win their freedom, and to return to the worlds from whence they came. There are two mortar bunkers available for capture in these frozen wastes. If captured, they allow the holding team control over the turrets upon the rooftop, raining death upon any foe foolish enough to walk in range. The first team to 10 points will be set free. Die well, for it means your very soul..." @
+"\n\n<f2>Map by Synsilliusarian! Enjoy!";
+$MDESC::Type = "Capture the Flag Ground";

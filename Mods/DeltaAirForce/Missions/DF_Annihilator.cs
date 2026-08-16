@@ -1,0 +1,15 @@
+$ObjData::Num = 1;
+$ObjData::0_name = "Water Well";
+$ObjData::0_type = "TowerSwitch";
+$ObjData::0_score = "0 12";
+$ObjData::0_waypoint = "-3.70921 -2.27659 20.1637";
+$ObjData::0_name = "PortGenerator";
+$ObjData::0_type = "PortGenerator";
+$ObjData::0_score = "0 12";
+$ObjData::0_waypoint = "-14.0041 9.2228 19.9837";
+$ObjData::0_name = "PortGenerator";
+$ObjData::0_type = "PortGeneratorPortGenerator";
+$ObjData::0_score = "0 12";
+$ObjData::0_waypoint = "-21.4557 -13.8667 20.0796";
+//$ObjData::WinScore = 600;
+$ObjData::MissionType = "Capture and Hold";

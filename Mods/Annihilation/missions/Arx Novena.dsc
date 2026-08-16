@@ -1,0 +1,9 @@
+$MDESC::Type = "Capture the Flag Ground";
+$MDESC::Text = "<s3><f1>Mission Type: <f0> Capture The Flag" @
+         "\n<f1>Planet		: <f0> Arx Novena" @
+         "\n<f1>Weather		: <f0> dense" @
+         "\n<f1>Time of day	: <f0> morning" @
+         "\n<f1>Teams		: <f0> 2" @
+	   "\n\n<f1>Briefing	: <f0> The <vServer::teamName0> and <vServer::teamName1> face off the the home planet of the Blood Eagle Empire.";
+
+

@@ -187,6 +187,29 @@ exec("banlist.cs");
 exec("missionList.cs");
 exec("gui.cs");
 exec("sae.cs");
+// MODERN DEFAULTS -- the keybind set a plain, no-mod launch boots into.
+//
+// EvalSearchPath() (:160) has already normalised $modList to exactly "base" when no -mod was
+// given, so this test IS "no mod chosen". Layered ON TOP of base's sae.cs rather than replacing
+// it: additive, so anything saeModern.cs does not cover still comes from the stock set.
+//
+// A returning player's saved binds still win -- config.cs is exec'd at :229, after this. That
+// file is USER STATE and never ships (tools\repack-whitelist.txt), so a fresh install has no
+// config.cs and lands on this set. Launch with any -mod and the mod's own sae.cs stands.
+// WORD-BASED TEST, not `$modList == "base"`. That plain compare was the first version and it
+// SILENTLY NEVER FIRED: EvalSearchPath only assigns the bare string "base" when no -mod was
+// given at all, but a launcher that passes "-mod base" explicitly builds the list as
+// `%mod @ " " @ $modList` (:20) and leaves a TRAILING SPACE -- "base " != "base". Measured on a
+// harness host: `Executing sae.cs.` appeared in the log and `Executing saeModern.cs.` did not.
+// One word, and that word is base = no mod, however the launcher spelled it.
+if(getWord($modList, 0) == "base" && getWord($modList, 1) == -1)
+{
+	exec("saeModern.cs");
+}
+else
+{
+	echo("[BINDS] -mod launch (modList '" @ $modList @ "') -- keeping that mod's own sae.cs");
+}
 exec("client.cs");
 exec("server.cs");
 exec("tsDefaultMatProps.cs");
