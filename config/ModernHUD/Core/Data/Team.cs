@@ -1,4 +1,9 @@
-ModernHUD::attach("eventConnectionAccepted", "Team::Reset");
+// NOT "Team::Reset": that name is PRESTO'S (TeamTrak.cs:108), and it attaches
+// its own copy to this same event. Defining ours under that name replaced it,
+// so Presto never cleared $TeamData::* on a new connection and never re-armed
+// its team-name calculation. Ours resets only the ModernHUD data layer; both
+// now run, each on its own state.
+ModernHUD::attach("eventConnectionAccepted", "ModernHUD::TeamReset");
 ModernHUD::attach("eventChangeMission", "Team::Init");
 ModernHUD::attach("eventMatchStarted", "Team::Init");
 
@@ -20,7 +25,7 @@ function remoteTeamScore( %sv, %team, %score ) {
 	//$Team::Score[%team] = %score;
 }
 
-function Team::Reset() {
+function ModernHUD::TeamReset() {
 	DeleteVariables( "$Team::Client*" );
 	$Team::Client::Count = 0; 
 	
@@ -46,13 +51,32 @@ function Team::Init() {
 		$Team::Flag::TimerStart = Timer::New(47, 5+1); //47.5 + 1 for the advance call
 }
 
-function Team::Friendly() {
-	%team = Client::getTeam(getManagerId());
+// ★These take an OPTIONAL %client because PRESTO'S do, and this console has ONE
+// function namespace.★ TeamTrak.cs decides which team's flag an event is about
+// with Team::Enemy(%client) / Team::Friendly(%client) (TeamTrak.cs:150-160,
+// 304-324). This data module loads when a pack is selected -- after Presto --
+// so a zero-argument redefinition here silently REPLACED Presto's and threw the
+// client away: every take/drop/capture resolved to the LOCAL player's enemy
+// team instead of the carrier's.
+//
+// Reported live 2026-08-11 and the symptoms match exactly: both flag rows wrote
+// the same index, so one field showed whichever carrier grabbed last and the
+// other never moved; and Team::Flag::Captured's $Team::Score[%team^1]++ always
+// incremented the same side.
+//
+// An empty %client reproduces the old no-argument behaviour EXACTLY -- including
+// the observer (-1 -> 0) mapping the renderers depend on -- so every pack's own
+// Team::Friendly()/Team::Enemy() call is unchanged, and the fix no longer
+// depends on which file loaded last.
+function Team::Friendly( %client ) {
+	if ( %client == "" )
+		%client = getManagerId();
+	%team = Client::getTeam(%client);
 	return ( %team == -1 ) ? 0 : %team;
 }
 
-function Team::Enemy() {
-	return ( Team::Friendly() ^ 1 );
+function Team::Enemy( %client ) {
+	return ( Team::Friendly(%client) ^ 1 );
 }
 
 function Team::onTeamAdd( %team, %name ) {

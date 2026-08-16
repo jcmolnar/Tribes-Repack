@@ -297,6 +297,19 @@ function CmdHUD::GuiOpen(%gui) {
 		$CmdHUD::CommandTurret = true;
 		}
 
+	// PlayGui on screen means the full-screen Command/Inventory/Objectives gui
+	// is gone, but Escape closes those guis through the canvas (server-
+	// confirmed PlayMode) without ever running the CmdHUD/InvHUD toggles, so
+	// guiMode goes stale at 2/4/5 and the next hotkey press is a dead no-op
+	// "toggle" back to 1. Resync here. Must stay BELOW the turret check (which
+	// needs the stale 2 and already resets it via turnOn on that path);
+	// station exit restores come from $CmdHUD::EnterStationGuiMode, so this
+	// does not disturb them. Mode 5 is safe to include: ObjectivesMode always
+	// swaps the content control to CmdObjectives.gui (dlgPlay.cpp), so PlayGui
+	// opening while guiMode says 5 always means the objectives screen closed.
+	if (%gui == playGui && ($CmdHUD::guiMode == 2 || $CmdHUD::guiMode == 4 || $CmdHUD::guiMode == 5))
+		CmdHUD::SetGui(1);
+
 	// NATIVE-PORT (beta, verified manually): full-screen command map on every
 	// command-screen open -- sizes the map frames to the live screen and re-fits
 	// the map natively (cmdMapResync; no world rebuild). $pref::cmdMapFull = 0

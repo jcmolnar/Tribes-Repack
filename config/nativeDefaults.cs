@@ -46,6 +46,14 @@ if($pref::netKeepSaved != 1)
 }
 
 //------------------------------------------------------------------------------
+// HOVER HELP (2026-08-14): pop-up descriptions on menu buttons and options rows.
+// Default ON. $pref::uiHoverHelp is the numeric toggle the modern Options
+// Interface tab binds to (FGHelpCtrl honours it alongside the legacy string
+// $pref::HelpPopups, which stays untouched here).
+//------------------------------------------------------------------------------
+if($pref::uiHoverHelp == "") { $pref::uiHoverHelp = 1; }
+
+//------------------------------------------------------------------------------
 // FONT SCOPE Stage 5: one-time Font Set preference reset (release migration).
 //
 // Under the OLD global font chain, a Font Set pick silently restyled the shell
@@ -106,8 +114,10 @@ FontScope::bootPublish();
 // unreachable for a bot arcing through the air, so it orbits its waypoint forever and one-way
 // paths never complete. That is almost certainly why Dynamix left _JETNAVDEV_ off.
 //------------------------------------------------------------------------------
-if($pref::aiJetNav == "")    { $pref::aiJetNav = 1; }
-if($pref::aiJetNavTol == "") { $pref::aiJetNavTol = 3.0; }
+// GATING (2026-08-14 review): seeds REMOVED. Unset means stock (jet nav OFF, tol 0.2);
+// the engine defaults these per frame to the BotBrain-mission values (on / 3.0) only while
+// $Server::BotBrain owns the mission (FearPlugin.cpp pref refresh). Apocalypse sets and
+// restores its own values. Setting either pref here still wins over both.
 
 //------------------------------------------------------------------------------
 // 3. AI TARGET ACQUISITION RATE.
@@ -120,7 +130,28 @@ if($pref::aiJetNavTol == "") { $pref::aiJetNavTol = 3.0; }
 // 4 is deliberately modest -- enough to fix acquisition on a normal bot server without spending
 // real CPU on scanning. Apocalypse raises it far higher for stress runs. 1 restores stock exactly.
 //------------------------------------------------------------------------------
-if($pref::aiScanPerTick == "") { $pref::aiScanPerTick = 4; }
+// GATING (2026-08-14 review): seed REMOVED -- 4x stock target acquisition was reaching every
+// mod's AI with BotBrain off. Unset now means stock (1); BotBrain missions default to 4 via
+// the engine's pref refresh; Apocalypse manages its own. Set the pref here to pin a value.
+
+//------------------------------------------------------------------------------
+// GATING one-time reset (2026-08-15, audit finding): the seed-era values PERSISTED.
+// Every install that booted while nativeDefaults seeded aiJetNav/aiJetNavTol/aiScanPerTick
+// exported them into ClientPrefs.cs on quit, and a SET pref wins over the new
+// BotBrain-conditional defaults by design -- so on existing installs the gating was inert
+// forever. Same pattern as the font-set reset above: once ever, clear the three prefs IF
+// they still hold exactly the old seeded values (1 / 3 / 4 -- any other value is a
+// deliberate operator pin and survives), then never run again. Empty = unset to every
+// reader, which re-enables the stock-unless-BotBrain defaults.
+//------------------------------------------------------------------------------
+if($pref::aiSeedResetV1 == "")
+{
+   if($pref::aiJetNav == 1)      { $pref::aiJetNav = ""; }
+   if($pref::aiJetNavTol == 3)   { $pref::aiJetNavTol = ""; }
+   if($pref::aiScanPerTick == 4) { $pref::aiScanPerTick = ""; }
+   $pref::aiSeedResetV1 = 1;
+   echo("[GATING] one-time AI seed-era preference reset applied");
+}
 
 //------------------------------------------------------------------------------
 // 4. DEDICATED-SERVER CONSOLE LOG BUFFER.
@@ -161,7 +192,49 @@ if($dedicated)
    echo("[NATIVE] dedicated: harness loaded, autoRun=" @ $Apoc::autoRun @ " botTarget=" @ $Apoc::botTarget);
 }
 
-echo("[NATIVE] defaults applied: net " @ $pref::PacketSize @ "/" @ $pref::PacketRate @ "/" @ $pref::PacketFrame @ "  aiJetNav=" @ $pref::aiJetNav @ "  aiScanPerTick=" @ $pref::aiScanPerTick);
+echo("[NATIVE] defaults applied: net " @ $pref::PacketSize @ "/" @ $pref::PacketRate @ "/" @ $pref::PacketFrame @ "  aiJetNav='" @ $pref::aiJetNav @ "' aiScanPerTick='" @ $pref::aiScanPerTick @ "' (empty = stock, or BotBrain-mission defaults)");
+
+// WHICH KEYBIND SET THIS SESSION BOOTED INTO.
+//
+// (Reconciled from the play tree 2026-08-14 by the commit-audit session: the WASD keybind work
+// (11751b0) added this block to the play-tree copy only, and the repo copy diverged -- the audit's
+// 3593589 follow-up. Content below is verbatim from the play tree.)
+//
+// console.cs:189 execs sae.cs, then saeModern.cs when $modList is the single word "base" (no -mod).
+// saeModern.cs records $BindSet::active; empty means a -mod launch, which keeps that mod's own
+// sae.cs and never reaches saeModern.
+//
+// DEFINED HERE, ARMED FROM autoexec.cs, REPORTED ON A DELAY -- all three parts are load-bearing:
+//
+//   * not inline, because the console log file is not open yet at this point in the boot chain.
+//     Measured on a harness client: this file's own "[NATIVE] defaults applied" echo a few lines
+//     up does NOT reach console.log, while the ModernHUD lines from Presto\install.cs
+//     (autoexec.cs:7, two lines after this file is exec'd) do. Logging opens in between.
+//   * not scheduled from HERE either, which was the first attempt and produced nothing:
+//     console.cs creates ConsoleScheduler AFTER it execs autoexec.cs, so a schedule() call at
+//     exec time has no scheduler and is silently dropped. autoexec.cs already documents this
+//     constraint for KronosVideo::reapply ("called right before the startup apply, when the
+//     console scheduler exists") -- the arming call lives in that same OptionsVideo::validate
+//     override, and this function is armed alongside it.
+function BindSet::report()
+{
+   if($BindSet::active == "")
+   {
+      echo("[BINDS] boot set: mod/stock sae.cs (-mod launch, modern seed skipped)");
+   }
+   else
+   {
+      echo("[BINDS] boot set: " @ $BindSet::active);
+   }
+}
+
+// Called inline HERE for the dedicated server, and again on a delay from autoexec.cs for the
+// client. Not a duplicate in either process: a dedicated server sets $Console::LogMode=1 at
+// console.cs:22 so this inline line lands in console_host.log, and it never reaches the delayed
+// arming at all (OptionsVideo::validate is in the client-only branch of console.cs -- there is
+// no video to validate on a dedicated server). On the client the reverse holds: this inline call
+// is swallowed because logging is not open yet, and the scheduled one is the copy you see.
+BindSet::report();
 
 //====================================================================================
 // SHIPPED DEFAULTS -- append new prefs and keybinds HERE (smart-updater convention).
@@ -214,3 +287,20 @@ if($DiagReset::skip != 1) {
 		$pref::[%dg] = "0";
 	}
 }
+
+//====================================================================================
+// HOVER HELP (2026-08-14): tooltip text for screens/dialogs with no authored
+// helpTags. Definitions only -- the native client invokes <Screen>Gui::onHelpSetup()
+// when a screen or dialog opens, so this is inert under an older exe.
+//====================================================================================
+exec("hoverHelp.cs");
+
+//====================================================================================
+// GLB SHAPES (2026-08-16, Joe's ship call): the repaired .glb models ship in v16 --
+// the 28 Mech Mayhem hercs (cel-strip/interior/mount/window/LOD fixes) plus the
+// earlier base-asset conversions (~34 files, all in base\). The engine prefers
+// <shape>.glb over .dts only when this master gate is on (ts_gltf.cpp resolver via
+// resManager shapePref); without it every shipped GLB is inert bytes and mechs
+// render the old inverted-wall .dts. Guarded: an explicit 0 survives.
+//====================================================================================
+if($pref::gltfShapes == "") { $pref::gltfShapes = 1; }

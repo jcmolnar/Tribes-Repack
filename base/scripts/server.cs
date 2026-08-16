@@ -151,7 +151,17 @@ function createServer(%mission, %dedicated)
    // payload declares 5 datablocks (SoundBotRepairItem + 4x TreePoint*). Inert at 0.
    if($Server::SpoonBots == 1 && $Server::BotBrain != 1)
       exec("spoonbot\\spoonbot_load.cs");
-   
+
+   // MECH-MAYHEM (generic mod hook): a mod's boot script may point
+   // $Mod::ServerDataBlocks at a script declaring extra datablocks (weapons,
+   // projectiles, armor twins). Placement is load-bearing both ways, like the
+   // SpoonBot gate above: AFTER the stock datablock execs so mod overrides win
+   // the last-wins race, and BEFORE preloadServerDataBlocks() below so the
+   // declared datablocks actually register. exec() resolves through the mod
+   // search path (isFile() would not). Inert when the variable is unset.
+   if($Mod::ServerDataBlocks != "")
+      exec($Mod::ServerDataBlocks);
+
    Server::storeData();
 
    // NOTE!! You must have declared all data blocks BEFORE you call

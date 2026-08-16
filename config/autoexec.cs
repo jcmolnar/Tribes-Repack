@@ -35,6 +35,17 @@ function OptionsVideo::validate()
 		$KV::reapplyArmed = true;
 		schedule("KronosVideo::reapply();", 3);
 	}
+
+	// Which keybind set this session booted into (BindSet::report, nativeDefaults.cs).
+	// Armed HERE for the same reason KronosVideo::reapply is: this is the first point in the
+	// boot chain where ConsoleScheduler exists -- console.cs creates it AFTER exec'ing
+	// autoexec.cs, so scheduling from a file's top level is silently dropped. The delay also
+	// puts the line past the point where console logging opens.
+	if(!$BindSet::reportArmed)
+	{
+		$BindSet::reportArmed = true;
+		schedule("BindSet::report();", 3);
+	}
 }
 
 function KronosVideo::reapply()
@@ -86,8 +97,15 @@ editActionMap("playMap.sae");
 bindCommand(mouse0, zaxis0, TO, "nextWeapon();"); //Wheel forward
 bindCommand(mouse0, zaxis1, TO, "prevWeapon();"); //Wheel backward
 
-// Auto-attack toggle on X key
-bindCommand(keyboard0, make, "x", TO, "PrestoAutoAttackToggle();");
+// Auto-attack toggle on J.
+//
+// WAS x, which silently ate a core action in every preset. This file is exec'd LAST
+// (console.cs:232 -- after sae*.cs, after config.cs, after extra-controls.cs), so a bindCommand
+// here overwrites whatever the active keybind set put on that key. x is IDACTION_VIEW in
+// saeBase and IDACTION_CROUCH in saeRPG/saeModern; both were being lost with no error.
+// j is bound nowhere in any play map (editorconfig.cs uses it, but that is the mission-editor
+// map under -edit only). Not l -- config.cs has it on LocalSkin::menu().
+bindCommand(keyboard0, make, "j", TO, "PrestoAutoAttackToggle();");
 
 // CustomConfigs v2: when a 1.4 config overlay is active ($Config::Name set by the exe
 // before boot), the CONFIG owns the in-game HUD -- skip the whole KronosHUD suite so
@@ -144,53 +162,3 @@ exec("Presto\\KronosStats.cs");
 // 's'), so Presto's own toggle never worked. Set the variable the gate actually reads.
 $PrestoPrefs::ShowPackStatus = false;
 
-// ---- AIM-LATENCY DIAGNOSTICS (temporary, 2026-08-09) ---------------------------------
-// Armed here rather than in ServerPrefs.cs on purpose: that file is rewritten on every
-// quit AND ships in the updater manifest, so edits there get clobbered or trigger repair
-// prompts. This file is a user hook and survives.
-//
-// Both are SERVER-side -- they are read in Player::serverUpdateMove, which only runs in
-// the process that is HOSTING. Setting them in a client you are merely playing in does
-// nothing. Both are scoped to humans (never bots) and summarised at 1 Hz.
-//
-//   moveDropDiag -- one heartbeat line a second:
-//     [MOVEDROP] peakDebt=2/5 moves=31 | dropped=0 in 0 overflow(s), 0.0 deg yaw lost
-//     peakDebt is the number that matters. The server discards moves above 5, and those
-//     moves were ALREADY ACKED, so their rotation is lost and the view snaps back by that
-//     much. Peak 1-2 = smooth delivery, loss impossible on this path. Peak 6+ = bursts
-//     are arriving and rotation IS being thrown away.
-//   aimLagDiag   -- prints the measured aim correction, in degrees, per shot.
-//
-// DELETE THIS BLOCK when the investigation is done. Neither costs anything when the
-// server is idle, but they are probes, not features.
-$pref::moveDropDiag = 1;
-$pref::aimLagDiag   = 1;
-
-// viewSnapDiag is CLIENT-side -- it is read in Player::readPacketData, which only the process
-// you PLAY in reaches. Harmless here: the dedicated server execs the same file and simply never
-// hits that code. This is the one that measures the SNAP ITSELF rather than a cause:
-//   [VIEWSNAP] 12 corrections/s: worst yaw=118.4 pitch=3.1 deg, avg yaw=1.20 deg
-// A few degrees of "worst" is ordinary staleness that the move replay puts back. A worst yaw in
-// the tens or hundreds is the snapback, and if it lands in the same second as a [MOVEDROP]
-// overflow on the server, the two are the same event.
-$pref::viewSnapDiag = 1;
-
-// NOT enabling $pref::viewLagDiag: it measures how far the camera LEADS, which is a different
-// question and would add per-turn noise. $pref::aimLagFix and $pref::viewLag both already
-// default ON in code, so nothing needs setting for the fixes themselves.
-// --------------------------------------------------------------------------------------
-
-// PROTECTED-PREFS RESTORE -- paired with the snapshot at the end of
-// nativeDefaults.cs (the first exec above). Everything between there and here
-// runs AFTER the player's ClientPrefs, so any script in that chain that writes
-// one of the guarded prefs unconditionally would win the session and then be
-// exported into ClientPrefs forever (the "network settings keep resetting"
-// class). Re-assert the player's own values; a pref that was empty at snapshot
-// (fresh install) keeps whatever the chain seeded. KEEP THIS LAST IN THIS FILE.
-for(%i = 0; (%pg = getWord($PrefGuard::list, %i)) != -1; %i++) {
-	if($PrefGuard::val[%pg] != "" && $pref::[%pg] != $PrefGuard::val[%pg]) {
-		echo("[PREFGUARD] restoring $pref::" @ %pg @ " = " @ $PrefGuard::val[%pg] @ " (a boot script had changed it to " @ $pref::[%pg] @ ")");
-		$pref::[%pg] = $PrefGuard::val[%pg];
-	}
-}
-echo("XSKYPROBE isFile=" @ isFile("xskyprobe_test.png"));  // TEMP probe, removed after test

@@ -1356,13 +1356,27 @@ function ModernHUDPack::draw(%screen)
    // configures without this pack owning a menu engine.
 }
 
-function ModernHUDPack::onGuiOpen(%gui)
+// ★Bound to eventGuiOpen_PlayGui, NOT eventGuiOpen plus a gui-name test.★
+// TWO independent firers raise eventGuiOpen with DIFFERENT spellings: the
+// ENGINE, with the control's real name -- `playGui` (simGuiCanvas.cpp:907,
+// kronosFireEvent1) -- and PRESTO, with a hardcoded bare word -- `PlayGui`
+// (Presto/events.cs:681 via OpenAGui(PlayGui) at :737). A string VALUE
+// comparison is case-SENSITIVE even though NAME lookup is not (compare() falls
+// through to strcmp for two non-numeric strings, eval.cpp), so the old
+// `%gui == "playGui"` test matched the engine's spelling and ignored Presto's.
+// It WORKED -- verified live: oldSeen=playGui, oldHits=1 per transition -- but
+// only because the two spellings happen to differ. Presto fires an
+// argument-free eventGuiOpen_PlayGui from the same function (events.cs:746);
+// binding that removes the string test altogether, at the same frequency
+// (verified newHits=1). A robustness change, not a bug fix.
+function ModernHUDPack::onPlayGuiOpen()
 {
-   if(%gui == "playGui")
-      Schedule::Add("ModernHUDPack::stockHuds();", 0);
+   Schedule::Add("ModernHUDPack::stockHuds();", 0);
 }
 
-Event::Attach(eventGuiOpen, ModernHUDPack::onGuiOpen);
+// ModernHUD::attach, not a raw Event::Attach: the framework revokes tracked
+// handlers in detachAll() on unload, so this cannot outlive its own pack.
+ModernHUD::attach("eventGuiOpen_PlayGui", "ModernHUDPack::onPlayGuiOpen");
 ModernHUDPack::prefs();
 ModernHUDPack::stockHuds();
 ModernHUDPack::init();

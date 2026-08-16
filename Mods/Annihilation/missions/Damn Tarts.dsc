@@ -1,0 +1,9 @@
+$MDESC::Creator = "Capture the Flag";
+$MDESC::Planet = "Omicron Argentis VI";
+$MDESC::TeamCount = "2";
+$MDESC::TimeOfDay = "Night";
+$MDESC::Weather = "Clear";
+$MDESC::Type = "Capture the Flag Air";
+$MDESC::Text = "\n<s3>\n<f1>Mission Type : <f0>Capture the Flag\n<f1>Planet : <f0>Omicron Argentis VI\n<f1>Weather : <f0>Clear\n<f1>Time of Day : <f0>Night\n<f1># of Teams : <f0>2\n<f1>Briefing : <f0>The <vServer::teamName0> and <vServer::teamName1> battle each other for there flags. Both flags are held in a well-fortified base. There is a center objective between the two bases. Be sure to use it to your advantagefor it offers great defense against   \n\n<f1>Map Creator : <f0>{-o-} Coal\n<f1>E-mail : <f0>ElementOfOne@aol.com\n<f1>Special Thanks to : <f0>{-o-} Tartloaf\n<f1>DV :V2.0.16";
+$cdTrack = ;;
+$cdPlaymode = ;;

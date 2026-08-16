@@ -403,16 +403,13 @@ function ModernHUDPack::draw(%screen)
       ModernHUD::hide("ModernHUD::killHUD_Container");
 }
 
-function ModernHUDPack::onGuiOpen(%gui)
+function ModernHUDPack::onPlayGuiOpen()
 {
-   if(%gui == "playGui")
-   {
-      Schedule::Add("ModernHUDPack::detachRetained();", 0);
-      Schedule::Add("ModernHUDPack::stockHuds();", 0);
-   }
+   Schedule::Add("ModernHUDPack::detachRetained();", 0);
+   Schedule::Add("ModernHUDPack::stockHuds();", 0);
 }
 
-Event::Attach(eventGuiOpen, ModernHUDPack::onGuiOpen);
+ModernHUD::attach("eventGuiOpen_PlayGui", "ModernHUDPack::onPlayGuiOpen");
 ModernHUD::attach("eventConnectionAccepted", "proconfig::killHUD::Clear");
 ModernHUD::attach("eventChangeMission", "proconfig::killHUD::Clear");
 ModernHUD::attach("eventClientKilled", "proconfig::killHUD::onClientKilled");

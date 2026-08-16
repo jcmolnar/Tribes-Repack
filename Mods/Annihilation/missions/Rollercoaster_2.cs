@@ -1,0 +1,9 @@
+$ObjData::Num = "2";
+$ObjData::0_name = "%1 flag";
+$ObjData::1_name = "%0 flag";
+$ObjData::0_type = "ctf";
+$ObjData::1_type = "ctf";
+$ObjData::0_score = "1 0";
+$ObjData::1_score = "1 0";
+$ObjData::WinScore = 10;
+$ObjData::MissionType = "Capture the Flag";

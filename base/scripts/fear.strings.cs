@@ -44,7 +44,7 @@ IDDLG_TEMP			             = 00110998, "gui\\TempDlg.gui";
 // GUI Executed console commands
 IDCMD_TEST                      = 00120001, "echo \"hello world\"";
 IDCMD_QUIT                      = 00120002, "quit";
-IDCMD_WEBSITE                   = 00120003, "HTMLOpen(\"http://www.beatme101.com/\");";
+IDCMD_WEBSITE                   = 00120003, "HTMLOpen(\"http://kingdomofkronos.com/beta\");";
 IDCMD_NEW_SINGLE_PLAYER_GAME    = 00120004, "NewSinglePlayerGame";
 IDCMD_JOIN_GAME                 = 00120005, "JoinGame";
 IDCMD_NEW_SERVER                = 00120006, "CreateServer";

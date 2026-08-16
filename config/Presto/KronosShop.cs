@@ -87,15 +87,23 @@ function remoteKBankCoins(%server, %coins, %bankParts)
 	%remainder = GetWord(%bankParts, 1);
 	$KS::bankText = KronosShop::formatBankParts(%chunks, %remainder);
 
-	// The amount field remains int32-safe. With a multi-million-chunk bank,
-	// withdrawal is limited only by the carried-coin headroom.
-	%headroom = 2000000000 - floor(%coins);
-	if(%headroom < 0)
-		%headroom = 0;
-	if(%chunks > 0 || %remainder > %headroom)
-		$KS::bankWithdrawMax = %headroom;
-	else
-		$KS::bankWithdrawMax = %remainder;
+	// Word 2 (newer servers): exact min(bank, wallet headroom) as decimal text,
+	// assembled server-side - use it VERBATIM. Recomputing it here would push a
+	// >1M value through numeric stringification (%g drift).
+	$KS::bankWithdrawMax = GetWord(%bankParts, 2);
+	if($KS::bankWithdrawMax == "" || $KS::bankWithdrawMax == -1)
+	{
+		// Older server: fall back to the local int32-safe estimate. With a
+		// multi-million-chunk bank, withdrawal is limited only by the
+		// carried-coin headroom.
+		%headroom = 2000000000 - floor(%coins);
+		if(%headroom < 0)
+			%headroom = 0;
+		if(%chunks > 0 || %remainder > %headroom)
+			$KS::bankWithdrawMax = %headroom;
+		else
+			$KS::bankWithdrawMax = %remainder;
+	}
 }
 
 // Own inventory row. %kind: "d" = ItemData (%ref = index, stock
@@ -1151,10 +1159,10 @@ function KronosShop::doAction(%act)
 	}
 	if(%verb == "wdcoins")
 	{
-		// The server computes the exact int32-safe wallet headroom. Do not send a
-		// displayed/chunked bank value through the numeric amount modal.
-		remoteEval(2048, KBWAll);
-		schedule("remoteEval(2048, KShopSync);", 0.5);
+		// Amount modal, pre-filled with the SERVER-computed withdraw max
+		// (min of bank and wallet headroom, exact decimal text). Never derive
+		// this from the displayed/chunked bank value client-side.
+		KronosShop::beginBankAmt("wdcoin", "", $KS::bankWithdrawMax, "Withdraw " @ $KS::cGold @ "Coins");
 		return;
 	}
 	if(%verb == "withdraw")
@@ -1436,8 +1444,13 @@ function KronosShop::beginBankAmt(%op, %ref, %max, %title)
 	%init = %max;
 	if(%init == "" || %init < 1)
 		%init = "";                   // nothing available -> empty field
-	// digits-only field; Enter -> bankAmtSubmit, Esc -> cancel (no-op fn)
-	KronosInput::focus("bankqty", %init, "KronosShop::bankAmtSubmit", "", "", 9);
+	// digits-only field; Enter -> bankAmtSubmit, Esc -> cancel (no-op fn).
+	// Coin amounts run to the 2,000,000,000 wallet cap (10 digits); item
+	// counts stay at 9.
+	%maxLen = 9;
+	if(%op == "depcoin" || %op == "wdcoin")
+		%maxLen = 10;
+	KronosInput::focus("bankqty", %init, "KronosShop::bankAmtSubmit", "", "", %maxLen);
 	KronosInput::setNumeric(true);
 }
 
