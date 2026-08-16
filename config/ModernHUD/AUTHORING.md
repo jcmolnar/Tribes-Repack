@@ -63,17 +63,38 @@ missing one is a per-frame console error.
 | `ModernHUDPack::ownsSlot(%value)` | per part, per frame | return true if this pack still owns that HUD slot |
 | `ModernHUDPack::init()` | on load | apply client-wide settings |
 | `ModernHUDPack::prefs()` | on load | the pack's own `$pref::miniMap*` / `$pref::hudPositions*` |
-| `ModernHUDPack::stockHuds()` | on load + `eventGuiOpen` | show/hide the stock huds |
+| `ModernHUDPack::stockHuds()` | on load + `eventGuiOpen_PlayGui` | show/hide the stock huds |
 | `ModernHUDPack::detachRetained()` | on load | remove legacy containers this pack replaces (may be empty) |
 
 Boot order at the bottom of `hud.cs`:
 
 ```
-Event::Attach(eventGuiOpen, ModernHUDPack::onGuiOpen);
+ModernHUD::attach("eventGuiOpen_PlayGui", "ModernHUDPack::onPlayGuiOpen");
 ModernHUDPack::prefs();
 ModernHUDPack::stockHuds();
 ModernHUDPack::init();
 ```
+
+★Bind `eventGuiOpen_PlayGui`, never `eventGuiOpen` plus a gui-name test.★
+**Two** independent firers raise `eventGuiOpen`, with **different spellings**:
+
+| firer | argument |
+|---|---|
+| the engine, using the control's real name (`simGuiCanvas.cpp:907`) | `playGui` |
+| Presto, using a hardcoded bare word (`events.cs:681` via `OpenAGui(PlayGui)`) | `PlayGui` |
+
+A string **value** comparison is case-**sensitive** even though **name** lookup
+is not (`compare()` falls through to a plain `strcmp` for two non-numeric
+strings, `engine/console/code/eval.cpp`). So the old `%gui == "playGui"` test
+matched the engine's spelling and silently ignored Presto's. It *worked* —
+measured live, `oldSeen=playGui`, one hit per transition — but only because the
+two spellings happen to differ, and a pack that had spelled it `PlayGui` would
+have matched the other firer instead. Presto fires an argument-free
+`eventGuiOpen_PlayGui` from the same function (`events.cs:746`): binding that
+removes the string test altogether, at the same frequency.
+
+Use `ModernHUD::attach` rather than a raw `Event::Attach`: the framework revokes
+tracked handlers in `detachAll()` on unload, so a hook cannot outlive its pack.
 
 ★`stockHuds()` must declare the WHOLE set, not just the huds you want on.★ Stock
 visibility is global client state; a pack that lists only its own leaves the rest
@@ -350,6 +371,22 @@ takes all of that with it. Use `$pref::hideCrosshairArt`.
 `String::escapeFormatting` `String::Explode` `String::getWord`
 `String::getWordCount` · `getWord` `floor` `round` `min` `max` `sqrt` `pow`
 `getVariable(name)` `setVariable(name, value)` · `getRealTime` `getRealMillis`
+
+★Three of these are SHADOWED by Presto at runtime and are NOT the native
+implementations.★ A script `function X` replaces a native command of the same
+name outright (`Dictionary::addFunction` placement-news the entry and wipes the
+native callback), and Presto loads in every session, so what a pack actually
+calls is:
+
+| name | who really answers | why it matters |
+|---|---|---|
+| `String::toLower` | `Presto/LevelUpSave.cs` | a per-character script loop over `String::getSubStr` — same ASCII result, far slower; do not call it per frame |
+| `String::getWordCount` | `Presto/upgrade/extra.cs` | counts by looping until `getWord(...) == -1`, so a word that *is* `-1` ends the count early — not a native word count |
+| `String::removeBetween` | `Presto/ATKText.cs` | full script reimplementation |
+
+Prefer `String::Explode` (native, and it reports the field count) over
+`String::getWordCount` when the input is untrusted. The other names in the list
+resolve to the native commands.
 
 `getVariable` / `setVariable` are the console's only dynamic variable access —
 there is no dynamic *assignment* in the grammar (`*expr(args)` is a dynamic

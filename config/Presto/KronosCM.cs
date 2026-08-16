@@ -326,12 +326,25 @@ function KronosCM::render(%sw, %sh)
 }
 
 // ============================================
-// Bind Ctrl+V (Deus quick menu) + plain V (Presto chat/animation menu) to
-// our overlay (overrides config.cs/Chat.cs Menu::Display binds; re-runs each
-// launch). Both render through the same ScriptGL menu - the stock versions
-// draw in chatDisplayHud, which the Kronos chat overlay hides.
+// Renderer registration - NOT a key binding.
+//
+// This file used to bindCommand plain V to KronosCM::toggle(menuChat) on every
+// launch. That made the overlay a SECOND owner of the quick-chat key, competing
+// with the Controls row's stock action (setCMMode(PlayChatMenu,2)): rebinding
+// Chat Menu to another key moved only the stock owner, and the engine menu it
+// activates draws in chatDisplayHud - which the Kronos chat overlay hides. So the
+// player got an interactive INVISIBLE menu on their new key while V still opened
+// this one.
+//
+// The stock action is now the single owner and setCMMode picks the renderer at
+// fire time, so quick chat follows whatever key the player binds, modifiers and
+// all. $KCM::loaded is the flag setCMMode tests; a classic config clears it when
+// it neutralises this overlay, and the engine menu takes over there.
+//
+// Ctrl+V stays bound here: the Deus root menu is a DIFFERENT action with no
+// Controls row of its own, so nothing else owns that key.
 // ============================================
+$KCM::loaded = 1;
 bindCommand(keyboard0, make, control, "v", TO, "KronosCM::toggle();");
-bindCommand(keyboard0, make, "v", TO, "KronosCM::toggle(menuChat);");
 
-echo("KronosCM: ScriptGL quick menu loaded - reads live Presto Menu (V / Ctrl+V)");
+echo("KronosCM: ScriptGL quick menu loaded - reads live Presto Menu (Ctrl+V; quick chat follows the Controls binding)");

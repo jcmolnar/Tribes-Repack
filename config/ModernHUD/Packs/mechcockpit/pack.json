@@ -1,0 +1,44 @@
+{
+ "format": 2,
+ "framework": 2,
+ "id": "mechcockpit",
+ "name": "Mech Cockpit",
+ "category": "original",
+ "releaseState": "partial",
+ "authoring": "manual",
+ "reference": {
+  "width": 1920,
+  "height": 1080
+ },
+ "assets": {},
+ "prefs": [],
+ "stockHuds": [],
+ "parts": [
+  {
+   "id": "Cockpit",
+   "slot": "healthenergy",
+   "handle": "ModernHUD::MechCockpit",
+   "anchor": "bottom-center",
+   "offset": [0, 40],
+   "size": [600, 90],
+   "elements": [
+    {
+     "type": "script",
+     "at": [0, 0],
+     "from": "ModernHUDPack::draw",
+     "body": [
+      "// drawing happens in ModernHUDPack::draw (whole-frame cockpit);",
+      "// this part exists so the K-editor has a movable identity"
+     ]
+    }
+   ]
+  }
+ ],
+ "adapters": [],
+ "requires": {
+  "globals": [
+   "$health",
+   "$energy"
+  ]
+ }
+}
