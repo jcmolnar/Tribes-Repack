@@ -120,11 +120,29 @@ function remoteKShopInv(%server, %i, %kind, %ref, %cnt, %heading, %desc)
 	$KS::invName[%i] = %desc;
 }
 
-function remoteKShopInvCount(%server, %n)
+// 2026-08-18: "x/N Items" counter title (N = server per-pane row cap)
+function KronosShop::invTitle()
+{
+	%cap = $KS::invCap;
+	if(%cap == "" || %cap <= 0)
+		%cap = 200;
+	%n = $KS::invN;
+	if(%n == "" || %n < 0)
+		%n = 0;
+	return %n @ "/" @ %cap @ " Items";
+}
+
+function remoteKShopInvCount(%server, %n, %cap)
 {
 	if(%server != 2048)
 		return;
 	$KS::invN = %n;
+	// 2026-08-18: server also sends its per-pane row cap for the "x/N Items"
+	// title; older servers send only %n
+	if(%cap != "" && %cap > 0)
+		$KS::invCap = %cap;
+	else
+		$KS::invCap = 200;
 	KronosShop::buildDisp("inv");
 }
 
@@ -328,12 +346,12 @@ function KronosShop::render(%dimensions)
 
 	if($KS::open == "bank")
 	{
-		KronosShop::renderPane("inv", $KSL::lx, $KSL::ly, "Your Items   " @ $KS::cGold @ "Coins: " @ $KS::cGreen @ "$" @ KronosShop::commafy($KS::coins));
+		KronosShop::renderPane("inv", $KSL::lx, $KSL::ly, KronosShop::invTitle() @ "   " @ $KS::cGold @ "Coins: " @ $KS::cGreen @ "$" @ KronosShop::commafy($KS::coins));
 		KronosShop::renderPane("st", $KSL::rx, $KSL::ry, "Bank Storage   " @ $KS::cGold @ "Bank: " @ $KS::cGreen @ "$" @ $KS::bankText);
 	}
 	else
 	{
-		KronosShop::renderPane("inv", $KSL::lx, $KSL::ly, "Your Items   " @ $KS::cGold @ "Gold: " @ $KS::cGreen @ "$" @ KronosShop::commafy($KH::gold));
+		KronosShop::renderPane("inv", $KSL::lx, $KSL::ly, KronosShop::invTitle() @ "   " @ $KS::cGold @ "Gold: " @ $KS::cGreen @ "$" @ KronosShop::commafy($KH::gold));
 		if($KS::open == "shop")
 		{
 			%title = $KS::shopName;
