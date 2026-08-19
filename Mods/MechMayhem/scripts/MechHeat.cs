@@ -42,6 +42,19 @@ function MechHeat::visit(%obj)
    if (Player::isDead(%obj))
       return;
 
+   // BOT CONSCRIPTION INIT: BotBrain spawns its bots directly (AI_spawnBot),
+   // bypassing Game::playerSpawned -- a roster-mech bot arrives here with no
+   // shields and no mounted loadout. Idempotent via mmInit (humans get it set
+   // in Game::playerSpawned). findPlayerObject resolves the player object for
+   // both grantLoadout args, so %obj serves as the client id.
+   if (%obj.mmInit != 1) {
+      %obj.mmInit = 1;
+      %baseC = MechHeat::baseChassis(%data);
+      MechShield::init(%obj, %baseC);
+      MechMayhem::grantLoadout(%obj, %obj, %baseC);
+      echo("[MECH] conscript init: " @ %obj @ " (" @ %baseC @ ")");
+   }
+
    // per-mission dissipation preset ($MM::DissipScale from the mission tail;
    // 1.0 = engine recharge alone, <1 bleeds heat capacity, >1 cools faster --
    // Whiteout ice maps run 1.3, Monsoon storms run 0.6)

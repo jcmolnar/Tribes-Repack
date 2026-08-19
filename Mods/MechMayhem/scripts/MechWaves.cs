@@ -76,6 +76,7 @@ function MechWaves::watch()
       echo("[MECHWAVE] DEFEAT at wave " @ $MMW::wave);
       $timeLimitReached = true;
       $timeReached = 1;
+      MechMayhem::objectives(1, "The outpost has fallen -- the Cybrid incursion succeeded at wave " @ $MMW::wave @ ".");
       schedule("Server::nextMission();", 12);
       return;
    }
@@ -89,6 +90,7 @@ function MechWaves::watch()
          echo("[MECHWAVE] VICTORY");
          $timeLimitReached = true;
          $timeReached = 1;
+         MechMayhem::objectives(1, "Incursion repelled -- " @ $MM::MaxWave @ " waves survived, " @ $MMW::salvage @ " salvage banked.");
          schedule("Server::nextMission();", 15);
          return;
       }

@@ -10,10 +10,330 @@
 //--- gameobjects.vol by tools/mech_fx_extract.py; the engine loads the
 //--- v7 .dts natively) ------------------------------------------------------
 
+//--- Starsiege sounds (sound.vol wavs extracted to base by mech_sound_extract.py) --
+
+SoundData MechSfx_LAS
+{
+   wavFileName = "sfx_las.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_HLAS
+{
+   wavFileName = "sfx_hlas.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_CLAS
+{
+   wavFileName = "sfx_clas.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_TLAS
+{
+   wavFileName = "sfx_tlas.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_EMP
+{
+   wavFileName = "sfx_emp.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_ELF
+{
+   wavFileName = "sfx_elf.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_BLAS
+{
+   wavFileName = "sfx_blas.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_HBLA
+{
+   wavFileName = "sfx_hblas.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_PBW
+{
+   wavFileName = "sfx_pbw.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_PLAS
+{
+   wavFileName = "sfx_plas.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_BLNK
+{
+   wavFileName = "sfx_blnk.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_QGUN
+{
+   wavFileName = "sfx_qgun.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_MFAC
+{
+   wavFileName = "sfx_mfac.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_NANO
+{
+   wavFileName = "sfx_nano.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_NCAN
+{
+   wavFileName = "sfx_ncan.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_ATC
+{
+   wavFileName = "sfx_atc.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_HATC
+{
+   wavFileName = "sfx_hatc.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_EMC
+{
+   wavFileName = "sfx_emc.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_BC
+{
+   wavFileName = "sfx_bc.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_HBC
+{
+   wavFileName = "sfx_hbc.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_RAIL
+{
+   wavFileName = "sfx_rail.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_LGB
+{
+   wavFileName = "sfx_lgb.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_HAD
+{
+   wavFileName = "sfx_had.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_VIP8
+{
+   wavFileName = "sfx_vip.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_VIP12
+{
+   wavFileName = "sfx_vip.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_SPR6
+{
+   wavFileName = "sfx_spr.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_SPR10
+{
+   wavFileName = "sfx_spr.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_SWRM
+{
+   wavFileName = "sfx_swrm.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_MIN
+{
+   wavFileName = "sfx_min.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_SHRK
+{
+   wavFileName = "sfx_shrk.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_APH
+{
+   wavFileName = "sfx_aph.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_ARA4
+{
+   wavFileName = "sfx_ara.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_ARA8
+{
+   wavFileName = "sfx_ara.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_ARA12
+{
+   wavFileName = "sfx_ara.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_PRX6
+{
+   wavFileName = "sfx_prx.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_PRX10
+{
+   wavFileName = "sfx_prx.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_PRX15
+{
+   wavFileName = "sfx_prx.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_NIKE
+{
+   wavFileName = "sfx_nike.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_AML
+{
+   wavFileName = "sfx_aml.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_RAD
+{
+   wavFileName = "sfx_rad.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_DIS
+{
+   wavFileName = "sfx_dis.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_PROB
+{
+   wavFileName = "sfx_prob.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_SGUN
+{
+   wavFileName = "sfx_sgun.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_EXP_SMALL
+{
+   wavFileName = "exploNear2.wav";
+   profile = Profile3dMedium;
+};
+
+SoundData MechSfx_EXP_MED
+{
+   wavFileName = "explo3.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_EXP_LARGE
+{
+   wavFileName = "explosionLarge.wav";
+   profile = Profile3dLudicrouslyFar;
+};
+
+SoundData MechSfx_HITWALL
+{
+   wavFileName = "sfx_herc_bld.wav";
+   profile = Profile3dNear;
+};
+
+SoundData MechSfx_HITVEHICLE
+{
+   wavFileName = "sfx_herchit1.wav";
+   profile = Profile3dNear;
+};
+
+SoundData MechSfx_HERC_DEBRIS_BOUNCE
+{
+   wavFileName = "sfx_hitdebris.wav";
+   profile = Profile3dFar;
+};
+
+SoundData MechSfx_FOOTFALL_TERRAIN
+{
+   wavFileName = "step.wav";
+   profile = Profile3dNear;
+};
+
+SoundData MechSfx_FOOTFALL_ZED
+{
+   wavFileName = "bigfoot_l.wav";
+   profile = Profile3dNear;
+};
+
+SoundData MechSfx_REACTOR_EXPLODE
+{
+   wavFileName = "sfx_reactor_xplo.wav";
+   profile = Profile3dNear;
+};
+
+SoundData MechSfx_FIRE
+{
+   wavFileName = "sfx_fire.wav";
+   profile = Profile3dMediumLoop;
+};
+
 ExplosionData MechImpSm
 {
    shapeName = "fx_imp_sm.dts";
-   soundId   = ricochet1;
+   soundId   = MechSfx_HITWALL;
    faceCamera = true;
    randomSpin = false;
    hasLight   = false;
@@ -30,7 +350,7 @@ ExplosionData MechImpSm
 ExplosionData MechImpMd
 {
    shapeName = "fx_imp_md.dts";
-   soundId   = ricochet2;
+   soundId   = MechSfx_HITVEHICLE;
    faceCamera = true;
    randomSpin = false;
    hasLight   = false;
@@ -47,7 +367,7 @@ ExplosionData MechImpMd
 ExplosionData MechImpTn
 {
    shapeName = "fx_imp_tn.dts";
-   soundId   = energyExplosion;
+   soundId   = MechSfx_HITVEHICLE;
    faceCamera = true;
    randomSpin = false;
    hasLight   = true;
@@ -64,7 +384,7 @@ ExplosionData MechImpTn
 ExplosionData MechImpFb
 {
    shapeName = "fx_imp_fb.dts";
-   soundId   = energyExplosion;
+   soundId   = MechSfx_HITVEHICLE;
    faceCamera = true;
    randomSpin = false;
    hasLight   = true;
@@ -81,7 +401,7 @@ ExplosionData MechImpFb
 ExplosionData MechImpSp
 {
    shapeName = "fx_imp_sp.dts";
-   soundId   = shockExplosion;
+   soundId   = MechSfx_HITVEHICLE;
    faceCamera = true;
    randomSpin = false;
    hasLight   = true;
@@ -98,7 +418,7 @@ ExplosionData MechImpSp
 ExplosionData MechExpSm
 {
    shapeName = "fx_exp_sm.dts";
-   soundId   = explosion4;
+   soundId   = MechSfx_EXP_SMALL;
    faceCamera = true;
    randomSpin = false;
    hasLight   = true;
@@ -115,7 +435,7 @@ ExplosionData MechExpSm
 ExplosionData MechExpMd
 {
    shapeName = "fx_exp_md.dts";
-   soundId   = rocketExplosion;
+   soundId   = MechSfx_EXP_MED;
    faceCamera = true;
    randomSpin = false;
    hasLight   = true;
@@ -132,7 +452,7 @@ ExplosionData MechExpMd
 ExplosionData MechExpLg
 {
    shapeName = "fx_exp_lg.dts";
-   soundId   = bigExplosion3;
+   soundId   = MechSfx_EXP_LARGE;
    faceCamera = true;
    randomSpin = false;
    hasLight   = true;
@@ -144,6 +464,306 @@ ExplosionData MechExpLg
    colors[1]  = { 1.0, 0.65, 0.25 };
    colors[2]  = { 0.0, 0.0, 0.0 };
    radFactors = { 0.5, 1.0, 1.0 };
+};
+
+//--- Starsiege muzzle flashes (weaponMuzzle -> ExplosionData, spawned client-side at the muzzle) --
+
+ExplosionData MechMz_mz_las
+{
+   shapeName = "mz_las.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.94, 0.35, 0.35 };
+   colors[1]  = { 0.94, 0.35, 0.35 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_clas
+{
+   shapeName = "mz_clas.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.44, 0.96, 0.45 };
+   colors[1]  = { 0.44, 0.96, 0.45 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_tlas
+{
+   shapeName = "mz_tlas.dts";
+   faceCamera = false;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.94, 0.35, 0.35 };
+   colors[1]  = { 0.94, 0.35, 0.35 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_emp
+{
+   shapeName = "mz_emp.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.28, 0.59, 1.0 };
+   colors[1]  = { 0.28, 0.59, 1.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_elf
+{
+   shapeName = "mz_elf.dts";
+   faceCamera = false;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.28, 0.59, 1.0 };
+   colors[1]  = { 0.28, 0.59, 1.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_blas
+{
+   shapeName = "mz_blas.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.44, 0.96, 0.45 };
+   colors[1]  = { 0.44, 0.96, 0.45 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_hbla
+{
+   shapeName = "mz_hbla.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.44, 0.96, 0.45 };
+   colors[1]  = { 0.44, 0.96, 0.45 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_pbw
+{
+   shapeName = "mz_pbw.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.28, 0.59, 1.0 };
+   colors[1]  = { 0.28, 0.59, 1.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_plas
+{
+   shapeName = "mz_plas.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.28, 0.59, 1.0 };
+   colors[1]  = { 0.28, 0.59, 1.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_blnk
+{
+   shapeName = "mz_blnk.dts";
+   faceCamera = false;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.44, 0.96, 0.45 };
+   colors[1]  = { 0.44, 0.96, 0.45 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_mfac
+{
+   shapeName = "mz_mfac.dts";
+   faceCamera = false;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.28, 0.59, 1.0 };
+   colors[1]  = { 0.28, 0.59, 1.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_atc
+{
+   shapeName = "mz_atc.dts";
+   faceCamera = false;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 1.0, 0.82, 0.24 };
+   colors[1]  = { 1.0, 0.82, 0.24 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_hatc
+{
+   shapeName = "mz_hatc.dts";
+   faceCamera = false;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 1.0, 0.82, 0.24 };
+   colors[1]  = { 1.0, 0.82, 0.24 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_rail
+{
+   shapeName = "mz_rail.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 1.0, 0.82, 0.24 };
+   colors[1]  = { 1.0, 0.82, 0.24 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_smok
+{
+   shapeName = "mz_smok.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = false;
+   lightRange = 0.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.0, 0.0, 0.0 };
+   colors[1]  = { 0.0, 0.0, 0.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+ExplosionData MechMz_mz_dis
+{
+   shapeName = "mz_dis.dts";
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 5.0;
+   timeScale  = 1.0;
+   timeZero   = 0.0;
+   timeOne    = 0.6;
+   colors[0]  = { 0.28, 0.59, 1.0 };
+   colors[1]  = { 0.28, 0.59, 1.0 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 1.0, 1.0, 0.5 };
+};
+
+//--- Starsiege herc death: reactor fireball + hull debris ------------------
+
+ExplosionData MechReactorExp
+{
+   shapeName = "fx_exp_lg.dts";
+   soundId   = MechSfx_REACTOR_EXPLODE;
+   faceCamera = true;
+   randomSpin = false;
+   hasLight   = true;
+   lightRange = 18.0;
+   timeScale  = 1.4;
+   timeZero   = 0.2;
+   timeOne    = 0.8;
+   colors[0]  = { 1.0, 0.7, 0.3 };
+   colors[1]  = { 1.0, 0.5, 0.2 };
+   colors[2]  = { 0.0, 0.0, 0.0 };
+   radFactors = { 0.6, 1.0, 1.0 };
+};
+
+DebrisData MechDebris
+{
+   type      = 0;
+   imageType = 0;
+   mass       = 400.0;
+   elasticity = 0.2;
+   friction   = 0.6;
+   center     = { 0, 0, 0 };
+   animationSequence = -1;
+   minTimeout = 5.0;
+   maxTimeout = 9.0;
+   explodeOnBounce = 0.15;
+   damage          = 400.0;
+   damageThreshold = 100.0;
+   spawnedDebrisMask     = 1;
+   spawnedDebrisStrength = 60;
+   spawnedDebrisRadius   = 0.3;
+   spawnedExplosionID = MechExpMd;
+   p = 1;
+   explodeOnRest   = True;
+   collisionDetail = 0;
 };
 
 //--- projectiles ------------------------------------------------------------
@@ -976,7 +1596,7 @@ SeekingMissileData MechScattergunShot
 
 ItemImageData MechLaserImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wg_las";
    mountPoint = 0;
    fireOffset = { 0.0, 1.03, 0.33 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -986,7 +1606,8 @@ ItemImageData MechLaserImage
    maxEnergy  = 5.3;
    projectileType = MechLaserShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_LAS;
+   muzzleFlash = MechMz_mz_las;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -995,7 +1616,7 @@ ItemData MechLaser
    heading = "bWeapons";
    description = "Laser [S]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wg_las";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechLaserImage;
@@ -1005,7 +1626,7 @@ ItemData MechLaser
 
 ItemImageData MechHeavyLaserImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wg_hlas";
    mountPoint = 0;
    fireOffset = { 0.0, 1.12, 0.27 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1015,7 +1636,8 @@ ItemImageData MechHeavyLaserImage
    maxEnergy  = 9.1;
    projectileType = MechHeavyLaserShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_HLAS;
+   muzzleFlash = MechMz_mz_las;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1024,7 +1646,7 @@ ItemData MechHeavyLaser
    heading = "bWeapons";
    description = "Heavy Laser [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wg_hlas";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechHeavyLaserImage;
@@ -1034,7 +1656,7 @@ ItemData MechHeavyLaser
 
 ItemImageData MechCompressionLaserImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wt_clas";
    mountPoint = 1;
    fireOffset = { 0.0, 0.99, 0.36 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1044,7 +1666,8 @@ ItemImageData MechCompressionLaserImage
    maxEnergy  = 3.8;
    projectileType = MechCompressionLaserShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_CLAS;
+   muzzleFlash = MechMz_mz_clas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1053,7 +1676,7 @@ ItemData MechCompressionLaser
    heading = "bWeapons";
    description = "Compression Laser [S]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wt_clas";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechCompressionLaserImage;
@@ -1063,7 +1686,7 @@ ItemData MechCompressionLaser
 
 ItemImageData MechTwinLaserImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_tlas";
    mountPoint = 0;
    fireOffset = { 0.0, 0.85, 0.41 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1073,7 +1696,8 @@ ItemImageData MechTwinLaserImage
    maxEnergy  = 4.6;
    projectileType = MechTwinLaserShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_TLAS;
+   muzzleFlash = MechMz_mz_tlas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1082,7 +1706,7 @@ ItemData MechTwinLaser
    heading = "bWeapons";
    description = "Twin Laser [S]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_tlas";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechTwinLaserImage;
@@ -1092,7 +1716,7 @@ ItemData MechTwinLaser
 
 ItemImageData MechElectroMagneticPulseCannonImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wg_emp";
    mountPoint = 1;
    fireOffset = { 0.0, 0.99, 0.43 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1102,7 +1726,8 @@ ItemImageData MechElectroMagneticPulseCannonImage
    maxEnergy  = 3.8;
    projectileType = MechElectroMagneticPulseCannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_EMP;
+   muzzleFlash = MechMz_mz_emp;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1111,7 +1736,7 @@ ItemData MechElectroMagneticPulseCannon
    heading = "bWeapons";
    description = "Electro Magnetic Pulse Cannon [S]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wg_emp";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechElectroMagneticPulseCannonImage;
@@ -1121,7 +1746,7 @@ ItemData MechElectroMagneticPulseCannon
 
 ItemImageData MechElectronFluxWhipImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wt_elf";
    mountPoint = 1;
    fireOffset = { 0.0, 0.45, 0.36 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1131,7 +1756,8 @@ ItemImageData MechElectronFluxWhipImage
    maxEnergy  = 21.3;
    projectileType = MechElectronFluxWhipShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_ELF;
+   muzzleFlash = MechMz_mz_elf;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1140,7 +1766,7 @@ ItemData MechElectronFluxWhip
    heading = "bWeapons";
    description = "Electron Flux Whip [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wt_elf";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechElectronFluxWhipImage;
@@ -1150,7 +1776,7 @@ ItemData MechElectronFluxWhip
 
 ItemImageData MechBlasterImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wm_blas";
    mountPoint = 0;
    fireOffset = { 0.0, 0.99, 0.39 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1160,7 +1786,8 @@ ItemImageData MechBlasterImage
    maxEnergy  = 12.2;
    projectileType = MechBlasterShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_BLAS;
+   muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1169,7 +1796,7 @@ ItemData MechBlaster
    heading = "bWeapons";
    description = "Blaster [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wm_blas";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechBlasterImage;
@@ -1179,7 +1806,7 @@ ItemData MechBlaster
 
 ItemImageData MechHeavyBlasterImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wm_hbla";
    mountPoint = 0;
    fireOffset = { 0.0, 1.35, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1189,7 +1816,8 @@ ItemImageData MechHeavyBlasterImage
    maxEnergy  = 16.3;
    projectileType = MechHeavyBlasterShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_HBLA;
+   muzzleFlash = MechMz_mz_hbla;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1198,7 +1826,7 @@ ItemData MechHeavyBlaster
    heading = "bWeapons";
    description = "Heavy Blaster [L]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wm_hbla";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechHeavyBlasterImage;
@@ -1208,7 +1836,7 @@ ItemData MechHeavyBlaster
 
 ItemImageData MechParticleBeamWeaponImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_pbw";
    mountPoint = 1;
    fireOffset = { 0.0, 0.45, 0.16 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1218,7 +1846,8 @@ ItemImageData MechParticleBeamWeaponImage
    maxEnergy  = 18.3;
    projectileType = MechParticleBeamWeaponShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_PBW;
+   muzzleFlash = MechMz_mz_pbw;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1227,7 +1856,7 @@ ItemData MechParticleBeamWeapon
    heading = "bWeapons";
    description = "Particle Beam Weapon [L]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_pbw";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechParticleBeamWeaponImage;
@@ -1237,7 +1866,7 @@ ItemData MechParticleBeamWeapon
 
 ItemImageData MechPlasmaImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wg_plas";
    mountPoint = 0;
    fireOffset = { 0.0, 1.44, 0.47 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1247,7 +1876,8 @@ ItemImageData MechPlasmaImage
    maxEnergy  = 12.2;
    projectileType = MechPlasmaShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_PLAS;
+   muzzleFlash = MechMz_mz_plas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1256,7 +1886,7 @@ ItemData MechPlasma
    heading = "bWeapons";
    description = "Plasma [L]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wg_plas";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechPlasmaImage;
@@ -1266,7 +1896,7 @@ ItemData MechPlasma
 
 ItemImageData MechBlinkGunImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_blnk";
    mountPoint = 1;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1276,7 +1906,8 @@ ItemImageData MechBlinkGunImage
    maxEnergy  = 5.5;
    projectileType = MechBlinkGunShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_BLNK;
+   muzzleFlash = MechMz_mz_blnk;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1285,7 +1916,7 @@ ItemData MechBlinkGun
    heading = "bWeapons";
    description = "Blink Gun [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_blnk";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechBlinkGunImage;
@@ -1295,7 +1926,7 @@ ItemData MechBlinkGun
 
 ItemImageData MechQuantumGunImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wm_qgun";
    mountPoint = 0;
    fireOffset = { 0.0, 1.12, 0.54 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1305,7 +1936,8 @@ ItemImageData MechQuantumGunImage
    maxEnergy  = 24.3;
    projectileType = MechQuantumGunShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_QGUN;
+   muzzleFlash = MechMz_mz_las;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1314,7 +1946,7 @@ ItemData MechQuantumGun
    heading = "bWeapons";
    description = "Quantum Gun [X]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wm_qgun";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechQuantumGunImage;
@@ -1324,7 +1956,7 @@ ItemData MechQuantumGun
 
 ItemImageData MechMagnetoFusionAssaultCannonImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wm_mfac";
    mountPoint = 1;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1334,7 +1966,8 @@ ItemImageData MechMagnetoFusionAssaultCannonImage
    maxEnergy  = 30;
    projectileType = MechMagnetoFusionAssaultCannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_MFAC;
+   muzzleFlash = MechMz_mz_mfac;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1343,7 +1976,7 @@ ItemData MechMagnetoFusionAssaultCannon
    heading = "bWeapons";
    description = "Magneto-Fusion Assault Cannon [X]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wm_mfac";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechMagnetoFusionAssaultCannonImage;
@@ -1353,7 +1986,7 @@ ItemData MechMagnetoFusionAssaultCannon
 
 ItemImageData MechNannoInfuserImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_nano";
    mountPoint = 0;
    fireOffset = { 0.0, 0.68, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1363,7 +1996,8 @@ ItemImageData MechNannoInfuserImage
    maxEnergy  = 10.7;
    projectileType = MechNannoInfuserShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_NANO;
+   muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1372,7 +2006,7 @@ ItemData MechNannoInfuser
    heading = "bWeapons";
    description = "Nanno Infuser [S]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_nano";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechNannoInfuserImage;
@@ -1382,7 +2016,7 @@ ItemData MechNannoInfuser
 
 ItemImageData MechNanniteCannonImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wm_ncan";
    mountPoint = 0;
    fireOffset = { 0.0, 1.24, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1392,7 +2026,8 @@ ItemImageData MechNanniteCannonImage
    maxEnergy  = 15.2;
    projectileType = MechNanniteCannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_NCAN;
+   muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1401,7 +2036,7 @@ ItemData MechNanniteCannon
    heading = "bWeapons";
    description = "Nannite Cannon [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wm_ncan";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechNanniteCannonImage;
@@ -1411,7 +2046,7 @@ ItemData MechNanniteCannon
 
 ItemImageData MechAutocannonImage
 {
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_atc";
    mountPoint = 1;
    fireOffset = { 0.0, 0.99, 0.32 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1421,7 +2056,8 @@ ItemImageData MechAutocannonImage
    maxEnergy  = 4.6;
    projectileType = MechAutocannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireChaingun;
+   sfxFire    = MechSfx_ATC;
+   muzzleFlash = MechMz_mz_atc;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1430,7 +2066,7 @@ ItemData MechAutocannon
    heading = "bWeapons";
    description = "Autocannon [S]";
    className = "Weapon";
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_atc";
    hudIcon = "chaingun";
    shadowDetailMask = 4;
    imageType = MechAutocannonImage;
@@ -1440,7 +2076,7 @@ ItemData MechAutocannon
 
 ItemImageData MechHeavyAutocannonImage
 {
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_hatc";
    mountPoint = 1;
    fireOffset = { 0.0, 1.3, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1450,7 +2086,8 @@ ItemImageData MechHeavyAutocannonImage
    maxEnergy  = 6.8;
    projectileType = MechHeavyAutocannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireChaingun;
+   sfxFire    = MechSfx_HATC;
+   muzzleFlash = MechMz_mz_hatc;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1459,7 +2096,7 @@ ItemData MechHeavyAutocannon
    heading = "bWeapons";
    description = "Heavy Autocannon [M]";
    className = "Weapon";
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_hatc";
    hudIcon = "chaingun";
    shadowDetailMask = 4;
    imageType = MechHeavyAutocannonImage;
@@ -1469,7 +2106,7 @@ ItemData MechHeavyAutocannon
 
 ItemImageData MechElectroMagAutocannonImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_emc";
    mountPoint = 0;
    fireOffset = { 0.0, 0.68, 0.23 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1479,7 +2116,8 @@ ItemImageData MechElectroMagAutocannonImage
    maxEnergy  = 5.3;
    projectileType = MechElectroMagAutocannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_EMC;
+   muzzleFlash = MechMz_mz_plas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1488,7 +2126,7 @@ ItemData MechElectroMagAutocannon
    heading = "bWeapons";
    description = "Electro-Mag Autocannon [S]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_emc";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechElectroMagAutocannonImage;
@@ -1498,7 +2136,7 @@ ItemData MechElectroMagAutocannon
 
 ItemImageData MechBlastCannonImage
 {
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_bc";
    mountPoint = 1;
    fireOffset = { 0.0, 1.35, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1508,7 +2146,8 @@ ItemImageData MechBlastCannonImage
    maxEnergy  = 9.1;
    projectileType = MechBlastCannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireChaingun;
+   sfxFire    = MechSfx_BC;
+   muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1517,7 +2156,7 @@ ItemData MechBlastCannon
    heading = "bWeapons";
    description = "Blast Cannon [L]";
    className = "Weapon";
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_bc";
    hudIcon = "chaingun";
    shadowDetailMask = 4;
    imageType = MechBlastCannonImage;
@@ -1527,7 +2166,7 @@ ItemData MechBlastCannon
 
 ItemImageData MechHeavyBlastCannonImage
 {
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_hbc";
    mountPoint = 0;
    fireOffset = { 0.0, 1.48, 0.52 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1537,7 +2176,8 @@ ItemImageData MechHeavyBlastCannonImage
    maxEnergy  = 12.2;
    projectileType = MechHeavyBlastCannonShot;
    accuFire   = true;
-   sfxFire    = SoundFireChaingun;
+   sfxFire    = MechSfx_HBC;
+   muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1546,7 +2186,7 @@ ItemData MechHeavyBlastCannon
    heading = "bWeapons";
    description = "Heavy Blast Cannon [X]";
    className = "Weapon";
-   shapeFile  = "chaingun";
+   shapeFile  = "wg_hbc";
    hudIcon = "chaingun";
    shadowDetailMask = 4;
    imageType = MechHeavyBlastCannonImage;
@@ -1556,7 +2196,7 @@ ItemData MechHeavyBlastCannon
 
 ItemImageData MechRailGunImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_rail";
    mountPoint = 0;
    fireOffset = { 0.0, 1.44, 0.27 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1566,7 +2206,8 @@ ItemImageData MechRailGunImage
    maxEnergy  = 11.4;
    projectileType = MechRailGunShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_RAIL;
+   muzzleFlash = MechMz_mz_plas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1575,7 +2216,7 @@ ItemData MechRailGun
    heading = "bWeapons";
    description = "Rail Gun [L]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_rail";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechRailGunImage;
@@ -1585,7 +2226,7 @@ ItemData MechRailGun
 
 ItemImageData MechLaserGuidedBombImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_rail";
    mountPoint = 0;
    fireOffset = { 0.0, 1.44, 0.27 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1595,7 +2236,7 @@ ItemImageData MechLaserGuidedBombImage
    maxEnergy  = 18.3;
    projectileType = MechLaserGuidedBombShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_LGB;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1604,7 +2245,7 @@ ItemData MechLaserGuidedBomb
    heading = "bWeapons";
    description = "Laser Guided Bomb [M]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_rail";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechLaserGuidedBombImage;
@@ -1614,7 +2255,7 @@ ItemData MechLaserGuidedBomb
 
 ItemImageData MechHadesImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_rail";
    mountPoint = 1;
    fireOffset = { 0.0, 1.44, 0.27 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1624,7 +2265,7 @@ ItemImageData MechHadesImage
    maxEnergy  = 15.2;
    projectileType = MechHadesShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_HAD;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1633,7 +2274,7 @@ ItemData MechHades
    heading = "bWeapons";
    description = "Hades [M]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_rail";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechHadesImage;
@@ -1643,7 +2284,7 @@ ItemData MechHades
 
 ItemImageData MechPitViperMissilePack8Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_vip8";
    mountPoint = 1;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1653,7 +2294,8 @@ ItemImageData MechPitViperMissilePack8Image
    maxEnergy  = 12.2;
    projectileType = MechPitViperMissilePack8Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_VIP8;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1662,7 +2304,7 @@ ItemData MechPitViperMissilePack8
    heading = "bWeapons";
    description = "Pit Viper Missile Pack 8 [S]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_vip8";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechPitViperMissilePack8Image;
@@ -1672,7 +2314,7 @@ ItemData MechPitViperMissilePack8
 
 ItemImageData MechPitViperMissilePack12Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_vip12";
    mountPoint = 0;
    fireOffset = { 0.0, 0.9, 0.68 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1682,7 +2324,8 @@ ItemImageData MechPitViperMissilePack12Image
    maxEnergy  = 12.2;
    projectileType = MechPitViperMissilePack12Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_VIP12;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1691,7 +2334,7 @@ ItemData MechPitViperMissilePack12
    heading = "bWeapons";
    description = "Pit Viper Missile Pack 12 [M]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_vip12";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechPitViperMissilePack12Image;
@@ -1701,7 +2344,7 @@ ItemData MechPitViperMissilePack12
 
 ItemImageData MechSparrowMissilePack6Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_spr6";
    mountPoint = 0;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1711,7 +2354,8 @@ ItemImageData MechSparrowMissilePack6Image
    maxEnergy  = 13.7;
    projectileType = MechSparrowMissilePack6Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_SPR6;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1720,7 +2364,7 @@ ItemData MechSparrowMissilePack6
    heading = "bWeapons";
    description = "Sparrow Missile Pack 6 [S]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_spr6";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechSparrowMissilePack6Image;
@@ -1730,7 +2374,7 @@ ItemData MechSparrowMissilePack6
 
 ItemImageData MechSparrowMissilePack10Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_spr10";
    mountPoint = 1;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1740,7 +2384,8 @@ ItemImageData MechSparrowMissilePack10Image
    maxEnergy  = 13.7;
    projectileType = MechSparrowMissilePack10Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_SPR10;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1749,7 +2394,7 @@ ItemData MechSparrowMissilePack10
    heading = "bWeapons";
    description = "Sparrow Missile Pack 10 [M]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_spr10";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechSparrowMissilePack10Image;
@@ -1759,7 +2404,7 @@ ItemData MechSparrowMissilePack10
 
 ItemImageData MechSwarmMisslePack6Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wt_swrm";
    mountPoint = 0;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1769,7 +2414,8 @@ ItemImageData MechSwarmMisslePack6Image
    maxEnergy  = 16.7;
    projectileType = MechSwarmMisslePack6Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_SWRM;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1778,7 +2424,7 @@ ItemData MechSwarmMisslePack6
    heading = "bWeapons";
    description = "SWARM Missle Pack 6 [M]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wt_swrm";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechSwarmMisslePack6Image;
@@ -1788,7 +2434,7 @@ ItemData MechSwarmMisslePack6
 
 ItemImageData MechMinionMisslePack10Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_min";
    mountPoint = 1;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1798,7 +2444,8 @@ ItemImageData MechMinionMisslePack10Image
    maxEnergy  = 13.7;
    projectileType = MechMinionMisslePack10Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_MIN;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1807,7 +2454,7 @@ ItemData MechMinionMisslePack10
    heading = "bWeapons";
    description = "Minion Missle Pack 10 [M]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_min";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechMinionMisslePack10Image;
@@ -1817,7 +2464,7 @@ ItemData MechMinionMisslePack10
 
 ItemImageData MechShrikeMisslePack8Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wc_shrk";
    mountPoint = 0;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1827,7 +2474,8 @@ ItemImageData MechShrikeMisslePack8Image
    maxEnergy  = 16.7;
    projectileType = MechShrikeMisslePack8Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_SHRK;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1836,7 +2484,7 @@ ItemData MechShrikeMisslePack8
    heading = "bWeapons";
    description = "Shrike Missle Pack 8 [M]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wc_shrk";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechShrikeMisslePack8Image;
@@ -1846,7 +2494,7 @@ ItemData MechShrikeMisslePack8
 
 ItemImageData MechAphidAaMissileSystemPack10Image
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_min";
    mountPoint = 1;
    fireOffset = { 0.0, 0.9, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1856,7 +2504,8 @@ ItemImageData MechAphidAaMissileSystemPack10Image
    maxEnergy  = 13.7;
    projectileType = MechAphidAaMissileSystemPack10Shot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_APH;
+   muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1865,7 +2514,7 @@ ItemData MechAphidAaMissileSystemPack10
    heading = "bWeapons";
    description = "Aphid AA Missile System Pack 10 [S]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_min";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechAphidAaMissileSystemPack10Image;
@@ -1875,7 +2524,7 @@ ItemData MechAphidAaMissileSystemPack10
 
 ItemImageData MechArachnitron4PackImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_shrk";
    mountPoint = 0;
    fireOffset = { 0.0, 0.45, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1885,7 +2534,7 @@ ItemImageData MechArachnitron4PackImage
    maxEnergy  = 7.6;
    projectileType = MechArachnitron4PackShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_ARA4;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1894,7 +2543,7 @@ ItemData MechArachnitron4Pack
    heading = "bWeapons";
    description = "Arachnitron 4 pack [S]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_shrk";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechArachnitron4PackImage;
@@ -1904,7 +2553,7 @@ ItemData MechArachnitron4Pack
 
 ItemImageData MechArachnitron8PackImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_shrk";
    mountPoint = 1;
    fireOffset = { 0.0, 0.45, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1914,7 +2563,7 @@ ItemImageData MechArachnitron8PackImage
    maxEnergy  = 7.6;
    projectileType = MechArachnitron8PackShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_ARA8;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1923,7 +2572,7 @@ ItemData MechArachnitron8Pack
    heading = "bWeapons";
    description = "Arachnitron 8 pack [M]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_shrk";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechArachnitron8PackImage;
@@ -1933,7 +2582,7 @@ ItemData MechArachnitron8Pack
 
 ItemImageData MechArachnitron12PackImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_shrk";
    mountPoint = 1;
    fireOffset = { 0.0, 0.45, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1943,7 +2592,7 @@ ItemImageData MechArachnitron12PackImage
    maxEnergy  = 7.6;
    projectileType = MechArachnitron12PackShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_ARA12;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1952,7 +2601,7 @@ ItemData MechArachnitron12Pack
    heading = "bWeapons";
    description = "Arachnitron 12 pack [L]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wc_shrk";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechArachnitron12PackImage;
@@ -1962,7 +2611,7 @@ ItemData MechArachnitron12Pack
 
 ItemImageData MechProximity6PackImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wg_vip8";
    mountPoint = 1;
    fireOffset = { 0.0, 0.45, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -1972,7 +2621,7 @@ ItemImageData MechProximity6PackImage
    maxEnergy  = 10.7;
    projectileType = MechProximity6PackShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_PRX6;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -1981,7 +2630,7 @@ ItemData MechProximity6Pack
    heading = "bWeapons";
    description = "Proximity 6 pack [S]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wg_vip8";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechProximity6PackImage;
@@ -1991,7 +2640,7 @@ ItemData MechProximity6Pack
 
 ItemImageData MechProximity10PackImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wg_vip8";
    mountPoint = 0;
    fireOffset = { 0.0, 0.45, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2001,7 +2650,7 @@ ItemImageData MechProximity10PackImage
    maxEnergy  = 10.7;
    projectileType = MechProximity10PackShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_PRX10;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2010,7 +2659,7 @@ ItemData MechProximity10Pack
    heading = "bWeapons";
    description = "Proximity 10 pack [M]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wg_vip8";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechProximity10PackImage;
@@ -2020,7 +2669,7 @@ ItemData MechProximity10Pack
 
 ItemImageData MechProximity15PackImage
 {
-   shapeFile  = "grenadeL";
+   shapeFile  = "wg_vip8";
    mountPoint = 0;
    fireOffset = { 0.0, 0.45, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2030,7 +2679,7 @@ ItemImageData MechProximity15PackImage
    maxEnergy  = 10.7;
    projectileType = MechProximity15PackShot;
    accuFire   = true;
-   sfxFire    = SoundFireGrenade;
+   sfxFire    = MechSfx_PRX15;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2039,7 +2688,7 @@ ItemData MechProximity15Pack
    heading = "bWeapons";
    description = "Proximity 15 pack [L]";
    className = "Weapon";
-   shapeFile  = "grenadeL";
+   shapeFile  = "wg_vip8";
    hudIcon = "grenadelauncher";
    shadowDetailMask = 4;
    imageType = MechProximity15PackImage;
@@ -2049,7 +2698,7 @@ ItemData MechProximity15Pack
 
 ItemImageData MechNikeSiegeGunImage
 {
-   shapeFile  = "chaingun";
+   shapeFile  = "wt_nike";
    mountPoint = 1;
    fireOffset = { 0.0, 5.96, 0.0 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2059,7 +2708,8 @@ ItemImageData MechNikeSiegeGunImage
    maxEnergy  = 22.8;
    projectileType = MechNikeSiegeGunShot;
    accuFire   = true;
-   sfxFire    = SoundFireChaingun;
+   sfxFire    = MechSfx_NIKE;
+   muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2068,7 +2718,7 @@ ItemData MechNikeSiegeGun
    heading = "bWeapons";
    description = "Nike Siege Gun [X]";
    className = "Weapon";
-   shapeFile  = "chaingun";
+   shapeFile  = "wt_nike";
    hudIcon = "chaingun";
    shadowDetailMask = 4;
    imageType = MechNikeSiegeGunImage;
@@ -2078,7 +2728,7 @@ ItemData MechNikeSiegeGun
 
 ItemImageData MechArtilleryMissleLauncherImage
 {
-   shapeFile  = "disc";
+   shapeFile  = "wg_vip12";
    mountPoint = 2;
    fireOffset = { 0.0, 0.09, 0.68 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2088,7 +2738,7 @@ ItemImageData MechArtilleryMissleLauncherImage
    maxEnergy  = 22.8;
    projectileType = MechArtilleryMissleLauncherShot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_AML;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2097,7 +2747,7 @@ ItemData MechArtilleryMissleLauncher
    heading = "bWeapons";
    description = "Artillery Missle Launcher [X]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wg_vip12";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechArtilleryMissleLauncherImage;
@@ -2107,7 +2757,7 @@ ItemData MechArtilleryMissleLauncher
 
 ItemImageData MechRadiationGunImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wc_rad";
    mountPoint = 1;
    fireOffset = { 0.0, 0.68, 0.36 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2117,7 +2767,8 @@ ItemImageData MechRadiationGunImage
    maxEnergy  = 6.1;
    projectileType = MechRadiationGunShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_RAD;
+   muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2126,7 +2777,7 @@ ItemData MechRadiationGun
    heading = "bWeapons";
    description = "Radiation Gun [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wc_rad";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechRadiationGunImage;
@@ -2136,7 +2787,7 @@ ItemData MechRadiationGun
 
 ItemImageData MechDisrupterImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wt_dis";
    mountPoint = 0;
    fireOffset = { 0.0, 1.57, 0.45 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2146,7 +2797,8 @@ ItemImageData MechDisrupterImage
    maxEnergy  = 7.6;
    projectileType = MechDisrupterShot;
    accuFire   = true;
-   sfxFire    = SoundFireBlaster;
+   sfxFire    = MechSfx_DIS;
+   muzzleFlash = MechMz_mz_dis;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2155,7 +2807,7 @@ ItemData MechDisrupter
    heading = "bWeapons";
    description = "Disrupter [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wt_dis";
    hudIcon = "blaster";
    shadowDetailMask = 4;
    imageType = MechDisrupterImage;
@@ -2165,7 +2817,7 @@ ItemData MechDisrupter
 
 ItemImageData MechSeismicProbeImage
 {
-   shapeFile  = "energygun";
+   shapeFile  = "wg_las";
    mountPoint = 1;
    fireOffset = { 0.0, 0.09, 0.68 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2175,7 +2827,7 @@ ItemImageData MechSeismicProbeImage
    maxEnergy  = 15.2;
    projectileType = MechSeismicProbeShot;
    accuFire   = true;
-   sfxFire    = SoundFireLaser;
+   sfxFire    = MechSfx_PROB;
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2184,7 +2836,7 @@ ItemData MechSeismicProbe
    heading = "bWeapons";
    description = "Seismic Probe [M]";
    className = "Weapon";
-   shapeFile  = "energygun";
+   shapeFile  = "wg_las";
    hudIcon = "laserrifle";
    shadowDetailMask = 4;
    imageType = MechSeismicProbeImage;
@@ -2194,7 +2846,7 @@ ItemData MechSeismicProbe
 
 ItemImageData MechArtilleryBatteryImage
 {
-   shapeFile  = "chaingun";
+   shapeFile  = "wc_artl";
    mountPoint = 1;
    fireOffset = { 0.0, 7.04, 0.0 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2204,7 +2856,8 @@ ItemImageData MechArtilleryBatteryImage
    maxEnergy  = 22.8;
    projectileType = MechArtilleryBatteryShot;
    accuFire   = true;
-   sfxFire    = SoundFireChaingun;
+   sfxFire    = MechSfx_NIKE;
+   muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2213,7 +2866,7 @@ ItemData MechArtilleryBattery
    heading = "bWeapons";
    description = "Artillery Battery [X]";
    className = "Weapon";
-   shapeFile  = "chaingun";
+   shapeFile  = "wc_artl";
    hudIcon = "chaingun";
    shadowDetailMask = 4;
    imageType = MechArtilleryBatteryImage;
@@ -2223,7 +2876,7 @@ ItemData MechArtilleryBattery
 
 ItemImageData MechScattergunImage
 {
-   shapeFile  = "disc";
+   shapeFile  = "wm_sgun";
    mountPoint = 0;
    fireOffset = { 0.0, 1.12, 0.32 };   // Starsiege weaponShot barrel offset
    weaponType = 0;
@@ -2233,7 +2886,8 @@ ItemImageData MechScattergunImage
    maxEnergy  = 3.0;
    projectileType = MechScattergunShot;
    accuFire   = true;
-   sfxFire    = SoundFireDisc;
+   sfxFire    = MechSfx_SGUN;
+   muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
    sfxActivate = SoundPickUpWeapon;
 };
 
@@ -2242,13 +2896,149 @@ ItemData MechScattergun
    heading = "bWeapons";
    description = "Scattergun [M]";
    className = "Weapon";
-   shapeFile  = "disc";
+   shapeFile  = "wm_sgun";
    hudIcon = "disclauncher";
    shadowDetailMask = 4;
    imageType = MechScattergunImage;
    price = 625;
    showWeaponBar = true;
 };
+
+//--- pretty names (cockpit rack display) ------------------------------------
+$MM::WeapName[MechLaser] = "Laser";
+$MM::WeapName[MechHeavyLaser] = "Heavy Laser";
+$MM::WeapName[MechCompressionLaser] = "Compression Laser";
+$MM::WeapName[MechTwinLaser] = "Twin Laser";
+$MM::WeapName[MechElectroMagneticPulseCannon] = "Electro Magnetic Pulse Cannon";
+$MM::WeapName[MechElectronFluxWhip] = "Electron Flux Whip";
+$MM::WeapName[MechBlaster] = "Blaster";
+$MM::WeapName[MechHeavyBlaster] = "Heavy Blaster";
+$MM::WeapName[MechParticleBeamWeapon] = "Particle Beam Weapon";
+$MM::WeapName[MechPlasma] = "Plasma";
+$MM::WeapName[MechBlinkGun] = "Blink Gun";
+$MM::WeapName[MechQuantumGun] = "Quantum Gun";
+$MM::WeapName[MechMagnetoFusionAssaultCannon] = "Magneto-Fusion Assault Cannon";
+$MM::WeapName[MechNannoInfuser] = "Nanno Infuser";
+$MM::WeapName[MechNanniteCannon] = "Nannite Cannon";
+$MM::WeapName[MechAutocannon] = "Autocannon";
+$MM::WeapName[MechHeavyAutocannon] = "Heavy Autocannon";
+$MM::WeapName[MechElectroMagAutocannon] = "Electro-Mag Autocannon";
+$MM::WeapName[MechBlastCannon] = "Blast Cannon";
+$MM::WeapName[MechHeavyBlastCannon] = "Heavy Blast Cannon";
+$MM::WeapName[MechRailGun] = "Rail Gun";
+$MM::WeapName[MechLaserGuidedBomb] = "Laser Guided Bomb";
+$MM::WeapName[MechHades] = "Hades";
+$MM::WeapName[MechPitViperMissilePack8] = "Pit Viper Missile Pack 8";
+$MM::WeapName[MechPitViperMissilePack12] = "Pit Viper Missile Pack 12";
+$MM::WeapName[MechSparrowMissilePack6] = "Sparrow Missile Pack 6";
+$MM::WeapName[MechSparrowMissilePack10] = "Sparrow Missile Pack 10";
+$MM::WeapName[MechSwarmMisslePack6] = "SWARM Missle Pack 6";
+$MM::WeapName[MechMinionMisslePack10] = "Minion Missle Pack 10";
+$MM::WeapName[MechShrikeMisslePack8] = "Shrike Missle Pack 8";
+$MM::WeapName[MechAphidAaMissileSystemPack10] = "Aphid AA Missile System Pack 10";
+$MM::WeapName[MechArachnitron4Pack] = "Arachnitron 4 pack";
+$MM::WeapName[MechArachnitron8Pack] = "Arachnitron 8 pack";
+$MM::WeapName[MechArachnitron12Pack] = "Arachnitron 12 pack";
+$MM::WeapName[MechProximity6Pack] = "Proximity 6 pack";
+$MM::WeapName[MechProximity10Pack] = "Proximity 10 pack";
+$MM::WeapName[MechProximity15Pack] = "Proximity 15 pack";
+$MM::WeapName[MechNikeSiegeGun] = "Nike Siege Gun";
+$MM::WeapName[MechArtilleryMissleLauncher] = "Artillery Missle Launcher";
+$MM::WeapName[MechRadiationGun] = "Radiation Gun";
+$MM::WeapName[MechDisrupter] = "Disrupter";
+$MM::WeapName[MechSeismicProbe] = "Seismic Probe";
+$MM::WeapName[MechArtilleryBattery] = "Artillery Battery";
+$MM::WeapName[MechScattergun] = "Scattergun";
+
+//--- next/prev-weapon ring (see generator comment) --------------------------
+$NextWeapon[MechLaser] = "MechCompressionLaser";
+$PrevWeapon[MechLaser] = "MechArtilleryBattery";
+$NextWeapon[MechCompressionLaser] = "MechTwinLaser";
+$PrevWeapon[MechCompressionLaser] = "MechLaser";
+$NextWeapon[MechTwinLaser] = "MechElectroMagneticPulseCannon";
+$PrevWeapon[MechTwinLaser] = "MechCompressionLaser";
+$NextWeapon[MechElectroMagneticPulseCannon] = "MechNannoInfuser";
+$PrevWeapon[MechElectroMagneticPulseCannon] = "MechTwinLaser";
+$NextWeapon[MechNannoInfuser] = "MechAutocannon";
+$PrevWeapon[MechNannoInfuser] = "MechElectroMagneticPulseCannon";
+$NextWeapon[MechAutocannon] = "MechElectroMagAutocannon";
+$PrevWeapon[MechAutocannon] = "MechNannoInfuser";
+$NextWeapon[MechElectroMagAutocannon] = "MechPitViperMissilePack8";
+$PrevWeapon[MechElectroMagAutocannon] = "MechAutocannon";
+$NextWeapon[MechPitViperMissilePack8] = "MechSparrowMissilePack6";
+$PrevWeapon[MechPitViperMissilePack8] = "MechElectroMagAutocannon";
+$NextWeapon[MechSparrowMissilePack6] = "MechAphidAaMissileSystemPack10";
+$PrevWeapon[MechSparrowMissilePack6] = "MechPitViperMissilePack8";
+$NextWeapon[MechAphidAaMissileSystemPack10] = "MechArachnitron4Pack";
+$PrevWeapon[MechAphidAaMissileSystemPack10] = "MechSparrowMissilePack6";
+$NextWeapon[MechArachnitron4Pack] = "MechProximity6Pack";
+$PrevWeapon[MechArachnitron4Pack] = "MechAphidAaMissileSystemPack10";
+$NextWeapon[MechProximity6Pack] = "MechHeavyLaser";
+$PrevWeapon[MechProximity6Pack] = "MechArachnitron4Pack";
+$NextWeapon[MechHeavyLaser] = "MechElectronFluxWhip";
+$PrevWeapon[MechHeavyLaser] = "MechProximity6Pack";
+$NextWeapon[MechElectronFluxWhip] = "MechBlaster";
+$PrevWeapon[MechElectronFluxWhip] = "MechHeavyLaser";
+$NextWeapon[MechBlaster] = "MechBlinkGun";
+$PrevWeapon[MechBlaster] = "MechElectronFluxWhip";
+$NextWeapon[MechBlinkGun] = "MechNanniteCannon";
+$PrevWeapon[MechBlinkGun] = "MechBlaster";
+$NextWeapon[MechNanniteCannon] = "MechHeavyAutocannon";
+$PrevWeapon[MechNanniteCannon] = "MechBlinkGun";
+$NextWeapon[MechHeavyAutocannon] = "MechLaserGuidedBomb";
+$PrevWeapon[MechHeavyAutocannon] = "MechNanniteCannon";
+$NextWeapon[MechLaserGuidedBomb] = "MechHades";
+$PrevWeapon[MechLaserGuidedBomb] = "MechHeavyAutocannon";
+$NextWeapon[MechHades] = "MechPitViperMissilePack12";
+$PrevWeapon[MechHades] = "MechLaserGuidedBomb";
+$NextWeapon[MechPitViperMissilePack12] = "MechSparrowMissilePack10";
+$PrevWeapon[MechPitViperMissilePack12] = "MechHades";
+$NextWeapon[MechSparrowMissilePack10] = "MechSwarmMisslePack6";
+$PrevWeapon[MechSparrowMissilePack10] = "MechPitViperMissilePack12";
+$NextWeapon[MechSwarmMisslePack6] = "MechMinionMisslePack10";
+$PrevWeapon[MechSwarmMisslePack6] = "MechSparrowMissilePack10";
+$NextWeapon[MechMinionMisslePack10] = "MechShrikeMisslePack8";
+$PrevWeapon[MechMinionMisslePack10] = "MechSwarmMisslePack6";
+$NextWeapon[MechShrikeMisslePack8] = "MechArachnitron8Pack";
+$PrevWeapon[MechShrikeMisslePack8] = "MechMinionMisslePack10";
+$NextWeapon[MechArachnitron8Pack] = "MechProximity10Pack";
+$PrevWeapon[MechArachnitron8Pack] = "MechShrikeMisslePack8";
+$NextWeapon[MechProximity10Pack] = "MechRadiationGun";
+$PrevWeapon[MechProximity10Pack] = "MechArachnitron8Pack";
+$NextWeapon[MechRadiationGun] = "MechDisrupter";
+$PrevWeapon[MechRadiationGun] = "MechProximity10Pack";
+$NextWeapon[MechDisrupter] = "MechSeismicProbe";
+$PrevWeapon[MechDisrupter] = "MechRadiationGun";
+$NextWeapon[MechSeismicProbe] = "MechScattergun";
+$PrevWeapon[MechSeismicProbe] = "MechDisrupter";
+$NextWeapon[MechScattergun] = "MechHeavyBlaster";
+$PrevWeapon[MechScattergun] = "MechSeismicProbe";
+$NextWeapon[MechHeavyBlaster] = "MechParticleBeamWeapon";
+$PrevWeapon[MechHeavyBlaster] = "MechScattergun";
+$NextWeapon[MechParticleBeamWeapon] = "MechPlasma";
+$PrevWeapon[MechParticleBeamWeapon] = "MechHeavyBlaster";
+$NextWeapon[MechPlasma] = "MechBlastCannon";
+$PrevWeapon[MechPlasma] = "MechParticleBeamWeapon";
+$NextWeapon[MechBlastCannon] = "MechRailGun";
+$PrevWeapon[MechBlastCannon] = "MechPlasma";
+$NextWeapon[MechRailGun] = "MechArachnitron12Pack";
+$PrevWeapon[MechRailGun] = "MechBlastCannon";
+$NextWeapon[MechArachnitron12Pack] = "MechProximity15Pack";
+$PrevWeapon[MechArachnitron12Pack] = "MechRailGun";
+$NextWeapon[MechProximity15Pack] = "MechQuantumGun";
+$PrevWeapon[MechProximity15Pack] = "MechArachnitron12Pack";
+$NextWeapon[MechQuantumGun] = "MechMagnetoFusionAssaultCannon";
+$PrevWeapon[MechQuantumGun] = "MechProximity15Pack";
+$NextWeapon[MechMagnetoFusionAssaultCannon] = "MechHeavyBlastCannon";
+$PrevWeapon[MechMagnetoFusionAssaultCannon] = "MechQuantumGun";
+$NextWeapon[MechHeavyBlastCannon] = "MechNikeSiegeGun";
+$PrevWeapon[MechHeavyBlastCannon] = "MechMagnetoFusionAssaultCannon";
+$NextWeapon[MechNikeSiegeGun] = "MechArtilleryMissleLauncher";
+$PrevWeapon[MechNikeSiegeGun] = "MechHeavyBlastCannon";
+$NextWeapon[MechArtilleryMissleLauncher] = "MechArtilleryBattery";
+$PrevWeapon[MechArtilleryMissleLauncher] = "MechNikeSiegeGun";
+$NextWeapon[MechArtilleryBattery] = "MechLaser";
+$PrevWeapon[MechArtilleryBattery] = "MechArtilleryMissleLauncher";
 
 //--- per-chassis authentic default loadouts --------------------------------
 // One weapon per hardpoint, size-matched; roster rotates per chassis so the

@@ -16,6 +16,7 @@
 $MM::PilotDir = "config\\mm_pilots\\";
 $MM::FreeTech = 1;            // tech level playable from the first boot
 $MM::UnlockCostMult = 2;      // unlock price = CV x this
+$MM::BotSalvageFrac = 0.25;   // bot kills pay this fraction of the CV
 $MM::AutosaveSecs = 60;
 
 // filename-safe key from the client name: alnum only, lowercased-ish (the
@@ -44,44 +45,90 @@ function MechProgress::load(%cl)
 {
    %key = MechProgress::key(%cl);
    %cl.mmKey = %key;
-   %f = MechProgress::file(%key);
-   if (isFile(%f))
-      exec(%f);
+   // SINGLE SHARED FILE. The old per-pilot export("MMP::*<key>*") pattern
+   // matched NOTHING -- the 1998 wildcard matcher cannot do mid-string stars
+   // (probed empirically: export returned True, wrote zero bytes; no pilot
+   // ever persisted). One pilots.cs holds every $MMP::* var; exec'd once.
+   if ($MMP::fileLoaded != 1) {
+      $MMP::fileLoaded = 1;
+      %f = $MM::PilotDir @ "pilots.cs";
+      if (isFile(%f))
+         exec(%f);
+   }
    if ($MMP::salvage[%key] == "")
       $MMP::salvage[%key] = 0;
-   Client::sendMessage(%cl, 1, "Pilot record " @ %key @ ": " @ $MMP::salvage[%key]
-                       @ " salvage, " @ $MMP::kills[%key] @ " kills, best wave "
-                       @ $MMP::highWave[%key]);
-   echo("[MECHPILOT] loaded " @ %key @ " salvage=" @ $MMP::salvage[%key]);
+   // password claim: unclaimed records are open (and should be claimed);
+   // claimed ones need MMPass before they earn/spend/keep a chassis
+   if ($MMP::pw[%key] == "") {
+      %cl.mmAuth = 1;
+      Client::sendMessage(%cl, 1, "Pilot " @ %key @ ": " @ $MMP::salvage[%key]
+                          @ " salvage, " @ $MMP::kills[%key] @ " kills, best wave " @ $MMP::highWave[%key] @ ".");
+      Client::sendMessage(%cl, 1, "Protect this record: open console and run  remoteEval(2048, MMPass, \"yourpassword\");");
+   }
+   else {
+      %cl.mmAuth = 0;
+      Client::sendMessage(%cl, 1, "Pilot record " @ %key @ " is PASSWORD PROTECTED. Console:  remoteEval(2048, MMPass, \"yourpassword\");");
+   }
+   if (%cl.mmAuth == 1 && $MMP::lastChassis[%key] != "")
+      %cl.mmChassis = $MMP::lastChassis[%key];
+   echo("[MECHPILOT] loaded " @ %key @ " salvage=" @ $MMP::salvage[%key] @ " auth=" @ %cl.mmAuth);
 }
 
 function MechProgress::save(%cl)
 {
-   if (%cl.mmKey == "")
-      return;
-   %f = MechProgress::file(%cl.mmKey);
-   // export() takes a VARIABLE PATTERN; array vars flatten with the key in
-   // the spelling, so a per-key wildcard keeps each pilot's file self-contained
-   export("MMP::*" @ %cl.mmKey @ "*", %f, false);
-   echo("[MECHPILOT] saved " @ %cl.mmKey);
+   MechProgress::saveFile();
+}
+
+function MechProgress::saveFile()
+{
+   %f = $MM::PilotDir @ "pilots.cs";
+   export("$MMP::*", %f, false);
+   echo("[MECHPILOT] pilots.cs exported");
 }
 
 function MechProgress::saveAll()
 {
-   for (%cl = Client::getFirst(); %cl != -1; %cl = Client::getNext(%cl))
-      MechProgress::save(%cl);
+   MechProgress::saveFile();
    schedule("MechProgress::saveAll();", $MM::AutosaveSecs);
+}
+
+// claim or verify: first MMPass on an unclaimed record SETS the password
+function remoteMMPass(%cl, %pass)
+{
+   if (%cl.mmKey == "" || %pass == "")
+      return;
+   %key = %cl.mmKey;
+   if ($MMP::pw[%key] == "") {
+      $MMP::pw[%key] = %pass;
+      %cl.mmAuth = 1;
+      MechProgress::saveFile();
+      Client::sendMessage(%cl, 1, "Pilot record claimed. Only this password unlocks " @ %key @ " from now on.");
+      return;
+   }
+   if ($MMP::pw[%key] == %pass) {
+      %cl.mmAuth = 1;
+      if ($MMP::lastChassis[%key] != "")
+         %cl.mmChassis = $MMP::lastChassis[%key];
+      Client::sendMessage(%cl, 1, "Pilot record unlocked. " @ $MMP::salvage[%key] @ " salvage, " @ $MMP::kills[%key] @ " kills.");
+   }
+   else
+      Client::sendMessage(%cl, 1, "Wrong password for pilot record " @ %key @ ".");
 }
 
 //--- earning ------------------------------------------------------------------
 
-function MechProgress::creditKill(%killerCl, %victimChassis)
+function MechProgress::creditKill(%killerCl, %victimChassis, %victimHuman)
 {
    if (%killerCl <= 0 || %killerCl.mmKey == "")
       return;
+   if (%killerCl.mmAuth != 1)
+      return;                     // locked record earns nothing until MMPass
    %cv = $MM::CV[%victimChassis];
    if (%cv == "")
       %cv = 500;
+   // bots pay a FRACTION of a human kill (Joe: grind offline, just slower)
+   if (%victimHuman != 1)
+      %cv = floor(%cv * $MM::BotSalvageFrac);
    %key = %killerCl.mmKey;
    $MMP::salvage[%key] = $MMP::salvage[%key] + %cv;
    $MMP::kills[%key] = $MMP::kills[%key] + 1;

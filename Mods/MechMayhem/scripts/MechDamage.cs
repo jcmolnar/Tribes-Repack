@@ -311,6 +311,8 @@ function Player::onDamage(%this, %type, %value, %pos, %vec, %mom, %vertPos, %qua
 {
    %mmArmor = Player::getArmor(%this);
    if (MechDamage::isMech(%mmArmor)) {
+      if (%object != "" && %object != -1)
+         %this.mmLastAttacker = %object;   // salvage credit at charge() time
       MechDamage::apply(%this, %type, %value, %pos, %vec, %mom, %vertPos, %quadrant, %object);
       return;
    }

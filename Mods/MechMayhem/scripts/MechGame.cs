@@ -29,13 +29,24 @@ $MechMayhem::Chassis[3] = "HercTrbasl";    // medium
 $MechMayhem::Chassis[4] = "HercKnapoc";    // heavy
 $MechMayhem::Chassis[5] = "HercKngorg";    // assault
 
+// Rotation for pilots with NO garage pick: FREE-tech roster chassis only
+// (tech <= $MM::FreeTech, never bosses). The old hand-typed 6-list handed
+// out T5/T6 hulls the garage charges salvage for -- free rides by dying.
 function MechMayhem::pickChassis()
 {
-   %idx = $MechMayhem::NextChassis;
-   if (%idx == "" || %idx < 0 || %idx >= $MechMayhem::ChassisCount)
-      %idx = 0;
-   $MechMayhem::NextChassis = %idx + 1;
-   return $MechMayhem::Chassis[%idx];
+   %n = $MM::RosterCount;
+   if (%n == "" || %n <= 0)
+      return "HercTrtalon";
+   for (%t = 0; %t < %n; %t++) {
+      %idx = $MechMayhem::NextChassis;
+      if (%idx == "" || %idx < 0 || %idx >= %n)
+         %idx = 0;
+      $MechMayhem::NextChassis = %idx + 1;
+      %db = $MM::Roster[%idx];
+      if ($MM::Tech[%db] <= $MM::FreeTech && $MM::Class[%db] != "boss")
+         return %db;
+   }
+   return "HercTrtalon";
 }
 
 // grant the default loadout for a chassis' hardpoint rack.
@@ -59,6 +70,34 @@ function MechMayhem::grantLoadout(%pl, %clientId, %chassis)
    if (%first == "") { Player::setItemCount(%clientId, MechLaser, 1); %first = MechLaser; }
    Player::setItemCount(%clientId, RepairKit, 1);
    Player::useItem(%pl, %first);
+
+   // CHAINED FIRE: mount the REST of the rack into image slots 3..7 (1 = backpack,
+   // 2 = flag stay stock). The engine relay (chainFire on the chassis datablock)
+   // walks slot 0 + these, each weapon firing from its own pod at its own heat
+   // cost. Slot-0 duplicates are skipped engine-side, so cycling stays safe.
+   %slot = 3;
+   if (%n != "" && %n > 0) {
+      for (%i = 0; %i < %n && %slot <= 7; %i++) {
+         %w = $MM::Loadout[%chassis, %i];
+         if (%w != "" && %w != %first) {
+            Player::mountItem(%clientId, %w, %slot);
+            %slot++;
+         }
+      }
+   }
+
+   // cockpit rack panel: push pretty names once per grant (real clients only --
+   // the conscription sweep passes the player OBJECT for bots)
+   %realCl = Player::getClient(%pl);
+   if (%realCl > 0) {
+      remoteEval(%realCl, "MMRack", %n,
+                 $MM::WeapName[$MM::Loadout[%chassis, 0]],
+                 $MM::WeapName[$MM::Loadout[%chassis, 1]],
+                 $MM::WeapName[$MM::Loadout[%chassis, 2]],
+                 $MM::WeapName[$MM::Loadout[%chassis, 3]],
+                 $MM::WeapName[$MM::Loadout[%chassis, 4]],
+                 $MM::WeapName[$MM::Loadout[%chassis, 5]]);
+   }
 }
 
 function Game::playerSpawned(%pl, %clientId, %armor)
@@ -72,12 +111,14 @@ function Game::playerSpawned(%pl, %clientId, %armor)
    Player::setArmor(%pl, %chassis);
    echo("[MECH] spawn: client " @ %clientId @ " -> " @ %chassis);
 
+   %pl.mmInit = 1;   // MechHeat's conscription sweep must not double-init us
    MechShield::init(%pl, %chassis);
    MechMayhem::grantLoadout(%pl, %clientId, %chassis);
 
-   if ($teamplay) {
-      DMTEAM::checkMissionObjectives();
-   }
+   // NOT DMTEAM::checkMissionObjectives(): the stock DM-team writer scribbles
+   // "Kill all players / Team Scores" over lines 2-8 of OUR objectives page on
+   // every spawn (Joe's screenshot). Refresh the mech page instead.
+   MechMayhem::objectives(0, "");
 }
 
 //--- CV tickets --------------------------------------------------------------
@@ -102,6 +143,14 @@ function MechTickets::charge(%obj)
    %team = GameBase::getTeam(%obj);
    if (%team < 0 || %team == "")
       return;
+   // salvage: pay the last attacker (recorded per hit in MechDamage::apply).
+   // Victim humanity = does a real client own the corpse (bots resolve <= 0).
+   %mmk = %obj.mmLastAttacker;
+   %vh = 0;
+   if (Player::getClient(%obj) > 0)
+      %vh = 1;
+   if (%mmk != "" && %mmk > 0 && %mmk != Player::getClient(%obj))
+      MechProgress::creditKill(%mmk, %base, %vh);
    if ($MM::Mode == "incursion") {
       // no ticket pools in PvE: Cybrid kills bank salvage (progression,
       // Stage 6); the wave director owns win/loss
@@ -141,9 +190,16 @@ function MechHUD::push(%obj, %data)
    if (%obj.mmSensorOut > getSimTime()) %sens = 2;
    %rctr = 0;
    if (%obj.mmReactorHit > getSimTime()) %rctr = 2;
+   %wave = "";
+   %salv = "";
+   if ($MM::Mode == "incursion") {
+      %wave = $MMW::wave;
+      %salv = $MMW::salvage;
+   }
    remoteEval(%cl, "MMState", %heat, %obj.mmShield, %obj.mmShieldMax,
               %legs, %guns, %sens, %rctr, %base, $MM::CV[%base],
-              $MM::Tickets[0], $MM::Tickets[1], %obj.mmShutdown);
+              $MM::Tickets[0], $MM::Tickets[1], %obj.mmShutdown,
+              %cl.scoreKills, %cl.scoreDeaths, %wave, %salv);
 }
 
 function MechTickets::visit(%obj)
@@ -153,13 +209,28 @@ function MechTickets::visit(%obj)
       return;
    if (Player::isDead(%obj))
       MechTickets::charge(%obj);
-   else
+   else {
       MechHUD::push(%obj, %data);
+      // shield broadcast pairs: "<clientId> <frac>" per LIVING mech, bots
+      // included (Player::getClient is getOwnerClient, and bot reps have one).
+      // Consumed by remoteMMShields in the mechcockpit pack, which feeds the
+      // engine nameplate shield bars and the ShieldFx bubbles.
+      %scl = Player::getClient(%obj);
+      if (%scl > 0 && %obj.mmShieldMax > 0) {
+         %sfrac = %obj.mmShield / %obj.mmShieldMax;
+         if (%sfrac < 0)
+            %sfrac = 0;
+         $MMS::pairs = $MMS::pairs @ " " @ %scl @ " " @ %sfrac;
+      }
+   }
 }
 
 function MechTickets::tick()
 {
+   $MMS::pairs = "";
    Group::iterateRecursive(MissionCleanup, "MechTickets::visit");
+   for (%cl = Client::getFirst(); %cl != -1; %cl = Client::getNext(%cl))
+      remoteEval(%cl, "MMShields", $MMS::pairs);
    schedule("MechTickets::tick();", 1);
 }
 
@@ -171,8 +242,13 @@ function MechTickets::endMatch(%loser)
    messageAll(0, "TEAM " @ getTeamName(%loser) @ " HAS BEEN ANNIHILATED.");
    $timeLimitReached = true;
    $timeReached = 1;
-   DM::missionObjectives();
+   // ★schedule the cycle BEFORE the cosmetics★ -- a runtime abort in the
+   // summary writer must never strand the mission (measured: pools ran to
+   // -5080 with no cycle when the summary call preceded the schedule)
    schedule("Server::nextMission();", 12);
+   %winner = 1 - %loser;
+   MechMayhem::objectives(1, "Team " @ getTeamName(%winner)
+      @ " wins -- " @ getTeamName(%loser) @ "'s Combat Value pool is exhausted.");
 }
 
 // stock game.cs:735 body + pilot record load
@@ -198,14 +274,10 @@ function Client::leaveGame(%clientId)
 // deaths/obits) already happened in Client::onKilled before this dispatch.
 function Game::clientKilled(%playerId, %killerId)
 {
-   if (%killerId != -1 && %playerId != -1 && %killerId != %playerId
-       && (!$teamplay || Client::getTeam(%killerId) != Client::getTeam(%playerId))) {
-      %victim = Client::getOwnedObject(%playerId);
-      %chassis = "";
-      if (%victim > 0)
-         %chassis = MechHeat::baseChassis(GameBase::getDataName(%victim));
-      MechProgress::creditKill(%killerId, %chassis);
-   }
+   // salvage credit moved to MechTickets::charge (corpse-side): it has the
+   // victim OBJECT (real chassis CV) and works when the victim is a bot --
+   // Client::getOwnedObject on a bot rep resolves nothing, which is why every
+   // kill used to pay the flat 500 fallback and bot kills mispaid.
    if (%playerId != -1 && %playerId.mmKey != "")
       $MMP::deaths[%playerId.mmKey] = $MMP::deaths[%playerId.mmKey] + 1;
 }
@@ -241,6 +313,7 @@ function Game::startMatch()
    $MM::MatchOver = 0;
    schedule("MechHeat::tick();", 2);
    schedule("MechTickets::tick();", 2);
+   schedule("MechMayhem::objTick();", 3);      // objectives page (O key), 30 s cadence
    schedule("MechProgress::saveAll();", $MM::AutosaveSecs);
    if ($MM::Mode == "incursion") {
       MechWaves::start();
@@ -314,4 +387,492 @@ function Game::assignClientTeam(%playerId)
    {
       GameBase::setTeam(%playerId, 0);
    }
+}
+
+
+//=============================================================================
+// TAB MENU (Mech Mayhem) -- Game::menuRequest is a COPY of base\scripts\
+// admin.cs:473 with the two mech entries inserted; last-wins exec makes it
+// live. processMenuOptions pre-dispatches mech codes then calls
+// ProcessMenuOptionsStock, a verbatim copy of admin.cs:635 appended below.
+// If admin.cs's menu changes, reconcile here. Mech submenus use their OWN
+// menu modes (MMGarage/MMVote) so their dispatch cannot collide with stock.
+//=============================================================================
+function Game::menuRequest(%clientId)
+{
+   %curItem = 0;
+   Client::buildMenu(%clientId, "Options", "options", true);
+
+   // --- Mech Mayhem entries ---
+   Client::addMenuItem(%clientId, %curItem++ @ "Mech Garage - pick your chassis", "mmgarage");
+   if($curVoteTopic == "")
+      Client::addMenuItem(%clientId, %curItem++ @ "Vote next battle mode", "mmvote");
+
+   if(!$matchStarted || !$Server::TourneyMode)
+      Client::addMenuItem(%clientId, %curItem++ @ "Change Teams/Observe", "changeteams");
+   if(%clientId.selClient)
+   {
+      %sel = %clientId.selClient;
+      %name = Client::getName(%sel);
+      if($curVoteTopic == "" && !%clientId.isAdmin)
+      {
+         Client::addMenuItem(%clientId, %curItem++ @ "Vote to admin " @ %name, "vadmin " @ %sel);
+         Client::addMenuItem(%clientId, %curItem++ @ "Vote to kick " @ %name, "vkick " @ %sel);
+      }
+      if(%clientId.isAdmin)
+      {
+         Client::addMenuItem(%clientId, %curItem++ @ "Kick " @ %name, "kick " @ %sel);
+         if(%clientId.isSuperAdmin)
+         {
+            Client::addMenuItem(%clientId, %curItem++ @ "Ban " @ %name, "ban " @ %sel);
+            Client::addMenuItem(%clientId, %curItem++ @ "Admin " @ %name, "admin " @ %sel);
+         }
+         Client::addMenuItem(%clientId, %curItem++ @ "Change " @ %name @ "'s team", "fteamchange " @ %sel);
+      }
+      if(%clientId.muted[%sel])
+         Client::addMenuItem(%clientId, %curItem++ @ "Unmute " @ %name, "unmute " @ %sel);
+      else
+         Client::addMenuItem(%clientId, %curItem++ @ "Mute " @ %name, "mute " @ %sel);
+      if(%clientId.observerMode == "observerOrbit")
+         Client::addMenuItem(%clientId, %curItem++ @ "Observe " @ %name, "observe " @ %sel);
+   }
+   if($curVoteTopic != "" && %clientId.vote == "")
+   {
+      Client::addMenuItem(%clientId, %curItem++ @ "Vote YES to " @ $curVoteTopic, "voteYes " @ $curVoteCount);
+      Client::addMenuItem(%clientId, %curItem++ @ "Vote NO to " @ $curVoteTopic, "voteNo " @ $curVoteCount);
+   }
+   else if($curVoteTopic == "" && !%clientId.isAdmin)
+   {
+      Client::addMenuItem(%clientId, %curItem++ @ "Vote to change mission", "vcmission");
+      if($Server::TeamDamageScale == 1.0)
+         Client::addMenuItem(%clientId, %curItem++ @ "Vote to disable team damage", "vdtd");
+      else
+         Client::addMenuItem(%clientId, %curItem++ @ "Vote to enable team damage", "vetd");
+      if($Server::TourneyMode)
+      {
+         Client::addMenuItem(%clientId, %curItem++ @ "Vote to enter FFA mode", "vcffa");
+         if(!$CountdownStarted && !$matchStarted)
+            Client::addMenuItem(%clientId, %curItem++ @ "Vote to start the match", "vsmatch");
+      }
+      else
+         Client::addMenuItem(%clientId, %curItem++ @ "Vote to enter Tournament mode", "vctourney");
+   }
+   else if(%clientId.isAdmin)
+   {
+      Client::addMenuItem(%clientId, %curItem++ @ "Change mission", "cmission");
+      if($Server::TeamDamageScale == 1.0)
+         Client::addMenuItem(%clientId, %curItem++ @ "Disable team damage", "dtd");
+      else
+         Client::addMenuItem(%clientId, %curItem++ @ "Enable team damage", "etd");
+      if($Server::TourneyMode)
+      {
+         Client::addMenuItem(%clientId, %curItem++ @ "Change to FFA mode", "cffa");
+         if(!$CountdownStarted && !$matchStarted)
+            Client::addMenuItem(%clientId, %curItem++ @ "Start the match", "smatch");
+      }
+      else
+         Client::addMenuItem(%clientId, %curItem++ @ "Change to Tournament mode", "ctourney");
+      Client::addMenuItem(%clientId, %curItem++ @ "Set Time Limit", "ctimelimit");
+      Client::addMenuItem(%clientId, %curItem++ @ "Reset Server Defaults", "reset");
+   }
+}
+
+function processMenuOptions(%clientId, %option)
+{
+   %opt = getWord(%option, 0);
+   if(%opt == "mmgarage")
+   {
+      MechMayhem::garageMenu(%clientId);
+      return;
+   }
+   if(%opt == "mmvote")
+   {
+      MechMayhem::voteMenu(%clientId);
+      return;
+   }
+   ProcessMenuOptionsStock(%clientId, %option);
+}
+
+//--- Mech Garage -------------------------------------------------------------
+// Progression-aware: T1 chassis are free ($MM::FreeTech); the rest unlock
+// with salvage (2 x CV, MechProgress). The list SHOWS lock state + price and
+// buys in place -- the first cut hid all of that behind a bare "not cleared"
+// bounce, which read as an error (Joe, live).
+function MechMayhem::garageMenu(%clientId)
+{
+   %cur = %clientId.mmChassis;
+   if(%cur == "")
+      %cur = "auto rotation";
+   %salv = 0;
+   if(%clientId.mmKey != "")
+      %salv = $MMP::salvage[%clientId.mmKey];
+   if(%salv == "") %salv = 0;
+   Client::buildMenu(%clientId, "Mech Garage  --  now: " @ %cur @ "   salvage: " @ %salv, "MMGarage", true);
+   Client::addMenuItem(%clientId, "0Auto (rotation each spawn)", "auto");
+   Client::addMenuItem(%clientId, "1Light chassis", "class light");
+   Client::addMenuItem(%clientId, "2Medium chassis", "class medium");
+   Client::addMenuItem(%clientId, "3Heavy chassis", "class heavy");
+   Client::addMenuItem(%clientId, "4Assault chassis", "class assault");
+}
+
+function MechMayhem::garageLabel(%clientId, %db)
+{
+   %lbl = %db @ "  T" @ $MM::Tech[%db] @ "  CV " @ $MM::CV[%db] @ "  [" @ $MM::Slots[%db] @ "]";
+   if(MechProgress::canUse(%clientId, %db))
+      return %lbl;
+   return "LOCKED  " @ %lbl @ "  -- buy for " @ ($MM::CV[%db] * $MM::UnlockCostMult) @ " salvage";
+}
+
+function processMenuMMGarage(%clientId, %option)
+{
+   %opt = getWord(%option, 0);
+   %arg = getWord(%option, 1);
+
+   if(%opt == "auto")
+   {
+      %clientId.mmChassis = "";
+      if (%clientId.mmKey != "")
+         $MMP::lastChassis[%clientId.mmKey] = "";
+      Client::sendMessage(%clientId, 1, "GARAGE: auto rotation -- your next spawn picks from the roster.");
+      bottomPrint(%clientId, "<jc><f1>Garage: auto rotation on next spawn", 4);
+      return;
+   }
+   if(%opt == "class")
+   {
+      Client::buildMenu(%clientId, "Garage: " @ %arg @ " chassis (pick = next spawn; LOCKED = buy)", "MMGarage", true);
+      %item = 0;
+      for(%i = 0; %i < $MM::RosterCount; %i++)
+      {
+         %db = $MM::Roster[%i];
+         if($MM::Class[%db] != %arg)
+            continue;
+         Client::addMenuItem(%clientId, %item++ @ MechMayhem::garageLabel(%clientId, %db), "pick " @ %db);
+      }
+      if(%item == 0)
+         Client::sendMessage(%clientId, 1, "GARAGE: no " @ %arg @ " chassis on the roster.");
+      return;
+   }
+   if(%opt == "pick")
+   {
+      if($MM::CV[%arg] == "" || $MM::Class[%arg] == "boss")
+      {
+         Client::sendMessage(%clientId, 1, "GARAGE: " @ %arg @ " cannot be piloted.");
+         return;
+      }
+      if(!MechProgress::canUse(%clientId, %arg))
+      {
+         // buy in place: confirm submenu with the price
+         %cost = $MM::CV[%arg] * $MM::UnlockCostMult;
+         %salv = 0;
+         if(%clientId.mmKey != "") %salv = $MMP::salvage[%clientId.mmKey];
+         if(%salv == "") %salv = 0;
+         Client::buildMenu(%clientId, %arg @ " is LOCKED (T" @ $MM::Tech[%arg] @ ").  Unlock for " @ %cost @ " salvage?  You have " @ %salv @ ".", "MMGarage", true);
+         if(%salv >= %cost)
+            Client::addMenuItem(%clientId, "0YES -- unlock " @ %arg @ " now", "buy " @ %arg);
+         else
+            Client::addMenuItem(%clientId, "0(not enough salvage -- earn it destroying mechs)", "class " @ $MM::Class[%arg]);
+         Client::addMenuItem(%clientId, "1Back", "class " @ $MM::Class[%arg]);
+         return;
+      }
+      if (%clientId.mmAuth != 1)
+      {
+         Client::sendMessage(%clientId, 1, "GARAGE: your pilot record is locked. Console:  remoteEval(2048, MMPass, \"yourpassword\");");
+         return;
+      }
+      %clientId.mmChassis = %arg;
+      $MMP::lastChassis[%clientId.mmKey] = %arg;   // persists across sessions
+      Client::sendMessage(%clientId, 1, "GARAGE: " @ %arg @ " locked in -- you will pilot it on your NEXT spawn.");
+      bottomPrint(%clientId, "<jc><f2>" @ %arg @ " selected<f1> -- takes effect on your next spawn", 5);
+      return;
+   }
+   if(%opt == "buy")
+   {
+      remoteMMBuy(%clientId, %arg);
+      if(MechProgress::canUse(%clientId, %arg))
+      {
+         %clientId.mmChassis = %arg;
+         $MMP::lastChassis[%clientId.mmKey] = %arg;
+         bottomPrint(%clientId, "<jc><f2>" @ %arg @ " unlocked and selected<f1> -- next spawn", 5);
+      }
+      return;
+   }
+}
+
+//--- battle-mode vote --------------------------------------------------------
+$MMV::Window = 45;
+
+function MechMayhem::voteMenu(%clientId)
+{
+   Client::buildMenu(%clientId, "Vote the next battle mode", "MMVote", true);
+   Client::addMenuItem(%clientId, "0Escalation Arena (CV tickets)", "MechArena1");
+   Client::addMenuItem(%clientId, "1Incursion (PvE Cybrid waves)", "MechIncursion1");
+   Client::addMenuItem(%clientId, "2Groundwar (zone control)", "MechGroundwar1");
+   Client::addMenuItem(%clientId, "3Monsoon Arena (storm)", "MechMonsoon1");
+}
+
+function MechMayhem::voteOk(%mis)
+{
+   if(%mis == "MechArena1") return 1;
+   if(%mis == "MechIncursion1") return 1;
+   if(%mis == "MechGroundwar1") return 1;
+   if(%mis == "MechMonsoon1") return 1;
+   return 0;
+}
+
+function processMenuMMVote(%clientId, %option)
+{
+   %mis = getWord(%option, 0);
+   if(!MechMayhem::voteOk(%mis))
+      return;
+   if($MMV::active != 1)
+   {
+      $MMV::active = 1;
+      $MMV::gen++;
+      $MMV::count[MechArena1] = 0;
+      $MMV::count[MechIncursion1] = 0;
+      $MMV::count[MechGroundwar1] = 0;
+      $MMV::count[MechMonsoon1] = 0;
+      messageAll(0, "BATTLE-MODE VOTE started by " @ Client::getName(%clientId) @ " -- TAB, then Vote next battle mode. Closes in " @ $MMV::Window @ "s.");
+      schedule("MechMayhem::voteTally();", $MMV::Window);
+   }
+   if(%clientId.mmVoteGen == $MMV::gen)
+      return;
+   %clientId.mmVoteGen = $MMV::gen;
+   $MMV::count[%mis]++;
+   messageAll(0, Client::getName(%clientId) @ " votes " @ %mis @ ".");
+}
+
+function MechMayhem::voteTally()
+{
+   $MMV::active = 0;
+   %best = "";
+   %bestN = 0;
+   %mis = "MechArena1";     if($MMV::count[%mis] > %bestN) { %bestN = $MMV::count[%mis]; %best = %mis; }
+   %mis = "MechIncursion1"; if($MMV::count[%mis] > %bestN) { %bestN = $MMV::count[%mis]; %best = %mis; }
+   %mis = "MechGroundwar1"; if($MMV::count[%mis] > %bestN) { %bestN = $MMV::count[%mis]; %best = %mis; }
+   %mis = "MechMonsoon1";   if($MMV::count[%mis] > %bestN) { %bestN = $MMV::count[%mis]; %best = %mis; }
+
+   %humans = 0;
+   for(%cl = Client::getFirst(); %cl != -1; %cl = Client::getNext(%cl))
+      %humans++;
+   %need = floor(%humans / 2) + 1;
+   if(%need < 1) %need = 1;
+   if(%bestN >= %need && %best != "")
+   {
+      messageAll(0, "VOTE PASSED: next battle is " @ %best @ " (" @ %bestN @ " of " @ %humans @ " pilots).");
+      schedule("Server::loadMission(" @ %best @ ");", 3);
+   }
+   else
+      messageAll(0, "Battle-mode vote failed (" @ %bestN @ " of " @ %humans @ ", needed " @ %need @ ").");
+}
+
+//=============================================================================
+// OBJECTIVES PAGE -- the mech modes never wrote Team::setObjective lines, so
+// the O page and the match-end summary were blank. Refreshed every 30 s
+// (objTick, kicked from Game::startMatch), and with %final=1 + a headline at
+// the win/loss paths.
+//=============================================================================
+function MechMayhem::objectives(%final, %headline)
+{
+   for(%l = -1; %l < getNumTeams(); %l++)
+   {
+      %n = 0;
+      if(%final == 1)
+      {
+         Team::setObjective(%l, %n++, "<f5>MISSION SUMMARY");
+         Team::setObjective(%l, %n++, "<f1>" @ %headline);
+         Team::setObjective(%l, %n++, " ");
+      }
+      else
+      {
+         Team::setObjective(%l, %n++, "<f5>MECH MAYHEM -- " @ $missionName);
+         Team::setObjective(%l, %n++, " ");
+      }
+      if($MM::Mode == "incursion")
+      {
+         Team::setObjective(%l, %n++, "<f5>INCURSION -- survive " @ $MM::MaxWave @ " Cybrid waves");
+         Team::setObjective(%l, %n++, "<f1>   - Wave: " @ $MMW::wave @ " of " @ $MM::MaxWave);
+         Team::setObjective(%l, %n++, "<f1>   - Salvage banked: " @ $MMW::salvage);
+         Team::setObjective(%l, %n++, "<f1>   - A full defender wipe mid-wave loses the outpost.");
+      }
+      else if($MM::Mode == "groundwar")
+      {
+         Team::setObjective(%l, %n++, "<f5>GROUNDWAR -- hold the zones");
+         Team::setObjective(%l, %n++, "<f1>   - Presence in a zone captures it; defend orders rally your bots.");
+      }
+      else
+      {
+         Team::setObjective(%l, %n++, "<f5>ESCALATION -- Combat Value tickets");
+         Team::setObjective(%l, %n++, "<f1>   - Every mech destroyed drains its authentic CV from its team's pool.");
+         Team::setObjective(%l, %n++, "<f1>   - " @ getTeamName(0) @ ": " @ $MM::Tickets[0] @ " CV      " @ getTeamName(1) @ ": " @ $MM::Tickets[1] @ " CV");
+      }
+      Team::setObjective(%l, %n++, " ");
+      Team::setObjective(%l, %n++, "<f5>YOUR MECH");
+      Team::setObjective(%l, %n++, "<f1>   - TAB, then Mech Garage picks your chassis (next spawn).");
+      Team::setObjective(%l, %n++, "<f1>   - The trigger chain-fires every pod; heat is your ammo -- overheat = shutdown.");
+      Team::setObjective(%l, %n++, "<f1>   - Jump = dash. Scout chassis (Talon/Seeker/Goad/Eman) fly on jets.");
+      Team::setObjective(%l, %n++, " ");
+      Team::setObjective(%l, %n++, "<f5>TOP PILOTS");
+      Team::setObjective(%l, %n++, "<f1>Pilot<L40>Kills<L55>Deaths");
+      %shown = 0;
+      $MMO::gen++;
+      while(%shown < 5)
+      {
+         %bestCl = -1;
+         %bestK = -1;
+         for(%cl = Client::getFirst(); %cl != -1; %cl = Client::getNext(%cl))
+         {
+            if(%cl.mmObjGen == $MMO::gen)
+               continue;
+            %k = %cl.scoreKills;
+            if(%k == "") %k = 0;
+            if(%k > %bestK) { %bestK = %k; %bestCl = %cl; }
+         }
+         if(%bestCl == -1)
+            break;
+         %bestCl.mmObjGen = $MMO::gen;
+         %d = %bestCl.scoreDeaths;
+         if(%d == "") %d = 0;
+         Team::setObjective(%l, %n++, "<f1>" @ Client::getName(%bestCl) @ "<L40>" @ %bestK @ "<L55>" @ %d);
+         %shown++;
+      }
+      // blank the rest: lines persist server-side, so a shorter page (the end
+      // summary) would otherwise show the previous page's tail under it
+      while(%n < 32)
+         Team::setObjective(%l, %n++, " ");
+   }
+}
+
+function MechMayhem::objTick()
+{
+   MechMayhem::objectives(0, "");
+   schedule("MechMayhem::objTick();", 30);
+}
+
+echo("[MECH] menu + objectives loaded.");
+
+// verbatim copy of base\scripts\admin.cs processMenuOptions (see header)
+function ProcessMenuOptionsStock(%clientId, %option)
+{
+   %opt = getWord(%option, 0);
+   %cl = getWord(%option, 1);
+
+   if(%opt == "fteamchange")
+   {
+      %clientId.ptc = %cl;
+      Client::buildMenu(%clientId, "Pick a team:", "FPickTeam", true);
+      Client::addMenuItem(%clientId, "0Observer", -2);
+      Client::addMenuItem(%clientId, "1Automatic", -1);
+      for(%i = 0; %i < getNumTeams(); %i = %i + 1)
+         Client::addMenuItem(%clientId, (%i+2) @ getTeamName(%i), %i);
+      return;
+   }      
+   else if(%opt == "changeteams")
+   {
+      if(!$matchStarted || !$Server::TourneyMode)
+      {
+         Client::buildMenu(%clientId, "Pick a team:", "PickTeam", true);
+         Client::addMenuItem(%clientId, "0Observer", -2);
+         Client::addMenuItem(%clientId, "1Automatic", -1);
+         for(%i = 0; %i < getNumTeams(); %i = %i + 1)
+            Client::addMenuItem(%clientId, (%i+2) @ getTeamName(%i), %i);
+         return;
+      }
+   }
+   else if(%opt == "mute")
+      %clientId.muted[%cl] = true;
+   else if(%opt == "unmute")
+      %clientId.muted[%cl] = "";
+   else if(%opt == "vkick")
+   {
+      %cl.voteTarget = true;
+      Admin::startVote(%clientId, "kick " @ Client::getName(%cl), "kick", %cl);
+   }
+   else if(%opt == "vadmin")
+   {
+      %cl.voteTarget = true;
+      Admin::startVote(%clientId, "admin " @ Client::getName(%cl), "admin", %cl);
+   }
+   else if(%opt == "vsmatch")
+      Admin::startVote(%clientId, "start the match", "smatch", 0);
+   else if(%opt == "vetd")
+      Admin::startVote(%clientId, "enable team damage", "etd", 0);
+   else if(%opt == "vdtd")
+      Admin::startVote(%clientId, "disable team damage", "dtd", 0);
+   else if(%opt == "etd")
+      Admin::setTeamDamageEnable(%clientId, true);
+   else if(%opt == "dtd")
+      Admin::setTeamDamageEnable(%clientId, false);
+   else if(%opt == "vcffa")
+      Admin::startVote(%clientId, "change to Free For All mode", "ffa", 0);
+   else if(%opt == "vctourney")
+      Admin::startVote(%clientId, "change to Tournament mode", "tourney", 0);
+   else if(%opt == "cffa")
+      Admin::setModeFFA(%clientId);
+   else if(%opt == "ctourney")
+      Admin::setModeTourney(%clientId);
+   else if(%opt == "voteYes" && %cl == $curVoteCount)
+   {
+      %clientId.vote = "yes";
+      centerprint(%clientId, "", 0);
+   }
+   else if(%opt == "voteNo" && %cl == $curVoteCount)
+   {
+      %clientId.vote = "no";
+      centerprint(%clientId, "", 0);
+   }
+   else if(%opt == "kick")
+   {
+      Client::buildMenu(%clientId, "Confirm kick:", "kaffirm", true);
+      Client::addMenuItem(%clientId, "1Kick " @ Client::getName(%cl), "yes " @ %cl);
+      Client::addMenuItem(%clientId, "2Don't kick " @ Client::getName(%cl), "no " @ %cl);
+      return;
+   }
+   else if(%opt == "admin")
+   {
+      Client::buildMenu(%clientId, "Confirm admim:", "aaffirm", true);
+      Client::addMenuItem(%clientId, "1Admin " @ Client::getName(%cl), "yes " @ %cl);
+      Client::addMenuItem(%clientId, "2Don't admin " @ Client::getName(%cl), "no " @ %cl);
+      return;
+   }
+   else if(%opt == "ban")
+   {
+      Client::buildMenu(%clientId, "Confirm Ban:", "baffirm", true);
+      Client::addMenuItem(%clientId, "1Ban " @ Client::getName(%cl), "yes " @ %cl);
+      Client::addMenuItem(%clientId, "2Don't ban " @ Client::getName(%cl), "no " @ %cl);
+      return;
+   }
+   else if(%opt == "smatch")
+      Admin::startMatch(%clientId);
+   else if(%opt == "vcmission" || %opt == "cmission")
+   {
+      Admin::changeMissionMenu(%clientId, %opt == "cmission");
+      return;
+   }
+   else if(%opt == "ctimelimit")
+   {
+      Client::buildMenu(%clientId, "Change Time Limit:", "ctlimit", true);
+      Client::addMenuItem(%clientId, "110 Minutes", 10);
+      Client::addMenuItem(%clientId, "215 Minutes", 15);
+      Client::addMenuItem(%clientId, "320 Minutes", 20);
+      Client::addMenuItem(%clientId, "425 Minutes", 25);
+      Client::addMenuItem(%clientId, "530 Minutes", 30);
+      Client::addMenuItem(%clientId, "645 Minutes", 45);
+      Client::addMenuItem(%clientId, "760 Minutes", 60);
+      Client::addMenuItem(%clientId, "8No Time Limit", 0);
+      return;
+   }
+   else if(%opt == "reset")
+   {
+      Client::buildMenu(%clientId, "Confirm Reset:", "raffirm", true);
+      Client::addMenuItem(%clientId, "1Reset", "yes");
+      Client::addMenuItem(%clientId, "2Don't Reset", "no");
+      return;
+   }
+   else if(%opt == "observe")
+   {
+      Observer::setTargetClient(%clientId, %cl);
+      return;
+   }
+   Game::menuRequest(%clientId);
 }
