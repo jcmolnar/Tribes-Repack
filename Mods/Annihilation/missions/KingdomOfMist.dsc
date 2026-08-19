@@ -1,5 +1,0 @@
-$MDESC::Type = "Capture the Flag Ground";
-$MDESC::Text = "<s3><f1>Mission Type: <f0> Capture the Flag" @
-          "\n<f1>Briefing: <f0>The cloudtop mountains of Hepta Solaris II have been witness to countless wars. Tyrants, septons, fanatics, and crusaders from all ages have looked upon the fabled peaks with hungry eyes for millennia. Legends claim the gods themselves once called the shrouds of mists home, building their vast sanctums within the clouds. The <vServer::teamName0> and <vServer::teamName1> have followed in the footsteps of many before them. They have come seeking treasures and riches beyond imagination... To gain the lost knowledge of the ancients and claim the power to rule the galaxy." @
-	"\n\n<f1>Objective: <f0>Many have come seeking the Kingdom of Mist.. to gain power over the galaxy... and where so many have failed, you will prevail. Capture the enemy banner. Destroy their pathetic wartribe, to secure our victory. The first wartribe to 10 points will be crowned victor." @
-"<f2>***Map by LuX***"; @

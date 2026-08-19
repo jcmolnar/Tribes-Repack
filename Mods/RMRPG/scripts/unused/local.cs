@@ -1,2 +1,0 @@
-//InitZones();
-exec(redlist);

@@ -1,2 +1,0 @@
-//exec(kadmos);
-//exec(hsofiv);
