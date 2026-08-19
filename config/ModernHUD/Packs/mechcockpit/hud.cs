@@ -18,11 +18,19 @@ $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "MechCockpit";
 $ModernHUD::PackId = "mechcockpit";
 
+// Cockpit typeface: this pack's HUD text (incl. the objectives page, which
+// resolves through the HUD-set chain) defaults to the Terminal font set --
+// the only shipped set covering all ten objectives slots. GUARDED: a pilot's
+// own per-config pick (Options > Configs > Font Set) or a saved pref wins.
+if($pref::ModernHUD::FontSet::mechcockpit == "")
+   $pref::ModernHUD::FontSet::mechcockpit = "Terminal";
+
 //--- state channel ------------------------------------------------------------
 // server: remoteEval(%cl, MMState, heatPct, shield, shieldMax, legs, guns,
 //                    sens, rctr, chassis, cv, tickets0, tickets1, shutdown);
 function remoteMMState(%server, %heatPct, %shield, %shieldMax, %legs, %guns,
-                       %sens, %rctr, %chassis, %cv, %t0, %t1, %down)
+                       %sens, %rctr, %chassis, %cv, %t0, %t1, %down,
+                       %kills, %deaths, %wave, %salv)
 {
    $MMC::heat = %heatPct;
    $MMC::shield = %shield;
@@ -36,7 +44,34 @@ function remoteMMState(%server, %heatPct, %shield, %shieldMax, %legs, %guns,
    $MMC::t0 = %t0;
    $MMC::t1 = %t1;
    $MMC::down = %down;
+   $MMC::kills = %kills;
+   $MMC::deaths = %deaths;
+   $MMC::wave = %wave;
+   $MMC::salv = %salv;
    $MMC::stamp = getSimTime();
+}
+
+// shield broadcast: once a second the server sends every living mech as
+// "<clientId> <frac>" pairs in one string. Stored raw -- BOTH consumers parse
+// it engine-side (ShieldFx bubbles + the $mj nameplate shield bars), so script
+// never loops over it. Cleared when the cockpit deactivates (see draw below).
+function remoteMMShields(%server, %str)
+{
+   $MMC::shields = %str;
+}
+
+// rack panel: pushed once per loadout grant (spawn / chassis change). All mech
+// weapons are REACTOR-FED -- heat is the ammo, so there is no count to show;
+// the selected entry is resolved client-side from getMountedItem(0).
+function remoteMMRack(%server, %n, %w0, %w1, %w2, %w3, %w4, %w5)
+{
+   $MMC::rackN = %n;
+   $MMC::rack[0] = %w0;
+   $MMC::rack[1] = %w1;
+   $MMC::rack[2] = %w2;
+   $MMC::rack[3] = %w3;
+   $MMC::rack[4] = %w4;
+   $MMC::rack[5] = %w5;
 }
 
 // nearby reactor events rock the camera: the native decay lives in
@@ -112,8 +147,33 @@ function MechCockpit::lamp(%x, %y, %label, %state)
 
 function ModernHUDPack::draw(%screen)
 {
-   if (!MechCockpit::active())
+   if (!MechCockpit::active()) {
+      // leaving the cockpit: put the player's own nameplate knobs back and
+      // stop feeding the engine shield consumers (stale pairs would keep
+      // bubbles alive on a server that no longer broadcasts).
+      if ($MMC::mjOn == 1) {
+         $mj::shownames = $MMC::mjSaveNames;
+         $mj::showhpbars = $MMC::mjSaveHp;
+         $mj::showshieldbars = "";
+         $mj::eyesight = $MMC::mjSaveEye;
+         $MMC::shields = "";
+         $MMC::mjOn = 0;
+      }
       return;
+   }
+   if ($MMC::mjOn != 1) {
+      // entering the cockpit: save whatever the player's config set, then turn
+      // on names + hull + shield bars over visible mechs (engine nameplates,
+      // fearGuiCrosshair.cpp -- sensor- and LOS-gated there, not a wallhack).
+      $MMC::mjSaveNames = $mj::shownames;
+      $MMC::mjSaveHp = $mj::showhpbars;
+      $MMC::mjSaveEye = $mj::eyesight;
+      $mj::shownames = true;
+      $mj::showhpbars = true;
+      $mj::showshieldbars = true;
+      $mj::eyesight = true;
+      $MMC::mjOn = 1;
+   }
 
    %w = getWord(%screen, 0);
    %h = getWord(%screen, 1);
@@ -169,13 +229,45 @@ function ModernHUDPack::draw(%screen)
    MechCockpit::lamp(%px, %py + 44, "SENS", $MMC::sens);
    MechCockpit::lamp(%px, %py + 66, "RCTR", $MMC::rctr);
 
-   // ---- top-center: CV ticket pools ----
+   // ---- top-center: CV ticket pools (escalation) or wave status (incursion) ----
    glSetFont("Verdana", 16);
-   %tmsg = $MMC::t0 @ "  CV  " @ $MMC::t1;
+   if ($MMC::wave != "")
+      %tmsg = "WAVE " @ $MMC::wave @ "   SALVAGE " @ $MMC::salv;
+   else
+      %tmsg = $MMC::t0 @ "  CV  " @ $MMC::t1;
    %tw = getWord(glGetStringDimensions(%tmsg), 0);
    %tx = floor((%w - %tw) / 2);
    glDrawString(%tx + 1, 13, "<000000a0>" @ %tmsg);
    glDrawString(%tx, 12, "<9adcffff>" @ %tmsg);
+
+   // ---- top-right: personal score ----
+   %smsg = "K " @ ($MMC::kills != "" ? $MMC::kills : 0)
+         @ "  D " @ ($MMC::deaths != "" ? $MMC::deaths : 0);
+   %sw = getWord(glGetStringDimensions(%smsg), 0);
+   glDrawString(%w - %sw - 15, 13, "<000000a0>" @ %smsg);
+   glDrawString(%w - %sw - 16, 12, "<c8d2d7ff>" @ %smsg);
+
+   // ---- bottom-left: weapon rack ----
+   // Chained fire means every listed weapon IS live on its pod; the highlighted
+   // row is the slot-0 weapon (what next/prev-weapon cycles). Reactor-fed: no
+   // ammo counts exist -- the HEAT bar is the ammo gauge.
+   if ($MMC::rackN != "" && $MMC::rackN > 0) {
+      %sel = getItemDesc(getMountedItem(0));
+      %ry = %h - 88 - ($MMC::rackN * 17);
+      MechCockpit::text(20, %ry - 20, "140 170 190", "RACK", 13);
+      for (%i = 0; %i < $MMC::rackN && %i < 6; %i++) {
+         %nm = $MMC::rack[%i];
+         if (%nm == "")
+            continue;
+         // selected = the mounted description starts with the rack name
+         // (descriptions are "<name> [<size>]")
+         if (%sel != "" && String::findSubStr(%sel, %nm) == 0)
+            MechCockpit::text(20, %ry, "120 220 255", "> " @ %nm, 13);
+         else
+            MechCockpit::text(20, %ry, "170 180 185", "  " @ %nm, 13);
+         %ry = %ry + 17;
+      }
+   }
 }
 
 //--- pack contract -----------------------------------------------------------
