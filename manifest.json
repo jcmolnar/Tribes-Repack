@@ -1,11 +1,11 @@
 {
-    "version":  17,
-    "generated":  "2026-08-19T06:31:14Z",
-    "notes":  "GPU shapes (players/weapons/vehicles/items on the GPU, per-category normal-map relief), skin normal maps, RT far-shadow fix, HD textures/normals/terrain palettized (~1.3GB smaller than v16), Options: Characters \u0026 Objects section",
-    "sourceCommit":  "bba305a61fcaf1b75ff98c29a4eae1f7608c25b3",
+    "version":  18,
+    "generated":  "2026-08-24T02:28:02Z",
+    "notes":  "v18: mission editor overhaul (drag/select/undo finally work), liquid water+lava zones, thunderstorms with real lightning, rain everywhere + audible weather at last, master volume, Ascend HUD, mod selector, relit-world opt-in",
+    "sourceCommit":  "358ee47c2fa741610241447e1aa16f557c5c12a5",
     "sourceDirty":  "0",
-    "targetCommit":  "9f58d632941e100f9896bdae03e04a5d4bb2724e",
-    "baseUrl":  "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/9f58d632941e100f9896bdae03e04a5d4bb2724e/",
+    "targetCommit":  "f874f5c7d23abae32528d9729fa1b0212812e293",
+    "baseUrl":  "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/f874f5c7d23abae32528d9729fa1b0212812e293/",
     "files":  [
                   {
                       "path":  "base/@fx_blast.BMP",
@@ -2703,6 +2703,11 @@
                       "size":  700418
                   },
                   {
+                      "path":  "base/Armor_VS_Max_DS.png",
+                      "sha256":  "d7cc0a4f52ce2d73de81f5c5a2aeea2b9dbf9eb5c7a162f3731f059a3904e050",
+                      "size":  259161
+                  },
+                  {
                       "path":  "base/AW_Extras.zip",
                       "sha256":  "eccb06006990c3709880e6ec00987293d18b6889cf71c5e6cfecc960d8a64c84",
                       "size":  285323
@@ -2751,6 +2756,11 @@
                       "path":  "base/bigfoot_l.wav",
                       "sha256":  "97fd601f1110486f50fea99730d4cf3c96964ff111c3853aeff0810619080808",
                       "size":  41878
+                  },
+                  {
+                      "path":  "base/boltwhite.png",
+                      "sha256":  "7fc942ab8fe553485f48d80840515992ec07b4a4fdf9c37b8b7aae4162034861",
+                      "size":  72
                   },
                   {
                       "path":  "base/bones.zip",
@@ -10908,6 +10918,11 @@
                       "size":  669252
                   },
                   {
+                      "path":  "base/Helmet_VS_Shared_All_DS.png",
+                      "sha256":  "2cfe9e781e10784b67d2265fba3fbbf999e48223246a0270af1ef7eb1548d37d",
+                      "size":  121916
+                  },
+                  {
                       "path":  "base/human1DML.zip",
                       "sha256":  "fe2c87009a38ee7705b099d8da9a96fe888d30127c17b6115bd50c8b6fc099c6",
                       "size":  69973202
@@ -15991,6 +16006,21 @@
                       "path":  "base/kn_talon.glb",
                       "sha256":  "97ea2f97262be0d87a88a9f4938a50f04837d4b1757998366a854c56d955e7bc",
                       "size":  1330448
+                  },
+                  {
+                      "path":  "base/Lava2.gif",
+                      "sha256":  "6d5a5cd1c3695e7846a911aba3426e0756d9517f20e84ea4e25dcb857041d6f9",
+                      "size":  1465649
+                  },
+                  {
+                      "path":  "base/lava3.gif",
+                      "sha256":  "adf2c21c986524deecc98c28df3d8dc5f04fc8115fc88406b260a1f76993d467",
+                      "size":  275834
+                  },
+                  {
+                      "path":  "base/lava4.gif",
+                      "sha256":  "6ad6775c85376bccbd5f6ea57c9fe1b2db2a3c301a9805369019e3235ef53252",
+                      "size":  2288437
                   },
                   {
                       "path":  "base/lushDML.zip",
@@ -21333,6 +21363,16 @@
                       "size":  21373
                   },
                   {
+                      "path":  "base/missions/Gravity Rush.dsc",
+                      "sha256":  "5bb1a72569250f82542d9471594d68152a5561e8b3bb76bfd888c8e98dc296ac",
+                      "size":  837
+                  },
+                  {
+                      "path":  "base/missions/Gravity Rush.mis",
+                      "sha256":  "14c65bd0e2f122163f1770013dbd906db305c114320829aaf96072bcf9df1aba",
+                      "size":  32156
+                  },
+                  {
                       "path":  "base/missions/Gravity_Check.dsc",
                       "sha256":  "67f4eac8d9c78a71383bd831d917ed0c759cf8e433d1598b42d244fc092c1598",
                       "size":  225
@@ -24589,8 +24629,8 @@
                   },
                   {
                       "path":  "base/missions/staticshape.cs",
-                      "sha256":  "28b683e76f0663869aec175a4e19e0bce0747592e2661a9731810ba9944846f1",
-                      "size":  37730
+                      "sha256":  "aa07a2de4991693dbcee78e0a2ee841f151a2b664a9940b9e248c1e3eb9e7e54",
+                      "size":  37946
                   },
                   {
                       "path":  "base/missions/STFU.dsc",
@@ -26678,6 +26718,51 @@
                       "size":  60544
                   },
                   {
+                      "path":  "base/planetside_vs_max_look001.bin",
+                      "sha256":  "ab65bc72ad62027a3ffadf4bccd3ac1cf5f278947a0b04857fc4c65e0297245d",
+                      "size":  833104
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001.gltf",
+                      "sha256":  "4972aabb6d511098c9094243e4f9357a82f71eb7ef57fc7f3746c040c08d8e78",
+                      "size":  25023
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_diffuse.png",
+                      "sha256":  "d7cc0a4f52ce2d73de81f5c5a2aeea2b9dbf9eb5c7a162f3731f059a3904e050",
+                      "size":  259161
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_helmet_diffuse.png",
+                      "sha256":  "2cfe9e781e10784b67d2265fba3fbbf999e48223246a0270af1ef7eb1548d37d",
+                      "size":  121916
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_merged.gltf",
+                      "sha256":  "498a3d37ca3403505f8a376f9db69182c0aba1909048c4c7e319a19f88dedda1",
+                      "size":  3303
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_rigid.bin",
+                      "sha256":  "8aeb89c0b2ef90c9dea790c7337f52c84e84b64c8f1208b2a63ae94b063297d5",
+                      "size":  547976
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_rigid.gltf",
+                      "sha256":  "fa8597272cec2922b3161d72b03c9636cd8128bae615fe8824af12107974a9a7",
+                      "size":  3410
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_rigid_diffuse.png",
+                      "sha256":  "d7cc0a4f52ce2d73de81f5c5a2aeea2b9dbf9eb5c7a162f3731f059a3904e050",
+                      "size":  259161
+                  },
+                  {
+                      "path":  "base/planetside_vs_max_look001_rigid_helmet_diffuse.png",
+                      "sha256":  "2cfe9e781e10784b67d2265fba3fbbf999e48223246a0270af1ef7eb1548d37d",
+                      "size":  121916
+                  },
+                  {
                       "path":  "base/popestuff.zip",
                       "sha256":  "675c4b3758c57d9583b47fff932a8cf7c14ee6cf2169ed5c05e404799c246a28",
                       "size":  216447
@@ -26821,6 +26906,11 @@
                       "path":  "base/PROM_cy.png",
                       "sha256":  "c6e6aa4f472f9d024e08998a02a2beec4e08bc1f0c25f3301f71c7d3467e3ad4",
                       "size":  741306
+                  },
+                  {
+                      "path":  "base/rainheavy.wav",
+                      "sha256":  "142cf4380001bb8a0b1cb86d894615bf5ab33151cbd8344ca002f1f7305c94a3",
+                      "size":  1587644
                   },
                   {
                       "path":  "base/rampc3.zip",
@@ -27454,8 +27544,8 @@
                   },
                   {
                       "path":  "base/scripts/ArmorData.cs",
-                      "sha256":  "3b3fb11da81881ea3a82f9224d777d64b4aef54175c31b9708bcac576f6a5c74",
-                      "size":  43809
+                      "sha256":  "b5860573e5b98f97ab0b872846a06dc12a2f7e2ab418b8d4ccecc3f9c199eb8d",
+                      "size":  44003
                   },
                   {
                       "path":  "base/scripts/Background.png",
@@ -27529,8 +27619,8 @@
                   },
                   {
                       "path":  "base/scripts/commonEditor.strings.cs",
-                      "sha256":  "b962d3ea8654a750d7a4cef165cd835328c946a9625e32a42b8ce1e7e859edbd",
-                      "size":  7340
+                      "sha256":  "d9d6832f3a427e081292560e00bcc553c4cc8ea9daca4dde42206066e478190f",
+                      "size":  8692
                   },
                   {
                       "path":  "base/scripts/darkstar.strings.cs",
@@ -27554,8 +27644,8 @@
                   },
                   {
                       "path":  "base/scripts/editor.cs",
-                      "sha256":  "f65ca3cabc7543aee36723654011cb7e1dc0b27390ee78222da7fd3c39db38ad",
-                      "size":  18756
+                      "sha256":  "d1fe1652ccdf1a928f6c057d7ceb12d7fe5557a68bc6c7d31135adefc44cc474",
+                      "size":  25335
                   },
                   {
                       "path":  "base/scripts/editor.strings.cs",
@@ -27579,8 +27669,8 @@
                   },
                   {
                       "path":  "base/scripts/game.cs",
-                      "sha256":  "570f6db5190a7c05dfd927c376308d764f996193d8de2fd4cf65050b9611ad49",
-                      "size":  29482
+                      "sha256":  "169fa2a1c548f3f91aeb07259d3ed2523bd59393112d80109b473b5eb1122dfa",
+                      "size":  29964
                   },
                   {
                       "path":  "base/scripts/gpl.txt",
@@ -27809,8 +27899,8 @@
                   },
                   {
                       "path":  "base/scripts/med.cs",
-                      "sha256":  "000fc2290f507ebc6f5c6bc22e0d7dbe9de3f8a813fbcf698486f504b7fcf13b",
-                      "size":  2212
+                      "sha256":  "234ab02456a9d21868c1b47241021c4e1e11daa684b432f55650816f0aa3cfbf",
+                      "size":  2516
                   },
                   {
                       "path":  "base/scripts/menu.cs",
@@ -27839,8 +27929,8 @@
                   },
                   {
                       "path":  "base/scripts/move.cs",
-                      "sha256":  "d0349448b205d52bbbb0497b9a2e3a1da66c2def31b4962d40cd60b23f3b139d",
-                      "size":  5682
+                      "sha256":  "1b134a345480c7a4ebc1431e590f6e180da7d3087a224afcc88a2ea174698bbd",
+                      "size":  6126
                   },
                   {
                       "path":  "base/scripts/moveable.cs",
@@ -27894,8 +27984,18 @@
                   },
                   {
                       "path":  "base/scripts/RegisterObjects.cs",
-                      "sha256":  "bee8260fe359c49cbef3ef4ab0814fe8224db0dbb35dcbca44808f327e834420",
-                      "size":  14931
+                      "sha256":  "e54547536b7d8298df0ee287611060e3c05d11a2b9ea14cf4c9d6fd4ca956250",
+                      "size":  15029
+                  },
+                  {
+                      "path":  "base/scripts/registersavana.cs",
+                      "sha256":  "ba96bb9248cafd3cd113fed5793562b6e3b3008c896c63eab25a90c5b8ac1c7c",
+                      "size":  348
+                  },
+                  {
+                      "path":  "base/scripts/registerUserObjects.cs",
+                      "sha256":  "36bf82ce59d5b4367eea71d52c71b66e251dd404bc75e1783bcdc020c0e1269f",
+                      "size":  3531
                   },
                   {
                       "path":  "base/scripts/registervolume.cs",
@@ -27924,8 +28024,8 @@
                   },
                   {
                       "path":  "base/scripts/server.cs",
-                      "sha256":  "4f71a6136fd30d70e59e02bf9268c79f7c5d3d174ec7995443d7d058c98b5ec9",
-                      "size":  13445
+                      "sha256":  "60883323a01afcc77c12c8bc5729ca459028f0c7cd32f88c86808408e5758845",
+                      "size":  15252
                   },
                   {
                       "path":  "base/scripts/serverDefaults.cs",
@@ -28041,6 +28141,11 @@
                       "path":  "base/scripts/vehicle.cs",
                       "sha256":  "3ceec820165d58e25e025ea1c9efa8c59fb0a0ed5ca7a8561286c61c904a6aa6",
                       "size":  11632
+                  },
+                  {
+                      "path":  "base/scripts/weather.cs",
+                      "sha256":  "9f3618cd67e225ea60459f9f418700544980d9db7a27a7d6cb1196bdaff5487f",
+                      "size":  7313
                   },
                   {
                       "path":  "base/scripts/worlds.cs",
@@ -32428,11 +32533,6 @@
                       "size":  3497601
                   },
                   {
-                      "path":  "base/Skins/SPAWN.VOL..VOL",
-                      "sha256":  "717af2a3040c6cb516144fa04f2c28410d1324f09c3c7a5bdb04343d5f645f1e",
-                      "size":  99999
-                  },
-                  {
                       "path":  "base/Skins/srmskins.zip",
                       "sha256":  "7046db7df5ad3ca52c71a90e18f2279dae56795ffc33556d4c18a44fb49b739c",
                       "size":  5562162
@@ -32591,6 +32691,11 @@
                       "path":  "base/stop2.zip",
                       "sha256":  "527a7154e0c7978f873f4ff28659127d1070c19966048e0cf77fa255f27658c5",
                       "size":  139476
+                  },
+                  {
+                      "path":  "base/stormbolt.glb",
+                      "sha256":  "ec2fb24e46ac05039bfab6957c25a9ae00a035c459626f61a4b447bfaa50b569",
+                      "size":  2464
                   },
                   {
                       "path":  "base/stree.zip",
@@ -33183,6 +33288,11 @@
                       "size":  333726
                   },
                   {
+                      "path":  "base/water2.gif",
+                      "sha256":  "ab29dc992c5d677f5b55b10b505e2448978f9f9f40857962ca12c51afcb578a8",
+                      "size":  4134579
+                  },
+                  {
                       "path":  "base/wc_artl.dts",
                       "sha256":  "ccfb2385c9217ddfe44e9e74bd04cafa3501b726736014ceb07aa0390011f5f8",
                       "size":  18512
@@ -33383,6 +33493,261 @@
                       "size":  12272
                   },
                   {
+                      "path":  "base/wzlava.dml",
+                      "sha256":  "f2dd6922d82a1960ad33426c3bd196d7df7dccb7f01681900d48c8dc4674cf2d",
+                      "size":  358
+                  },
+                  {
+                      "path":  "base/wzlava01.png",
+                      "sha256":  "9e1ee87ae27e85bc7af141650b2abe7c54c9a3bb97d0f460eb2d33d52e9972aa",
+                      "size":  26216
+                  },
+                  {
+                      "path":  "base/wzlava02.png",
+                      "sha256":  "d1660ba3103dc6c74236a9ed06bb766f6321695d8b79b79cdb0b55f48dd5e647",
+                      "size":  26866
+                  },
+                  {
+                      "path":  "base/wzlava03.png",
+                      "sha256":  "19962d5eb52c654832fe241ab8271d54f0b4316c110ad7ba3d07145e737743e1",
+                      "size":  26306
+                  },
+                  {
+                      "path":  "base/wzlava04.png",
+                      "sha256":  "5c03dc844b669b4ba8e6c3c7eb8f780fc4368378993b23c66da6013bae876b7a",
+                      "size":  27139
+                  },
+                  {
+                      "path":  "base/wzlava05.png",
+                      "sha256":  "694d89b8431d41b31297c3aab16db0ae602448425cac5218df97c58f3c241557",
+                      "size":  27798
+                  },
+                  {
+                      "path":  "base/wzlava2.dml",
+                      "sha256":  "98ae0f0806e8b2a06dc02b5c028ff40f8b322d9a36090987d47585b9790c974d",
+                      "size":  102
+                  },
+                  {
+                      "path":  "base/wzlava3.dml",
+                      "sha256":  "84f8c03ba8e4933640ba5a77273aefa514dc2518154a0f5a8e6042a73c7eef83",
+                      "size":  102
+                  },
+                  {
+                      "path":  "base/wzlava4.dml",
+                      "sha256":  "1c80f94095c41f4242c69afab0f854f5592433ae4747d660c4a2080cdbfd4be9",
+                      "size":  102
+                  },
+                  {
+                      "path":  "base/wzwater.dml",
+                      "sha256":  "fdd547cc81d27f6ec302ab96d1f96624e27dfe3ba2c18931b271496d0b98ea39",
+                      "size":  2598
+                  },
+                  {
+                      "path":  "base/wzwater01.png",
+                      "sha256":  "ea60af83e95d95807f929e0a708b01c80510fcc270af04b08506d4e7198e259a",
+                      "size":  9969
+                  },
+                  {
+                      "path":  "base/wzwater02.png",
+                      "sha256":  "647ecbd7df70caa4e74b05862fe63a741ea69a6dfb4337841a9f77762c1566e5",
+                      "size":  10163
+                  },
+                  {
+                      "path":  "base/wzwater03.png",
+                      "sha256":  "e1fc43b06e47d27f1f9b57beb1956650551aa09326a3a911808d2109b108bda8",
+                      "size":  9665
+                  },
+                  {
+                      "path":  "base/wzwater04.png",
+                      "sha256":  "9ef4244a9619c61f46cc3aedf3f752e8b9aab564cb264e98c8e9a78fabff91c7",
+                      "size":  9970
+                  },
+                  {
+                      "path":  "base/wzwater05.png",
+                      "sha256":  "988b578cf70e245a221d9684f1d0a3785037b55c386e1e46ff98e0dde4e98067",
+                      "size":  10194
+                  },
+                  {
+                      "path":  "base/wzwater06.png",
+                      "sha256":  "5bdfdb2657b041d0f3aa0383ef2d20ba31057044cf412f84d275a88399f28609",
+                      "size":  12760
+                  },
+                  {
+                      "path":  "base/wzwater07.png",
+                      "sha256":  "3dc30639aaf2281efc7001c2baa76f738e0ca4ea060757680147d7904bb2c917",
+                      "size":  12472
+                  },
+                  {
+                      "path":  "base/wzwater08.png",
+                      "sha256":  "b9c84944fa163c1fc2b14e4840dcf507fbfe18bd70ed820724bc4d9a4d2544b6",
+                      "size":  12471
+                  },
+                  {
+                      "path":  "base/wzwater09.png",
+                      "sha256":  "916e596dfcd67e0ce1cab02b2e2221f7fb82fc100905ac0cc374f9debb37eb70",
+                      "size":  12941
+                  },
+                  {
+                      "path":  "base/wzwater10.png",
+                      "sha256":  "1bb1aaeb8a1c47f17fba33861f1aa858127e91858e3da12167021c5e25b47c42",
+                      "size":  12702
+                  },
+                  {
+                      "path":  "base/wzwater11.png",
+                      "sha256":  "476d433e5e4c95f5ce5476bce4608ad59b46cf2c438b92b2ef95a7b427379dbf",
+                      "size":  12281
+                  },
+                  {
+                      "path":  "base/wzwater12.png",
+                      "sha256":  "8f19c20b0b4424adc9a3e006c6d57485d31e946e76000bfc65571642f31d9643",
+                      "size":  12135
+                  },
+                  {
+                      "path":  "base/wzwater13.png",
+                      "sha256":  "3d0fae8fd99096d6a76b824980ccfcb917b7d5bd9760cc4d39b6397c73572408",
+                      "size":  12274
+                  },
+                  {
+                      "path":  "base/wzwater14.png",
+                      "sha256":  "a39ad417cd87847945d3aa31e82fb828420411d1a2a6a414430cb40efbf3999f",
+                      "size":  12279
+                  },
+                  {
+                      "path":  "base/wzwater15.png",
+                      "sha256":  "ceba96e78987de21a13e46e3a582431edd12b82899b5072c94f66594194b39a6",
+                      "size":  9831
+                  },
+                  {
+                      "path":  "base/wzwater16.png",
+                      "sha256":  "c14197d2cdd290208e22b47f15cdd58dfa03740f535ef15440b2bd99d45eb623",
+                      "size":  9479
+                  },
+                  {
+                      "path":  "base/wzwater17.png",
+                      "sha256":  "43cfdd30ec7638f37037513d856e681ae9df5a622d0105114a9f1492f553d7dc",
+                      "size":  9589
+                  },
+                  {
+                      "path":  "base/wzwater18.png",
+                      "sha256":  "02d08bb6d2a0613b1fd3401f12b90948e13bbf7bcc7cbdc98eb921376ea007f0",
+                      "size":  9103
+                  },
+                  {
+                      "path":  "base/wzwater19.png",
+                      "sha256":  "2bf14feda5f80af0f9c807d0ec0f0f80b0353d4cedad57432d83c8f0e314cff6",
+                      "size":  9470
+                  },
+                  {
+                      "path":  "base/wzwater2.dml",
+                      "sha256":  "c212f6c7b574dbf0e07fe6446c6ba5adbd59efafcf80f5399f2db99540c43b23",
+                      "size":  102
+                  },
+                  {
+                      "path":  "base/wzwater20.png",
+                      "sha256":  "0eb8aadbed9881624181f44c22205c287435dfea7cfc58c207714f569c5fc0df",
+                      "size":  9392
+                  },
+                  {
+                      "path":  "base/wzwater21.png",
+                      "sha256":  "0089f49140faa6774daec7ff320ee180a6031a8bf7da2e135fa55989c92b0049",
+                      "size":  9524
+                  },
+                  {
+                      "path":  "base/wzwater22.png",
+                      "sha256":  "1068c8718a1271cb6416525079882a2c1425910ac8b6590601f9f4ff0a26ce36",
+                      "size":  9524
+                  },
+                  {
+                      "path":  "base/wzwater23.png",
+                      "sha256":  "bd2883b5722f9b0754642f528ea2f0cabab104d27f0e926364981e9afddf55c7",
+                      "size":  9453
+                  },
+                  {
+                      "path":  "base/wzwater24.png",
+                      "sha256":  "3517fb63040bdfc697b6c243f31f6dc294096b7560c28035b54c2071ab8ce64b",
+                      "size":  9305
+                  },
+                  {
+                      "path":  "base/wzwater25.png",
+                      "sha256":  "3f8087dc3fc470668927246bc33956c9b9c6afe56b0f682fdb5a9a7c35296107",
+                      "size":  9263
+                  },
+                  {
+                      "path":  "base/wzwater26.png",
+                      "sha256":  "01aeda51d5fd8701e13ed4c62c83c4b5addf1adc1a3250141f36809604184082",
+                      "size":  9283
+                  },
+                  {
+                      "path":  "base/wzwater27.png",
+                      "sha256":  "c21babba160a80660690e389c465a01f6e30961c5c674c9cad442147b1b529ae",
+                      "size":  9560
+                  },
+                  {
+                      "path":  "base/wzwater28.png",
+                      "sha256":  "17caf96e99c3574312b51bc1ef548dffa80432a4fad5b6c5162336d02a886c6a",
+                      "size":  9287
+                  },
+                  {
+                      "path":  "base/wzwater29.png",
+                      "sha256":  "a8960fc9f2d90926eee83e402498c4a408668c4f6eece0af29d866c40314cdb6",
+                      "size":  12690
+                  },
+                  {
+                      "path":  "base/wzwater30.png",
+                      "sha256":  "dbbb016d79e99ac844c98e3ae0b7f621cf279cd7ae8b2683e750d6edc96f48f6",
+                      "size":  12662
+                  },
+                  {
+                      "path":  "base/wzwater31.png",
+                      "sha256":  "31e54e3b5f3e2c6606d639ddcbdf18b5f9c5bae9ca35d71b57eaad060eef8ecd",
+                      "size":  13016
+                  },
+                  {
+                      "path":  "base/wzwater32.png",
+                      "sha256":  "c1ef196918d9793a5344fae7951adc1d51c0637685df41bd4b654594cf7c17bd",
+                      "size":  12416
+                  },
+                  {
+                      "path":  "base/wzwater33.png",
+                      "sha256":  "cff36fd007fe1425d5a8023afd968a72bf3cd3c75dad00fa906112953c1aeb47",
+                      "size":  12450
+                  },
+                  {
+                      "path":  "base/wzwater34.png",
+                      "sha256":  "bf0896b08e0167bfc38cf24a3db05f931ff110c4be28d3f241a5af480e7e2a48",
+                      "size":  12286
+                  },
+                  {
+                      "path":  "base/wzwater35.png",
+                      "sha256":  "f933108aeb3db442e01bb8dd3e4567a430fc57750d96021303cb3a6205ae5175",
+                      "size":  12402
+                  },
+                  {
+                      "path":  "base/wzwater36.png",
+                      "sha256":  "2955283c351a55d96ad48acbc067e4f7a640c45e8e5ea43d743f9e1b2eba0f5e",
+                      "size":  9630
+                  },
+                  {
+                      "path":  "base/wzwater37.png",
+                      "sha256":  "b84a48293d62153992e25921f58b7dc828587d39154089f51bc19bff377af260",
+                      "size":  12390
+                  },
+                  {
+                      "path":  "base/wzwater38.png",
+                      "sha256":  "a81edd1bcdbb039c67f9121c70908abf9d69303790d70a16b237e1c2788ab1bd",
+                      "size":  9578
+                  },
+                  {
+                      "path":  "base/wzwater39.png",
+                      "sha256":  "54d8aefea2c20f5ece577b948092866fcb608189cb516872d41e43de747293f7",
+                      "size":  9630
+                  },
+                  {
+                      "path":  "base/wzwater40.png",
+                      "sha256":  "4a87bd0efc21eb14f64729f56ad1f035dd1f5a99677c4e51c5842722a1c8f742",
+                      "size":  9994
+                  },
+                  {
                       "path":  "base/xHubtech.BMP",
                       "sha256":  "a7803a58de63bff4cd6ed1fd73e6ee30505a132d97b9180e1be99076fdc3ed63",
                       "size":  1436
@@ -33439,8 +33804,8 @@
                   },
                   {
                       "path":  "config/autoexec.cs",
-                      "sha256":  "a3739c297688f33ea28b076e36d920e5f5c5f8c8426b6ee05b030c3acdaa0835",
-                      "size":  6946
+                      "sha256":  "77dd35cb93061147e49ae645dcd7a8fb9ff5f753874743078d1cd063d86d9389",
+                      "size":  6947
                   },
                   {
                       "path":  "config/badwords.cs",
@@ -33464,8 +33829,8 @@
                   },
                   {
                       "path":  "config/clientDefaults.cs",
-                      "sha256":  "6a10877194d9f5d349edf7199373854db5e61ffbe61df3ac460bf051892cd1d0",
-                      "size":  3264
+                      "sha256":  "0d90d52bee3cb613a5ce5a1500b55baeb46fc3864eb0402e406d7bb1743b54a4",
+                      "size":  4198
                   },
                   {
                       "path":  "config/cowboy/CmdHUD.cs",
@@ -44794,283 +45159,283 @@
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/basic/modules/ctfhud/flag-icon.png",
-                      "sha256":  "9bafefbd377d75e2faa857c96ef5ceb18e984495bbdff305f22fc7da2cea2d03",
-                      "size":  644
+                      "sha256":  "2b1b09ac8f7db2e7a354389f1c287b385a9084a4dafcb3c1b3e0c611aa4727d8",
+                      "size":  656
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/basic/modules/itemhud/blankdot.png",
-                      "sha256":  "0d96356985a1b8ed9366577ce4ffa470d0e530aaea407685f0e91efeed7e091f",
-                      "size":  1798
+                      "sha256":  "175aa2246631ee268e23b7aad8a8609eac7e7517f8fa154b7f61c324353ef5ca",
+                      "size":  1799
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/basic/modules/itemhud/grendot.png",
-                      "sha256":  "a8f821fbc02883ce9476fdb82c52a418b29daeb252c9982a30117b000015db94",
-                      "size":  1601
+                      "sha256":  "daec2fef6bbd2939d071825e5b9f5f19abdac23feb53fdce69a8c66e280b225d",
+                      "size":  1624
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/basic/modules/itemhud/kitdot.png",
-                      "sha256":  "c6c8c7c487478456912927e995333ca1f342aeab8316790768f57cc353e6788d",
-                      "size":  1805
+                      "sha256":  "375f9a32f7e900ee220fa42d37df4ffe9d29ea913ac2f27c56906425b47b75ed",
+                      "size":  1830
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/basic/modules/toastyhud/toasty.png",
-                      "sha256":  "6c111db85d4c95a5909fed28729ef663abd1729b8e0093d240d48b8e595f6fba",
-                      "size":  143044
+                      "sha256":  "3db57a057274924775b0c548c59c95065ff5278b8de7a43b1cccd659cea5ca29",
+                      "size":  176991
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/aaRepKitHUD/blankdot.png",
-                      "sha256":  "b4be946b3681c5cafe5a14b89303bcde22de41cddbda2acf5ce7b011ef02ac32",
-                      "size":  2772
+                      "sha256":  "d62482d0ae6414d3a10750860b9a52b9de4d1e22a02e09e2e3303ab79be73d50",
+                      "size":  2887
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/aaRepKitHUD/rkit.png",
-                      "sha256":  "66c33613d5b0f6fd5ef1291ce57b7725c1450a7485c22413f7178bfdc278aa58",
-                      "size":  2779
+                      "sha256":  "5036ec0a3f10e6525a3b70eb11c074d3ed15ec19a3d2a77cb9c83a68ff0824af",
+                      "size":  2881
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/FlagPopup/flag.png",
-                      "sha256":  "70ab4104344a8dfa73ad7ae21e3e5064cd68711e4b41aa15551652e122a8dc9d",
-                      "size":  42218
+                      "sha256":  "2500350894ea16cf1ecfc7a60dc6a3bbe92ed6fc8c295e6daf16f1a4f8e4f0db",
+                      "size":  52029
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/HeEnHUD/Ering.png",
-                      "sha256":  "74fdb0812306c90dc4a0a2fe55367586d9dcad189afef6cd84561841dc98710e",
-                      "size":  4656
+                      "sha256":  "e0233510feb82fa579f6e7b7dd868ef271ff0e09397ba03403604b861a5a17b2",
+                      "size":  4989
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/HeEnHUD/Hring.png",
-                      "sha256":  "8580e09358d799f5554a9b975d06d16cc495de743904e5efdaf918cc8ee04618",
-                      "size":  4036
+                      "sha256":  "48f0faf38065db972b8808b8264875a12176b082d30429b28459d98c9c6c8ea2",
+                      "size":  4280
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/HeEnHUD/Sring.png",
-                      "sha256":  "750ff5410894c25e892ce22902f693b90a519f5095da28641a2441a60be1b173",
-                      "size":  5099
+                      "sha256":  "820b6d2dfe6cd137485e8b9b2f40712c882ad5b352168bd26b1f813f65d8215a",
+                      "size":  5454
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/ItemHUD/beacon.png",
-                      "sha256":  "39e6f87d3e86a973222e783a22d8ac0cf77aac57c7355658b67a57bc4e203d0f",
-                      "size":  2097
+                      "sha256":  "5a44597e353c99ddc2424b3a1d5eb529e30eb196c96d4c1062f8d9a291f05692",
+                      "size":  2408
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/ItemHUD/beacon0.png",
-                      "sha256":  "e7dc4d80b251ee1d648a260cebb39bbdc79a5ad0109fce4760ec366bb61b34ef",
-                      "size":  2371
+                      "sha256":  "ae7448110e0373d31a350f2a6187f82ddf080170e002bdcb64616fd160294527",
+                      "size":  2697
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/ItemHUD/gren.png",
-                      "sha256":  "708f7b91304172bfdca7e0328af9338faf17d0d954438553553d8a1bc98c99de",
-                      "size":  4430
+                      "sha256":  "a65e1ff8c710b11665758609f33059be449969028124417e260383ac06716bcd",
+                      "size":  5032
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/ItemHUD/gren0.png",
-                      "sha256":  "81dd0ac0a433dd9b0f43c2d852d2ab2e0eba25681c75a7a3dc90ea20a448b2af",
-                      "size":  4510
+                      "sha256":  "6352e671f5db3bd5346e8de19743ac43d1e3e0cb136acf144ee4be54e8e4ff13",
+                      "size":  4976
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/h1.png",
-                      "sha256":  "d9e4a80ed3643f0b77fedc51fac4691e8069f1fbee0d15a39bc65d7d4302274b",
-                      "size":  1542
+                      "sha256":  "db280f85822bcff6c814daaf3a9e4be1427a3e6b38ca6b022eba8906ddbe0e40",
+                      "size":  1575
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/low1.png",
-                      "sha256":  "7276ed69e0e2b29a09e4a2db15bab701076e1c654f4505c81c7fddd5480ca481",
-                      "size":  2597
+                      "sha256":  "67bc26dad41914821803afc5387aae6563eb17eb11a7e789532a9a4bc1a46bb0",
+                      "size":  3240
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/low2.png",
-                      "sha256":  "21de39f7468ba43d7f476c4136109e54362630da9b47aa820c82c12a61f56ccd",
-                      "size":  2705
+                      "sha256":  "daa6c61be56d04e7a2b09c2c03b3847def46a097b47aaccbd645565b643c66bb",
+                      "size":  3403
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/low3.png",
-                      "sha256":  "d02b34a9f531d7c87af5fdddd283cf90125cd0dcee9afb7751ee72d19941211b",
-                      "size":  2791
+                      "sha256":  "4fd83a6a6280f2dbccfe65c85a0c4cc06e6ecc416e8247b0f443eacf9cea183f",
+                      "size":  3427
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/low4.png",
-                      "sha256":  "72d5d0b79f8413cc24f06ef89f2a579811d2ab99665ed306043d73327df74649",
-                      "size":  2798
+                      "sha256":  "41684a300fee55d7f05bbb31116610a777b1202b7b0e8c2665674872b04c15a4",
+                      "size":  3506
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/low5.png",
-                      "sha256":  "54c7416517f7cd7bb7fd0149bdc98018150528f2c71b8bf74b0d9ef1fb1ae8e7",
-                      "size":  2799
+                      "sha256":  "6414be5805be2bc034b8be3a494a50b2c67e88a1c528cae724cd3e86c28ae976",
+                      "size":  3562
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/LowHealth/low6.png",
-                      "sha256":  "c3a1dc2d0ae544a9de1b35628df49a451a37684be297657ab0905490d302159c",
-                      "size":  2799
+                      "sha256":  "00ee510afdcd5c24a7c885001d3d174c86deaedc00f403825ede8d0dc86d1072",
+                      "size":  3602
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/minimap/R1.png",
-                      "sha256":  "3928f1c15f3a235d3c409f44442b8fc1557b493bff813c7a8e08ad150df06f8f",
-                      "size":  8617
+                      "sha256":  "9695a7ed276e7ac59eaeaac052286d68fcfa277fa098fd76bd95aea60d4fa032",
+                      "size":  10992
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/0.png",
-                      "sha256":  "1440042dff86524c084ef75193155763f66d60a6e4dd76925c9fc203fe324bec",
-                      "size":  2576
+                      "sha256":  "f753970649ff0b336a6e3572f537e8eeab41011a6d89151ac3cfcf22d32920f2",
+                      "size":  2624
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/1.png",
-                      "sha256":  "d33bcb9ef5f4dcc1d9edbfa86b2c8421c7894ec5ab40371b5db4fe4d2cb9a486",
-                      "size":  2507
+                      "sha256":  "019d3f5363b9b9860dd2e432404a5e6fad51e2dbc531bee553d19cb760643711",
+                      "size":  2526
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/2.png",
-                      "sha256":  "731012bac64937c724fcaf4d5efe1e73cd7e55731ed58554e9eb0b5453b268f6",
-                      "size":  2547
+                      "sha256":  "7f96fed054a9176a3d451b6d0db78527e27ceb5851ec8ef4370f7955751c08e3",
+                      "size":  2608
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/3.png",
-                      "sha256":  "b46b82f8db3e34ee56dbdcb5f9b4d3151b475c4912e330712a8b3e8efea32700",
-                      "size":  2534
+                      "sha256":  "bfc4a48d0cabc9a366695c2fc40b450f78dbce106ed71d9ee56970aac1cbaa27",
+                      "size":  2579
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/4.png",
-                      "sha256":  "b36b6a278870996616978e41db9d2338714e9785dc276809b0db316a3bc73dad",
-                      "size":  2553
+                      "sha256":  "9dc135333eaf0aafd67a7b5b05ab2d44ce54c28479c148f34c4204dceb9ee3f4",
+                      "size":  2600
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/5.png",
-                      "sha256":  "f5c7d666d21a70978f75548d3c92ddf60dc9bac9be0b914586caec82440377b9",
-                      "size":  2527
+                      "sha256":  "f06d36152209e788a85acb3a331182be689b5039decce3fb007535f87ade0234",
+                      "size":  2598
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/6.png",
-                      "sha256":  "ef423928d7e0adac5eb87042a66752b79baa2b3ef528f21fa5d8529377ee85f7",
-                      "size":  2562
+                      "sha256":  "42f90ac1a2ab6315861cad76f84a2de27e3d5008a821849047fa50ab09a9c92e",
+                      "size":  2635
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/7.png",
-                      "sha256":  "d1b9c13c08980187dbf1167a099eb64cb99d35e8eb966aa845f69e5eee475871",
-                      "size":  2519
+                      "sha256":  "286bdc3cca674262cabe8316f91839492b8237632b9006f8b9f87df0bafd5260",
+                      "size":  2546
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/8.png",
-                      "sha256":  "bed04ecc5cfd5c537e63cf1252988ba07699d70b4a97f4f683673042dc8f59f1",
-                      "size":  2577
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/9.png",
-                      "sha256":  "f9eab6af61f6971938b122b586e2c1566420dd981d243f6620f8a8432ebe64b9",
-                      "size":  2569
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/colon.png",
-                      "sha256":  "2bd5494186063a2d48f1a216b04bb6e2872cc0e3f87dd6c9b4095188587f5502",
-                      "size":  2352
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/0.png",
-                      "sha256":  "c6de620676154c0306f8a89c6fe4054bac381e8dd262966538956435dedbaa18",
-                      "size":  2450
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/1.png",
-                      "sha256":  "af006fc2846d0f12ee661986262cc1156cc101053b035e78ba3b02df938f12bb",
-                      "size":  2861
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/2.png",
-                      "sha256":  "19f356955b24f004c98d832be59ce4bfaf694195a727a761a24e1dd4cbdfec5d",
-                      "size":  2891
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/3.png",
-                      "sha256":  "cd07a4733f8f787632c002d07e2331675987ef1de103f139b9903038f50a6f4d",
-                      "size":  2916
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/4.png",
-                      "sha256":  "a7bed9eb6c33e2383a46d7dab2b3f5359cc752e216d9b9fd944f0a68bb2d39d5",
-                      "size":  2968
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/5.png",
-                      "sha256":  "c382db5bafc4e7350aaf2e3c2062d344831bc2e0507537c46a51d9a14b4f851d",
-                      "size":  2863
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/6.png",
-                      "sha256":  "42c7f9f2983b694e0fb390686f2ab78b7901392f66b3fcea281066910ba3d239",
-                      "size":  2948
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/7.png",
-                      "sha256":  "8404abb13fa69efca348ddef3e5dd21a58b56e46e04b3d51094a234f0844759f",
-                      "size":  2862
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/8.png",
-                      "sha256":  "03fa344b0828a9f73d3b6acc0566d20531e5935bed4d60b70b3583cd2251704e",
-                      "size":  3011
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/9.png",
-                      "sha256":  "7df4d7a3c656a087cc8eab1aed1c38d0d15832ef70d45e09de9bd88f24cfafcc",
-                      "size":  3082
-                  },
-                  {
-                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/0.png",
-                      "sha256":  "eb09cd0ae3851bf1d9c70d2822d721819399ef0a1b4609ce1a5e527fd5eb43ed",
+                      "sha256":  "ad61ef345ee303e4be6155bd200be5ccf163f84cc4a51c2b0c2550a8522c575c",
                       "size":  2649
                   },
                   {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/9.png",
+                      "sha256":  "0c5227b4ca539391e4ba099598147b62ebde907ea912570f122fa9c5dfe4ebd0",
+                      "size":  2632
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Ammo/colon.png",
+                      "sha256":  "28d8a8dbb72764de3fe19c40ad4234a34e220b05386f3b9d8bef348a86785ac8",
+                      "size":  2390
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/0.png",
+                      "sha256":  "ee76189c5d417bb693ec598c5473b89f358330cc7052369b45de98a852bf8e1c",
+                      "size":  2705
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/1.png",
+                      "sha256":  "a3510c650e652d0f7760c7d6158b13a5ec942799638cbc4a823edbec97c9bb79",
+                      "size":  2980
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/2.png",
+                      "sha256":  "54abc39248b60192a37e2c0aecba17c31a920a761efac2e92852fc5e91504de8",
+                      "size":  3088
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/3.png",
+                      "sha256":  "123521c97f56084b3267ae51bf03c674a09083dbaad9d134579c98a125ee691c",
+                      "size":  3121
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/4.png",
+                      "sha256":  "275a7b808cb2a5eed64ec65e61a7a38549823a687a74bca2ec05525702a12ffe",
+                      "size":  3151
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/5.png",
+                      "sha256":  "8b4c8a8d089f172d90c765e782b45ffbee71c21ddc7c214142940f5ea97c6270",
+                      "size":  3078
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/6.png",
+                      "sha256":  "1f07c1eea983dec2cde5bf428ea8bf4495ea0257508556cebf8ca3227ee2506e",
+                      "size":  3188
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/7.png",
+                      "sha256":  "b36e6cb96914e7ea65ac7fe7ef9e8a74323e761c4261fdd8386c0ab9d222dc7d",
+                      "size":  2987
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/8.png",
+                      "sha256":  "fa3bd8a5f5bf3b3ba9f6902b17e42fa09c5449998d300b273fbc9b6d03778283",
+                      "size":  3310
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Black/9.png",
+                      "sha256":  "ddb2773a11c470a872b50defae68cc4fa658f651de55522cae53ccafc85c2a43",
+                      "size":  3334
+                  },
+                  {
+                      "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/0.png",
+                      "sha256":  "60f590929186d13adfab9d6f8430754bd0dc8b324f44e1218571536f53377d40",
+                      "size":  2736
+                  },
+                  {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/1.png",
-                      "sha256":  "c4880c4234648f563d5d70a2ccd1a8ace7a1882d5b88202edf87a4885447ab44",
-                      "size":  2509
+                      "sha256":  "088f9482dbab26b7abc9e2680e8e7bd61b49c17427cdfb27cf03afa5d49b367b",
+                      "size":  2556
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/2.png",
-                      "sha256":  "a83b8bd58d80268641ef23b42b1c7e09b5758266a1f922b64ed2cef00b8e404f",
-                      "size":  2586
+                      "sha256":  "7840c704128be7f2734537cd742f17fc4626db9c3674e0bec93fd851d1437b76",
+                      "size":  2679
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/3.png",
-                      "sha256":  "080bbabaf337eaa9c1a23d3878257a76d1271c5e8417aac6519a5880ac6bf28d",
-                      "size":  2576
+                      "sha256":  "91f2792b28e3dfec4c683b580e511cdeb3c8811dedd563c593ebfac7e04b8956",
+                      "size":  2676
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/4.png",
-                      "sha256":  "b489250f8bd7443c043c2a7cc66381fc7cb46d7d736833184be4cccde4dc7c30",
-                      "size":  2622
+                      "sha256":  "939560821590ec817491ccb421f4cfa42716c3e7ea456852da3ca1d4754acd26",
+                      "size":  2698
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/5.png",
-                      "sha256":  "34d361ca7df857baec20f387872bbaedd6f229109bbf0cd5189d2beb611deca9",
-                      "size":  2592
+                      "sha256":  "8555a803c182b7ba65bd78af00a06cd800cf895ee0ee91b5d5289d8d78f17c4d",
+                      "size":  2678
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/6.png",
-                      "sha256":  "c6abe931ee3bf4acf7be7771a373ac930bef3e40c811d98671a5695ea160aab9",
-                      "size":  2629
+                      "sha256":  "d974852242ef731815fd42d264f071f6375f2044ece3aac5294f8b5af843ed8d",
+                      "size":  2746
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/7.png",
-                      "sha256":  "28132b9c2334b40f9c006dbc051cb6ee487d282cd50ee36a71da7349f9b2afd1",
-                      "size":  2561
+                      "sha256":  "8cc7f2cf52ab16bfe6453b251d716e5c651b7849572b2b76d0aaa155135eb8b0",
+                      "size":  2600
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/8.png",
-                      "sha256":  "8c075f987c81de68fd69261f00489409855849efd273c4ec75dcf71243c648d6",
-                      "size":  2646
+                      "sha256":  "ac244997d7177fe21b07e68c992f816a2ad9ae41a543200f329e1b322610a893",
+                      "size":  2745
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/9.png",
-                      "sha256":  "3cfd70985628a1a863b9053dd9f13aeb9cbe0ecdb2479908e2d375deff2c488a",
-                      "size":  2620
+                      "sha256":  "4eb8fd591be388b32c573c3e869540990a6e1b61f7e1f4d095996021bec0aa4c",
+                      "size":  2724
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Clock/colon.png",
-                      "sha256":  "2bd5494186063a2d48f1a216b04bb6e2872cc0e3f87dd6c9b4095188587f5502",
-                      "size":  2352
+                      "sha256":  "28d8a8dbb72764de3fe19c40ad4234a34e220b05386f3b9d8bef348a86785ac8",
+                      "size":  2390
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/CTFHud/bg.png",
-                      "sha256":  "a13746d11718e2e2b56339730a75729a185d616136aec1a94e8af5f98d0d6f6c",
-                      "size":  3673
+                      "sha256":  "1da355d0e7a2e62834788b2a6925f37cb4465eeef5661b92724ec79c6269d6ac",
+                      "size":  3935
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/CTFHud/CTFHud.acs.cs",
@@ -45079,148 +45444,148 @@
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/CTFHud/enemy.empty.png",
-                      "sha256":  "432bf1465518ca3b402d225fab3ad8e921416c46d1656aab3df66692ecdbfb73",
-                      "size":  817
+                      "sha256":  "515e1d44887618dc190e44a74644ab0c2f266453fa4632e824017c647dc4418f",
+                      "size":  876
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/CTFHud/enemy.player.png",
-                      "sha256":  "432bf1465518ca3b402d225fab3ad8e921416c46d1656aab3df66692ecdbfb73",
-                      "size":  817
+                      "sha256":  "515e1d44887618dc190e44a74644ab0c2f266453fa4632e824017c647dc4418f",
+                      "size":  876
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/CTFHud/friendly.empty.png",
-                      "sha256":  "d771ac4c78d0e70b7f70695b325173ec2ce5ff51305958a37521cc336a6573f1",
-                      "size":  757
+                      "sha256":  "7ce8af30202ca9224dfa777ebcd9cacc922aadd403337b9bb76d26fd148e9d29",
+                      "size":  791
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/CTFHud/friendly.player.png",
-                      "sha256":  "d771ac4c78d0e70b7f70695b325173ec2ce5ff51305958a37521cc336a6573f1",
-                      "size":  757
+                      "sha256":  "7ce8af30202ca9224dfa777ebcd9cacc922aadd403337b9bb76d26fd148e9d29",
+                      "size":  791
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/0.png",
-                      "sha256":  "f053429ef6f2267c4d4963441984d470594ef524ca8c6ca2f3c91b3e63c7639a",
-                      "size":  3277
+                      "sha256":  "6c995da121b50c3c428b6f9bb3c0acc05dd01fb0ed3068a82b1ffb287ad6813c",
+                      "size":  3780
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/1.png",
-                      "sha256":  "c55c48a4620c4f5c82b4eac633b44b76159853ec4c85ac5eb92fe3529f2cef4c",
-                      "size":  2903
+                      "sha256":  "0c1ef559699a9d4e688166b3be28f3fb70afe3a247b7dd0f8daf63b9147a5219",
+                      "size":  3085
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/2.png",
-                      "sha256":  "fa3b6d8ae6509d6fc79bb8e692dc627ec3aefa5f435636a89a1762524b3ef382",
-                      "size":  3056
+                      "sha256":  "3d3966e2fd219db30225e526389fceee5dd8dc45ff9044f578199ce1b414d342",
+                      "size":  3452
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/3.png",
-                      "sha256":  "e37628220a607ad1863f44c8b7bd56ed79b656fce84c9b013207e01e3ba10751",
-                      "size":  3066
+                      "sha256":  "6bc32e4407b121aee11b487f31053e9705c54e2c2241f4428bb8ddceea2de521",
+                      "size":  3494
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/4.png",
-                      "sha256":  "3ff0801d552f7d8fec5212d6769863b8fcabef3c16d3dc7ec20012967a16ee4a",
-                      "size":  3151
+                      "sha256":  "4b48becc1a5897f1478ecec8936aa8544bb35dbb6611875a5df19fe8f5819736",
+                      "size":  3642
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/5.png",
-                      "sha256":  "f246c03d6b15b54ae3e7b4ad37eeab7470308644b380cc7d6b2bddc81075517a",
-                      "size":  3067
+                      "sha256":  "2679de15e731e9826a50c02d71c70efb2e84f4ae5b67e08d7853d47a96ec5270",
+                      "size":  3444
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/6.png",
-                      "sha256":  "51026effd317463ae8777959839622397510b864ce9da5cb9e22e8959a9ff53e",
-                      "size":  3177
+                      "sha256":  "46843b166006809399a923ce7bc7d5f90e0479fb96bc6e5a8c13640e4119efb8",
+                      "size":  3641
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/7.png",
-                      "sha256":  "6e5a7c2492f79849575626ff257dc896e190edbbc845dc168f07cd67939a23d8",
-                      "size":  2714
+                      "sha256":  "3b3d5ab058b4acfdb0815bfac52bf32d03b667b6badb3471aebc4e0f51fc4f50",
+                      "size":  2895
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/8.png",
-                      "sha256":  "0eaacd0a3120a8e3fded2c46b2befe79e6e89cf92f2815e00a710b59a902dcf2",
-                      "size":  3248
+                      "sha256":  "b1ba1ed5fa86b440874dc618ea324ad8db695824f11d5e6c3b2eae26636e2589",
+                      "size":  3803
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/9.png",
-                      "sha256":  "a65a977ee7e13827994b5f15d1bf1b8e57ece247fb4e98a0b891d77475c1b2fb",
-                      "size":  3158
+                      "sha256":  "dd488470cf2a09e54f4cdad257e0fb5b629956a5f43ab53c2a08d7891e0c2fea",
+                      "size":  3640
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/Score/NSign.png",
-                      "sha256":  "5e9bd1e67f266b8584675d3578dfdd3cf831add7971a210b81675df224ee7529",
-                      "size":  2430
+                      "sha256":  "0161de66098c1f3300cfc97910913565a27e7773a2e676d4236fea0ce59edaaf",
+                      "size":  2478
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/0.png",
-                      "sha256":  "eb09cd0ae3851bf1d9c70d2822d721819399ef0a1b4609ce1a5e527fd5eb43ed",
-                      "size":  2649
+                      "sha256":  "60f590929186d13adfab9d6f8430754bd0dc8b324f44e1218571536f53377d40",
+                      "size":  2736
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/1.png",
-                      "sha256":  "b39e1fdba19d6deed937a05b0d30a6839bf47dbc7cf07eb9da8fe6e9d388203a",
-                      "size":  2504
+                      "sha256":  "94717eca7dda516f1d7e81b103050d66a78b2bb5a09b0030e7dba131f830749f",
+                      "size":  2523
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/2.png",
-                      "sha256":  "a83b8bd58d80268641ef23b42b1c7e09b5758266a1f922b64ed2cef00b8e404f",
-                      "size":  2586
+                      "sha256":  "7840c704128be7f2734537cd742f17fc4626db9c3674e0bec93fd851d1437b76",
+                      "size":  2679
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/3.png",
-                      "sha256":  "080bbabaf337eaa9c1a23d3878257a76d1271c5e8417aac6519a5880ac6bf28d",
-                      "size":  2576
+                      "sha256":  "91f2792b28e3dfec4c683b580e511cdeb3c8811dedd563c593ebfac7e04b8956",
+                      "size":  2676
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/4.png",
-                      "sha256":  "b489250f8bd7443c043c2a7cc66381fc7cb46d7d736833184be4cccde4dc7c30",
-                      "size":  2622
+                      "sha256":  "939560821590ec817491ccb421f4cfa42716c3e7ea456852da3ca1d4754acd26",
+                      "size":  2698
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/5.png",
-                      "sha256":  "34d361ca7df857baec20f387872bbaedd6f229109bbf0cd5189d2beb611deca9",
-                      "size":  2592
+                      "sha256":  "8555a803c182b7ba65bd78af00a06cd800cf895ee0ee91b5d5289d8d78f17c4d",
+                      "size":  2678
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/6.png",
-                      "sha256":  "c6abe931ee3bf4acf7be7771a373ac930bef3e40c811d98671a5695ea160aab9",
-                      "size":  2629
+                      "sha256":  "d974852242ef731815fd42d264f071f6375f2044ece3aac5294f8b5af843ed8d",
+                      "size":  2746
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/7.png",
-                      "sha256":  "28132b9c2334b40f9c006dbc051cb6ee487d282cd50ee36a71da7349f9b2afd1",
-                      "size":  2561
+                      "sha256":  "8cc7f2cf52ab16bfe6453b251d716e5c651b7849572b2b76d0aaa155135eb8b0",
+                      "size":  2600
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/8.png",
-                      "sha256":  "8c075f987c81de68fd69261f00489409855849efd273c4ec75dcf71243c648d6",
-                      "size":  2646
+                      "sha256":  "ac244997d7177fe21b07e68c992f816a2ad9ae41a543200f329e1b322610a893",
+                      "size":  2745
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/9.png",
-                      "sha256":  "3cfd70985628a1a863b9053dd9f13aeb9cbe0ecdb2479908e2d375deff2c488a",
-                      "size":  2620
+                      "sha256":  "4eb8fd591be388b32c573c3e869540990a6e1b61f7e1f4d095996021bec0aa4c",
+                      "size":  2724
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/numHUD/White/colon.png",
-                      "sha256":  "2bd5494186063a2d48f1a216b04bb6e2872cc0e3f87dd6c9b4095188587f5502",
-                      "size":  2352
+                      "sha256":  "28d8a8dbb72764de3fe19c40ad4234a34e220b05386f3b9d8bef348a86785ac8",
+                      "size":  2390
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/RatingsHUD/borderbar.png",
-                      "sha256":  "4a9c0749107dc0ca500f1d993a790158e7eb9d5c5d5c6ab8bda0a98774089480",
-                      "size":  916
+                      "sha256":  "4153f443078c23e39de38e507689bb438fc78d7b0f49e74469dec286d0d9bc06",
+                      "size":  1427
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/ToastyHUD/toasty.png",
-                      "sha256":  "6c111db85d4c95a5909fed28729ef663abd1729b8e0093d240d48b8e595f6fba",
-                      "size":  143044
+                      "sha256":  "3db57a057274924775b0c548c59c95065ff5278b8de7a43b1cccd659cea5ca29",
+                      "size":  176991
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/blaster.png",
-                      "sha256":  "dc802b5110d4be0fed893c9619ec1e6a898c40410ae85a9b57d955af49356215",
-                      "size":  2053
+                      "sha256":  "cd24458ef8be324c7262dd45175bb23be8bc03fc8b759fa957de08be7d573565",
+                      "size":  2116
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/blasteron.png",
@@ -45229,63 +45594,63 @@
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/chaingun.png",
-                      "sha256":  "f643d2ea53885da90d878ee9395bb5c8d4f12d74a6ffcb418a4d701b69be1c8f",
-                      "size":  4289
+                      "sha256":  "8039a20cbe0f2c0f2478efdf70ce3a7732e8a2e451724f4e5f98201a0c6c00ab",
+                      "size":  4654
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/chaingunon.png",
-                      "sha256":  "a9a87883a3b5f72ffb594ab63ecb80c344440d13ed43a35c037fa5e40bd1dd31",
-                      "size":  4383
+                      "sha256":  "1fcf567b6cb24fc86bcbde7dc53dfca8468616f9c37913e478b834a6f2996f68",
+                      "size":  4726
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/disk.png",
-                      "sha256":  "f1ae8d1b5c0fd06c21e035c0278d2f410016efbc57cb517065cf14204eff34df",
-                      "size":  4268
+                      "sha256":  "1432efc5630baa2c2e7f04a6aff2b42e9d02c36aa7a56c0063e9fd9740ddaf93",
+                      "size":  4668
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/diskon.png",
-                      "sha256":  "d0da9fe2c0b343a0b19efe21a935933d636ce4bbb247224fe7ed6d5eb0516389",
-                      "size":  4327
+                      "sha256":  "9882767dc20bb265c9ebc8f3b634973c7bb25b5ff2da92efc9a9e17c14069f6d",
+                      "size":  4737
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/elf.png",
-                      "sha256":  "8ead636a0c748c70d0fa5b2612f2e7d298205fd9b18436e0ffbd505de9926d41",
-                      "size":  1926
+                      "sha256":  "8e88cfaf54caec0e083dfc7ddbc58f5f55f4a78c5d04b216b3ca10210de839c7",
+                      "size":  2011
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/elfon.png",
-                      "sha256":  "dda3faec094bc5089c0325490619e20a693f30b65d7ca8082cb984c78d3979a1",
-                      "size":  1940
+                      "sha256":  "85c2ddc5ba1fe359c1c6e2f3b5dcdee3bc6c3d63dbd2f8ec89219943cfbdfabc",
+                      "size":  1969
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/grenade.png",
-                      "sha256":  "54e3727f14af11cce09b1ba2bf2b4b061185568eda9ca64fd8addee86e1f7028",
-                      "size":  4330
+                      "sha256":  "de722bbe94abe0279bd8d3df7ad100f34e16cbb4cb773eb5a8c2a206886c75e4",
+                      "size":  4753
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/grenadeon.png",
-                      "sha256":  "5aadf7d96e6b0a82c8b79107db4faa9839767974a38dbb927d0ca084b5016586",
-                      "size":  4420
+                      "sha256":  "ae762b9b095375b72301497f875797960950f6832b3a75835f6462224432ffe2",
+                      "size":  4819
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/mortar.png",
-                      "sha256":  "234bec51d38ce83b10d0bb93daff7be7d7d2ab1053238489b32c9b821ad2a435",
-                      "size":  2113
+                      "sha256":  "ec0e7b3c66618e9b3f3cead09f07cde0c24e5075450b72f896ec3de2305ae6ca",
+                      "size":  2174
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/mortaron.png",
-                      "sha256":  "0fd720e1e2993f978596fa5f7e8da64e1f2a75fcc5a88cc60d9c395706b5e608",
-                      "size":  2055
+                      "sha256":  "f980536b1e23762f38e3a34e3b612825034516fcccb83113a6ab0bd65193775f",
+                      "size":  2090
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/plasma.png",
-                      "sha256":  "1d89c193b1d75457431aca69d97b6f8b89fbb29527e504f75fc7453def55e53a",
-                      "size":  2088
+                      "sha256":  "0867dbddc70af2b9cded2dbfb2ef7f4fa45c2a39585af5d2f356917b05bc7a04",
+                      "size":  2128
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/plasmagun.png",
-                      "sha256":  "2ce77ede595e3a2f58e56aa665a5ded72615c2734e548cbf47e6eabf69b99f96",
-                      "size":  167096
+                      "sha256":  "7951d72e9609efdf26344caa3a4b151f08fa0183a4c41038cc01a992b234e8a0",
+                      "size":  365195
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/plasmaon.png",
@@ -45294,43 +45659,43 @@
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/sniper.png",
-                      "sha256":  "a8fbfba8c6b992c9fe6da7e099909f07888884a87a6bbcff0f294083d6cbcb52",
-                      "size":  2030
+                      "sha256":  "ed129728702e871fe2f2bbc817943a2ca8420d59b84bd54adc1f7aebb80c749a",
+                      "size":  2045
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/overstep/Modules/WeaponsHud/sniperon.png",
-                      "sha256":  "ea9cfbbbb3b2e7a963eea1c8e516490671f59aa4c85687df09e6d7c29f052686",
-                      "size":  1982
+                      "sha256":  "cc7d43c6241bd102cfbfa3f3237a568029b328dbdbd55eea2f6bcf66fcf7a768",
+                      "size":  2012
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/proconfig/modules/ammohud/ammobar.png",
-                      "sha256":  "753090a2112070e0703fa69347d1daee7648565b7e82354556e4b3e42103d5b1",
-                      "size":  18183
+                      "sha256":  "4eab9f8fca7af59af6cf44dde5dfc6949ece5af908c272d070f2a7c1dbe894dc",
+                      "size":  18189
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/proconfig/modules/healthnrg/energybar.png",
-                      "sha256":  "6417c6c519f54b5471b94a95aa64558bb04f0ae4abcbbeb18d3e1c4812300b3c",
-                      "size":  18191
+                      "sha256":  "caa8860f01d43cbb24254c9bf2d3dc7be9031edad191ec50a419a2280e28a48e",
+                      "size":  18198
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/proconfig/modules/healthnrg/healthbar.png",
-                      "sha256":  "27bddb8ae157ad4d951b884551fd06446dbcc4c30f115d55c64c87776e2cab27",
-                      "size":  18183
+                      "sha256":  "e9ccb1f277f6bc4164df652e16ada7251aa1e6b74753326d42bbbc671b60d9b8",
+                      "size":  18190
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/proconfig/modules/healthnrg/speedbar.png",
-                      "sha256":  "a4acf16bb4abde1bb8133839fa8a931c5cc4bfc250b08976c52ca8af94beab18",
-                      "size":  18187
+                      "sha256":  "a8dc5ac1c9249ea0f6f3fa9e15ff264a05bb309855a357bceebe8a85ed5b3491",
+                      "size":  18194
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/chatoverlay/chatbg.png",
-                      "sha256":  "1ec2b69f21ee10e38026846730c1abee77746df36cfda7792c65234f8e2fdba5",
-                      "size":  2802
+                      "sha256":  "7d5a6f9dc3ccf68cf41cbb59b5c81649ea1497eef26e392b8cccc31842d41089",
+                      "size":  3169
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/ctfhud/ctfbg.png",
-                      "sha256":  "668f15fece869135614db3e4e720c7821139ffb1b6af4087826e588343679c89",
-                      "size":  2442
+                      "sha256":  "13fea07d6f5ef187bca18756410952df89212208ad51bd4dc00241b0adb869ac",
+                      "size":  2886
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/heenhud/energybar.png",
@@ -45339,138 +45704,138 @@
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/heenhud/frame.png",
-                      "sha256":  "57835a352e2c84314d1da6650efdd51f33f7d069b4a6b1b7faf70f2c52db2d33",
-                      "size":  2824
+                      "sha256":  "21690863b7be5c342515ec8611ac8148a159f19920af9f7a0bd7c158b90ce792",
+                      "size":  3042
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/heenhud/healthbar.png",
-                      "sha256":  "a5fe0f1ec29b5ac1feca3a35654c16e1147c0b2fa8350a5c16d971e1ac9d1ed9",
-                      "size":  2048
+                      "sha256":  "63d43b1b7e508a3eda3bb3809c8360db22d8782e4d42309de1ce1b590597efd1",
+                      "size":  2066
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/minimap/radar.png",
-                      "sha256":  "cd2776fa965904031c6210e0e92155975f07afa061ecd6375e9be316fa7055ad",
-                      "size":  11527
+                      "sha256":  "bf467aa0df5d7b37d5de3e1826ab51a3c74748f353c771526d0ab1a08e6aa0f1",
+                      "size":  13466
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/minimap/ring.png",
-                      "sha256":  "141cbf2f78ef0662c95c0831919bc1a3d0ae397e5ae58ba1bd9e25982291f825",
-                      "size":  3798
+                      "sha256":  "bd42cadd64c30f91608ab63f347ecfc882758cc02f8d619f3d696c0d9f57f1ac",
+                      "size":  4815
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/toastyhud/toasty.png",
-                      "sha256":  "6c111db85d4c95a5909fed28729ef663abd1729b8e0093d240d48b8e595f6fba",
-                      "size":  143044
+                      "sha256":  "3db57a057274924775b0c548c59c95065ff5278b8de7a43b1cccd659cea5ca29",
+                      "size":  176991
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/ammohudbg-50.png",
-                      "sha256":  "2231aa31f9a1cd7aa7a73d0bf00e31b2d026281ee18cf8cb9a4210a31b4a56d4",
-                      "size":  2505
+                      "sha256":  "7ef9ee7fa63712cd319ac2999597bcab5b67c3a4f5f5ae5ecf00485f351e978e",
+                      "size":  2878
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/beacon.png",
-                      "sha256":  "82614509b77785384469a85015176ac6d515556d1d9ad451a68a6598defa060c",
-                      "size":  3020
+                      "sha256":  "e8727e72b1d8483dbcd0c7ce9d08f0de3efbc46a23ee88dd0990d5372f1b0fe6",
+                      "size":  3048
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/blaster.png",
-                      "sha256":  "43aa9de9f1268025125ae44f0a0bcf76a9b6e4a9bfbb13ed381c9028e3d4444d",
-                      "size":  2419
+                      "sha256":  "5dda266fcc45f5700add934b308b25a28184dda2131c68f72fb893973b796cac",
+                      "size":  2978
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/chaingun.png",
-                      "sha256":  "ea780daee5a58eed69757088a4d237d406c7467ae3e9ae6315c88a3b85ac0197",
-                      "size":  3371
+                      "sha256":  "5d71a5303ee0a51d17676ac6aeabaffd60599029f680a843332207b96c1f90ae",
+                      "size":  4090
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/disc.png",
-                      "sha256":  "455ec7f434d9f5e5d2d9aeeb46ce8231d47a33556fcba7f158bcc9099b8bbdd1",
-                      "size":  2447
+                      "sha256":  "0c28a358dc96f2b00aecb80de36044fb09293cf3cdda1f889835f0cb0bba11d0",
+                      "size":  2975
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/elf.png",
-                      "sha256":  "8b76fe2560c017d0f0c5cef0a53e1653443e45132da487b0c0d19cb36255f1e6",
-                      "size":  2995
+                      "sha256":  "62ee18e9e17a4ab90db3be629fdb93e22bfe5d56463b46f74f4a20080cd7b6b2",
+                      "size":  3657
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/gren.png",
-                      "sha256":  "31f74270ed9a4ee89685c549e527438801178a9762538bb29120488f87b2551a",
-                      "size":  2602
+                      "sha256":  "5f7d74264b0fb24bf2eb31054f3809733050d56431348ad84331ad32637bf140",
+                      "size":  2744
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/grenade.png",
-                      "sha256":  "860c49b074f09800220e286a6b54ae69cba28e2ea477236c47fde2a613e6ade0",
-                      "size":  3480
+                      "sha256":  "ff1e717e3b4a4cdb88b2ef92941654f0ef801552a326f05b925accb51a98d019",
+                      "size":  4190
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/mortar.png",
-                      "sha256":  "4bce0135d40ae1d810bc27090609189a7d560267704b88d833f29ee2259f2c05",
-                      "size":  3577
+                      "sha256":  "d023de9930529d52db9dcbe3a79db8927867eed11280c0ebe3563ce0fc014af3",
+                      "size":  4302
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/plasma.png",
-                      "sha256":  "0b99cc76f8d9930ef28e1413fe85b3ecfe4ba700a7211ec617d5b1aa0811178e",
-                      "size":  3000
+                      "sha256":  "119352e7a5508d93f97d0e8b32cb9f558ae8cb1151e7fc24eab92490c849d364",
+                      "size":  3789
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/repkit.png",
-                      "sha256":  "22bc5315f88e3e6d48cdf58c26d18493d7e8b518aaec77577ba22da148d18276",
-                      "size":  2477
+                      "sha256":  "b2e35e1129d064deb57ad1752ce6e9116d658402a0a2df54eeae04f9f2d6caac",
+                      "size":  2524
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/sniper.png",
-                      "sha256":  "50e68242df1abaed7719ab580ec1ff020d1717aa4011f53b8991fbacfaa89e03",
-                      "size":  2439
+                      "sha256":  "88854685211c7c0aaa189e0593da10301d828c543037450ead64a2f02845ca6b",
+                      "size":  3059
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/vodka/modules/weaponhud/target.png",
-                      "sha256":  "a26e2f7c3d13768a9f1d5e836ef2014bc14faf1d5e0c5e985dc03cde92abb96f",
-                      "size":  2960
+                      "sha256":  "9bf18c5b7882b9a86bc3201c67769585b2294d42f9b30c9a76c28276225a3423",
+                      "size":  3036
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/ctfhud/enemy.empty.png",
-                      "sha256":  "987c90baef5bfd806438be32252fb1701048213f54effc82768712acaa2111e0",
-                      "size":  184
+                      "sha256":  "7fb98bed4fe7e61f443cb54e4bdb86ee8028406b63588f1e5aeddda43ceedd3f",
+                      "size":  260
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/ctfhud/enemy.home.png",
-                      "sha256":  "332e9c505058abcab53093982842b5109f619ea94b3891259c336d72903d0b5f",
-                      "size":  158
+                      "sha256":  "1a51bbe805f967fffa6963c01d54b40dc530b3f6893353633768d645bd870f83",
+                      "size":  209
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/ctfhud/enemy.player.png",
-                      "sha256":  "94d6ca2d0d73b4af19adcc5714356400466a85fd5a67b3adb395502cc3796b43",
-                      "size":  163
+                      "sha256":  "2f77950162b0f2845487696b5221674cae74f5cfc3997e541dc4ed29acd4e2ef",
+                      "size":  213
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/ctfhud/friendly.empty.png",
-                      "sha256":  "82e306c6c3828809d5fd737b2471c7925bbda33a02248464e989bf09fd31a55f",
-                      "size":  186
+                      "sha256":  "0071618d62b55148661cafb1542500b59dc385f439db290e26f1b6407f4db783",
+                      "size":  275
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/ctfhud/friendly.home.png",
-                      "sha256":  "b4e0469ddefdd612b6568e61bd57794228aedf46816733802fe4e1f2569a6d3f",
-                      "size":  158
+                      "sha256":  "1a28459184bd5cf2d9c8acd9e7cc94fb8196174e42bbd6838baab780e1e7075a",
+                      "size":  206
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/ctfhud/friendly.player.png",
-                      "sha256":  "2621b7afd17c709c8379dead3b963a511be628acc3be9f51d405135d256854c4",
-                      "size":  163
+                      "sha256":  "81a23dda7b25965cc8f7260e0de2e8fa5dbcba8d494252da343ac68e5296284c",
+                      "size":  217
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/itemhud/blankdot.png",
-                      "sha256":  "85a1035077b2f8d927b5b0bb7de69a692aea47f69e37b04dbbea5a8c458d8ec5",
-                      "size":  98
+                      "sha256":  "a7b09bca6a2dfb67ad1514812e286589c4091f1389a1e4d950e7a9e851ea8f4f",
+                      "size":  99
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/itemhud/kitdot.png",
-                      "sha256":  "d6c8f2ba0983c184cc7e99591d999b1c61d075abbf4c40c6e26e4e4b5ce5fe77",
-                      "size":  116
+                      "sha256":  "cddafd094437e874040ed1e7cd4a563173d8594587992d29f6f2800195de550d",
+                      "size":  130
                   },
                   {
                       "path":  "config/ModernHUD/Assets/Packs/xloader/modules/itemhud/minedot.png",
-                      "sha256":  "32c671364e03dd599bee3fbe0b597bce81156b264b98e74584fab35195448eba",
-                      "size":  119
+                      "sha256":  "e68913352e44bd4aa5a50b826d9bf4d1a778ce263a3a268f623af2c461d641bb",
+                      "size":  135
                   },
                   {
                       "path":  "config/ModernHUD/AUTHORING.md",
@@ -45498,6 +45863,16 @@
                       "size":  88744
                   },
                   {
+                      "path":  "config/ModernHUD/Packs/ascend/hud.cs",
+                      "sha256":  "9adc0ae003bd32ef2afffccf1fa6184555b480dd7eb37eab117f76c33a0bab74",
+                      "size":  67501
+                  },
+                  {
+                      "path":  "config/ModernHUD/Packs/ascend/pack.json",
+                      "sha256":  "4cdf2fab9a5e9b4eda59c4fee50f8b08fe57f8cd5e99a3a802cbc337762c6638",
+                      "size":  2851
+                  },
+                  {
                       "path":  "config/ModernHUD/Packs/basic/hud.cs",
                       "sha256":  "3e566882c61a49772886c8d25a9d2b0f3b69793fa44625e906eb27e6c4ee9244",
                       "size":  17445
@@ -45516,6 +45891,16 @@
                       "path":  "config/ModernHUD/Packs/mechcockpit/pack.json",
                       "sha256":  "32be363812c0f5c0dd1a3ec062e770e8638f2cf58c0f0223181f98cf8ccbe6fb",
                       "size":  800
+                  },
+                  {
+                      "path":  "config/ModernHUD/Packs/observer/hud.cs",
+                      "sha256":  "04065e5f8adb495b7bf1f5a6c8b8632bd0f9d79ce9c3d66ba9171502045b6695",
+                      "size":  11221
+                  },
+                  {
+                      "path":  "config/ModernHUD/Packs/observer/pack.json",
+                      "sha256":  "37bbf234c408b20a85fa2255e3ac6b70fd0a72c1c17b554af38222f34d1abaab",
+                      "size":  1245
                   },
                   {
                       "path":  "config/ModernHUD/Packs/overstep/hud.cs",
@@ -45549,8 +45934,8 @@
                   },
                   {
                       "path":  "config/ModernHUD/Packs/vector/hud.cs",
-                      "sha256":  "1479d6559e4b75b6023e64d1dca32bb360f347ebfd0cb07044b45b47f03a64f7",
-                      "size":  71888
+                      "sha256":  "c9e2d570dd4cd62bdd4982a685ba2ac172da41a9ea01149c4f352e9aceed434a",
+                      "size":  74107
                   },
                   {
                       "path":  "config/ModernHUD/Packs/vector/pack.json",
@@ -45609,8 +45994,218 @@
                   },
                   {
                       "path":  "config/nativeDefaults.cs",
-                      "sha256":  "068c331a004c99e6948bc23d9b61e67effbaffe22ecd7b04c3ecf6e561db5778",
-                      "size":  18973
+                      "sha256":  "a8ec16b0b4b9f53e594ae7f6649acd8fb09b14b6cd2b14b8dda3882aced53534",
+                      "size":  19597
+                  },
+                  {
+                      "path":  "config/nav/(=SK=) Broadside.nav",
+                      "sha256":  "297946bc1e96d40df7c122615248f614db4bb38b8b613426dedc33db67f109f2",
+                      "size":  5153612
+                  },
+                  {
+                      "path":  "config/nav/(=SK=)Coffin.nav",
+                      "sha256":  "398bb0a8e99c95f214223715cf7ba2042093cce0148d76507bb411d99457b276",
+                      "size":  5611647
+                  },
+                  {
+                      "path":  "config/nav/(=SK=)Hall of Trial.nav",
+                      "sha256":  "47921eae0d42922b7536877b8222cd3bc973e7578176190ca39dcb151654175e",
+                      "size":  1444010
+                  },
+                  {
+                      "path":  "config/nav/1V_Plas.nav",
+                      "sha256":  "cf9ab015a410e1779da457badc1d5b20bfb11313450f630b7c381ebf2df1b9d7",
+                      "size":  1836871
+                  },
+                  {
+                      "path":  "config/nav/2cents.nav",
+                      "sha256":  "749d2a1bfca9ed0ff96a2f5a38d028403db5a5b4b80c8485cc25fb73a5e6ee83",
+                      "size":  4664104
+                  },
+                  {
+                      "path":  "config/nav/8Ball.nav",
+                      "sha256":  "1b28b3b28f3fff710b1a3fd83b1636aa5ab14fe401d61330e6634f43f104176d",
+                      "size":  2069197
+                  },
+                  {
+                      "path":  "config/nav/8Ball_Perr.nav",
+                      "sha256":  "ca6364d6be5be5a882bed7ff662c5b5de05e043a31f2f05b401f9cd2dcae81d1",
+                      "size":  2543895
+                  },
+                  {
+                      "path":  "config/nav/A Forgotten City.nav",
+                      "sha256":  "70a813f3b82d70986b82161d635c2b234d8b4ef9280ccba70b5b64b983ea09c7",
+                      "size":  270622
+                  },
+                  {
+                      "path":  "config/nav/A_Dark_Night_TDM.nav",
+                      "sha256":  "1548f3872e5191a1c0a0421deb3056e16598fdd3bfec582060cd6c3d60815cbd",
+                      "size":  4980099
+                  },
+                  {
+                      "path":  "config/nav/A_HighRise_Hell_D\u0026D.nav",
+                      "sha256":  "307a5adb5b12b78924bfe099975d3677b3d35f01d0141d77528f466ca4216e27",
+                      "size":  5961556
+                  },
+                  {
+                      "path":  "config/nav/A_Snipers_Dream.nav",
+                      "sha256":  "ccafaffbea0e36fe4be60272be1f51f444f519c890c61fdd0107329a400ba3ed",
+                      "size":  2234638
+                  },
+                  {
+                      "path":  "config/nav/A_SNIPERS_DREAM_2 0 0 5.nav",
+                      "sha256":  "a82fcccaf704f3fea5ad6d1bb46842f9e4ba116fa184828b7613a2b4f0968a77",
+                      "size":  498883
+                  },
+                  {
+                      "path":  "config/nav/AA Fighters.nav",
+                      "sha256":  "a2ca769d5e5cab070feba0e4eef7153dc09780900c3a228a70604f4faa8d91f7",
+                      "size":  330688
+                  },
+                  {
+                      "path":  "config/nav/Absinthe.nav",
+                      "sha256":  "cb50b176fee7b586ac5499b64f048ab06ba60beaf8bf08f27258c19467fb42da",
+                      "size":  2205227
+                  },
+                  {
+                      "path":  "config/nav/Absinthe_Bong.nav",
+                      "sha256":  "c903771395113a30c61cb911c36c09162b7be35cdf2c5fabf948c7487305f40f",
+                      "size":  2871864
+                  },
+                  {
+                      "path":  "config/nav/AbsoluteZero.nav",
+                      "sha256":  "838bfeb6befb10c9c30aa51017d1b23e03481bc4b3aef8db53c6b3ddf6efe14a",
+                      "size":  1118861
+                  },
+                  {
+                      "path":  "config/nav/Abysmal_Bong.nav",
+                      "sha256":  "b7b5d5e3962e72ed9bcc42d47936a4767e06d144f5b6a23733e101210a14f5c4",
+                      "size":  1229524
+                  },
+                  {
+                      "path":  "config/nav/AfterDark.nav",
+                      "sha256":  "6ebb3142e85d8da1d0298f5cfad54dbc067d51b0eff9e8f67ea03794080b9765",
+                      "size":  1962625
+                  },
+                  {
+                      "path":  "config/nav/Air Raid.nav",
+                      "sha256":  "e450c305501a46ddc8fe25d32466060b4dc4fcb349b16c6c88d035dd1520af1f",
+                      "size":  3567801
+                  },
+                  {
+                      "path":  "config/nav/Air Wars.nav",
+                      "sha256":  "bfe4c198a98288865116da1e9b8ba9d2fd66b662e3ad9f6585ee8ba7c1163ed4",
+                      "size":  3966639
+                  },
+                  {
+                      "path":  "config/nav/Air_Coaster_CTF.nav",
+                      "sha256":  "b087609adeb85612e1f55846b04e8e27f55978c127b0324ca677ec975c0b6676",
+                      "size":  2818846
+                  },
+                  {
+                      "path":  "config/nav/AirPower_HAM.nav",
+                      "sha256":  "4c296f3f27b90faa0d7776ea0d4c6c6b4418fe10f3a64574c32a238886f04028",
+                      "size":  3030981
+                  },
+                  {
+                      "path":  "config/nav/AirStrike.nav",
+                      "sha256":  "fe7132fdb5776bfbda4a3a986e754720a0e8eced6f758f88ffb7ea78132555ab",
+                      "size":  2052685
+                  },
+                  {
+                      "path":  "config/nav/AirWars2_(MidSpace).nav",
+                      "sha256":  "f473e13b1165f2c34a70ca170cc4b48e7dcf14c67c56939fca412ef677d20134",
+                      "size":  2434037
+                  },
+                  {
+                      "path":  "config/nav/AirWarsXtreme.nav",
+                      "sha256":  "d1d2f2b19b547626c4dcaeb640fb61a8471e0ce60e75998858718e1340616a08",
+                      "size":  2622419
+                  },
+                  {
+                      "path":  "config/nav/Alien vs Predator.nav",
+                      "sha256":  "96f8292ef03a75aecdfb6868118e9c037ce3293cef4a9bf746a1d62fdf9db259",
+                      "size":  2761096
+                  },
+                  {
+                      "path":  "config/nav/Alien vs Predator_S_hift.nav",
+                      "sha256":  "e8b953c7ff91f8b3d24870da0ce06ddc26cb6fc93cd659ca898d65eaf57060f9",
+                      "size":  4378511
+                  },
+                  {
+                      "path":  "config/nav/Altitude_F\u0026R.nav",
+                      "sha256":  "646687aecad00103f5b2c295309fdb4c00f1741d40820c2ee563ecdadcf4a93f",
+                      "size":  1532600
+                  },
+                  {
+                      "path":  "config/nav/Angel\u0027s Rain.nav",
+                      "sha256":  "6c0cef3a7c66a25fb9f154a781fe25ebf46d29d92b5a1f73b96256caed6b50cb",
+                      "size":  515993
+                  },
+                  {
+                      "path":  "config/nav/Antietem.nav",
+                      "sha256":  "d5de99e5d51e4873c693d9f235020e288dd3243bbeb281106c5b5bbb2468b2d3",
+                      "size":  829040
+                  },
+                  {
+                      "path":  "config/nav/AntiSocialSkyrise2.nav",
+                      "sha256":  "4788b458aafd55b309ebf195a0e7e4720428e1f7dbacd3d19bebefcf6516092f",
+                      "size":  595385
+                  },
+                  {
+                      "path":  "config/nav/Arm_N_Hammer.nav",
+                      "sha256":  "fc988257576c025c37014361dba548df4b604a1195c5c8253e37f9266c686462",
+                      "size":  1051086
+                  },
+                  {
+                      "path":  "config/nav/Arx Novena.nav",
+                      "sha256":  "a68b4e4f38f3f2bb45709477e5436b1754566e304ddd3da15aed6cccaf46eb9d",
+                      "size":  1825863
+                  },
+                  {
+                      "path":  "config/nav/As I Lay Dying.nav",
+                      "sha256":  "19556bc104dde8a7d7ceec6893f1b6ba265f3bc545e6032f0267dff6d1fd6fc8",
+                      "size":  1639693
+                  },
+                  {
+                      "path":  "config/nav/Assimilation_S_hift.nav",
+                      "sha256":  "614cdf9944f5efebb149c9615255cf5aa998e26c5d3413f0257a92ece492dc5a",
+                      "size":  1253491
+                  },
+                  {
+                      "path":  "config/nav/Atop.nav",
+                      "sha256":  "9e69f983477ed9aad2380f40a8b07db501286af7b0a3cd4eb9d3570e041d13cb",
+                      "size":  950658
+                  },
+                  {
+                      "path":  "config/nav/Attack_On_Zeta Bot.nav",
+                      "sha256":  "4ab1a79301829333f255068c6d2b8ce39794db28568e1b399249b028bf09c19b",
+                      "size":  2112802
+                  },
+                  {
+                      "path":  "config/nav/Awesome Sauce.nav",
+                      "sha256":  "9f2478ce1ddefba30da866c86b38ea9b8cbb3adab26c965c2e6bab888f8d9024",
+                      "size":  499488
+                  },
+                  {
+                      "path":  "config/nav/Awesome Sauce_Bong.nav",
+                      "sha256":  "a7aa0796a22d81ce5b12ce1cfcb1c0bb160cc5ec17cec51ab66f00395a09c354",
+                      "size":  2822033
+                  },
+                  {
+                      "path":  "config/nav/Babylon.nav",
+                      "sha256":  "43307beaf3523f6ec7b3cd0d1115a597d138041bb95ec37d8bef18229ba35c09",
+                      "size":  4116863
+                  },
+                  {
+                      "path":  "config/nav/Back_to_the_Skies.nav",
+                      "sha256":  "f1551964603d2baaca1c97c88e0afe5a33e240fa7508e23ab82870cc6928f3d2",
+                      "size":  587431
+                  },
+                  {
+                      "path":  "config/nav/BadLands_C\u0026H.nav",
+                      "sha256":  "f9f327a48e406c274ee6c9434bbb2ef12b42ce318ed8b08b4a8918524aaddf17",
+                      "size":  5639046
                   },
                   {
                       "path":  "config/nav/BasatinLT.nav",
@@ -45618,9 +46213,44 @@
                       "size":  3088019
                   },
                   {
+                      "path":  "config/nav/BaseBattles.nav",
+                      "sha256":  "2a54e30948c774377f9f1d7f43e96513cf579bba0d2b2596f09403ee378998f2",
+                      "size":  1454710
+                  },
+                  {
                       "path":  "config/nav/BastardForgeLT.nav",
                       "sha256":  "2822e55b0d2154e8f505f81b4c51c4d8d5f64d3ba4a207a53009ef99447fd560",
                       "size":  2968427
+                  },
+                  {
+                      "path":  "config/nav/BattleOfSterlingBridge.nav",
+                      "sha256":  "8efa631591e34911c79e346a53d57718fb4a24deae6f5a92cd0bf5066eea88dc",
+                      "size":  1775819
+                  },
+                  {
+                      "path":  "config/nav/Behind_The_Enemy_Line.nav",
+                      "sha256":  "dbaab3182bbfe254316ad548d55c26b60218b9b7a021b964690e6c734e49d8e7",
+                      "size":  1661535
+                  },
+                  {
+                      "path":  "config/nav/Bella Omega.nav",
+                      "sha256":  "2262e63d5988ce4d07d33857eaa8a3e34af5989740dc54892f519fe8945807b0",
+                      "size":  2270332
+                  },
+                  {
+                      "path":  "config/nav/Bella Omega_S_hift.nav",
+                      "sha256":  "acc4ff63a03375f6abe3aba7b2d598301a0f9056ad8c8c52f4a99f8c61e8bdf2",
+                      "size":  4199408
+                  },
+                  {
+                      "path":  "config/nav/BigSkies_CTF.nav",
+                      "sha256":  "4c71179c5e463eeaabcbd977f426b6d8acb3a7bd57400835625107905c4e580c",
+                      "size":  2065725
+                  },
+                  {
+                      "path":  "config/nav/Bitter_Cold.nav",
+                      "sha256":  "383dcf8237ab3c0921f396492b0821145536f9ecda1b6e94197e7c90aac1b0de",
+                      "size":  3196222
                   },
                   {
                       "path":  "config/nav/Blastside.nav",
@@ -45628,9 +46258,74 @@
                       "size":  688833
                   },
                   {
+                      "path":  "config/nav/bleh.nav",
+                      "sha256":  "504f0070558ca728aa597a8959559b74c44da79bc38a25183687b3fc62fd64a6",
+                      "size":  1623602
+                  },
+                  {
+                      "path":  "config/nav/Blizzard.nav",
+                      "sha256":  "4a19573a681c7c38f0e550e5a42563a391fc884d011e6e4bea2cfb44456bd295",
+                      "size":  2626398
+                  },
+                  {
+                      "path":  "config/nav/Blood Pool_S_hift.nav",
+                      "sha256":  "0b3e3322d013ef7cd418898caa0c841c46d1839a4b8a4db641b08f700831bef1",
+                      "size":  276652
+                  },
+                  {
+                      "path":  "config/nav/BloodBath_2.nav",
+                      "sha256":  "5bf21a8fae70a53a58e47e575bddd192a80d3543020524dd4ce0df18a26e2bf3",
+                      "size":  1006523
+                  },
+                  {
+                      "path":  "config/nav/Blow.nav",
+                      "sha256":  "1918183e299ca5d56e65017180ef5aef74ca8eb661a5786d6e8862979c3780f5",
+                      "size":  466487
+                  },
+                  {
                       "path":  "config/nav/Blue_Buddha.nav",
                       "sha256":  "12d5fd34ca098f794a70fcc6c66ab41abdc274eb7cf274aaa8e44fb1eed2108b",
                       "size":  2818969
+                  },
+                  {
+                      "path":  "config/nav/Blue_Buddha_Plas.nav",
+                      "sha256":  "70cfb35d20bd8a377900d2d93c9047f6f28dc8598761339a40b7fd3bc4bde0d1",
+                      "size":  898094
+                  },
+                  {
+                      "path":  "config/nav/Bottoms_Up.nav",
+                      "sha256":  "45a99f8f98b4852cf3b016cadc1e59695c7c4514faf2b3a1aede16eb56b7578b",
+                      "size":  1866272
+                  },
+                  {
+                      "path":  "config/nav/BottomsUp.nav",
+                      "sha256":  "8a810fc0d6f91e6ce3d03cd54b5da887ebe4c5e05a2140d7084bca33850f7b60",
+                      "size":  414052
+                  },
+                  {
+                      "path":  "config/nav/BottomsUp_Perr.nav",
+                      "sha256":  "431d73411e9d8e0d3d2aaf9778befe7f785ebe91fc2e4b93cb60a10d55a3165f",
+                      "size":  2875744
+                  },
+                  {
+                      "path":  "config/nav/Box.nav",
+                      "sha256":  "9cbb8fff7be133e19593d0450d08b10b9d2a82658b3c54b0477cb809e49fd59c",
+                      "size":  218426
+                  },
+                  {
+                      "path":  "config/nav/Breakdance.nav",
+                      "sha256":  "9dee9ef45df303863727ccc2fa2d8af970f7f43909b950f048d49e86c65ac208",
+                      "size":  1436556
+                  },
+                  {
+                      "path":  "config/nav/Breakdance_Perr.nav",
+                      "sha256":  "cfe5ce77cbb0f963e262ca56d4ce104c6ee1b83f1c2bf22dbe27f410d5c1a4f3",
+                      "size":  2467540
+                  },
+                  {
+                      "path":  "config/nav/Bridge_to_Nowhere.nav",
+                      "sha256":  "bacb71085d4c09e2b89350fba669bc4889025036e1cb036cfd4600999db0040e",
+                      "size":  3237235
                   },
                   {
                       "path":  "config/nav/Broadside.nav",
@@ -45643,9 +46338,39 @@
                       "size":  1355808
                   },
                   {
+                      "path":  "config/nav/Broken Ground.nav",
+                      "sha256":  "4d35770517b71711ef9c06cbf999b7e901153173dbc7fdc221731b40e83f1e4e",
+                      "size":  1099979
+                  },
+                  {
                       "path":  "config/nav/BrutalLT.nav",
                       "sha256":  "4f2caeda4e60180d866ebacd593c41396c583619bd9597ac19399c5ef6684f32",
                       "size":  2738680
+                  },
+                  {
+                      "path":  "config/nav/BullsEye_Plas.nav",
+                      "sha256":  "779805a4f107f2c9ee4471fd4d3ddf43c0aa18259d462ed4acfd8f490592519f",
+                      "size":  1340333
+                  },
+                  {
+                      "path":  "config/nav/CakeWalk.nav",
+                      "sha256":  "22e77e67472c3d9e21048b57518f8d8bd77be37932369047ca9f950a5d2b5e4f",
+                      "size":  2652419
+                  },
+                  {
+                      "path":  "config/nav/Cania.nav",
+                      "sha256":  "848f98e14913c119f521c1cdef0ff40125186b9859eeaa2bf8fb9a44256994ed",
+                      "size":  3682235
+                  },
+                  {
+                      "path":  "config/nav/Canyon Crossing.nav",
+                      "sha256":  "3813379c9f4ac3581715c2c9950dd0b76a0f5bbd501f9ae36e6399d9f32dea25",
+                      "size":  2608955
+                  },
+                  {
+                      "path":  "config/nav/Canyon_Crossing_S_hift.nav",
+                      "sha256":  "9421e4db5e13ed1fe999af38881bd8eca8ec83a4fed77f6a9948e85e91061264",
+                      "size":  2618184
                   },
                   {
                       "path":  "config/nav/CanyonCrusade.nav",
@@ -45663,14 +46388,124 @@
                       "size":  2884494
                   },
                   {
+                      "path":  "config/nav/CanyonCrusades.nav",
+                      "sha256":  "2a7bb86bb667dc8d2033cff85d0cb2d61972e314674f0d6b95b8c94d7ef825d6",
+                      "size":  2547615
+                  },
+                  {
                       "path":  "config/nav/Canyoneros.nav",
                       "sha256":  "347ac6577c1e1604f0c3c5d73ad35c340c7c1051100eb95a37ef57a60bf17e3f",
                       "size":  4698177
                   },
                   {
+                      "path":  "config/nav/Canyoneros_Plas.nav",
+                      "sha256":  "0be9907f2057d9fb3ca8a2e2ab7b182ca88df747884a042542064e8ce0437d86",
+                      "size":  4144421
+                  },
+                  {
+                      "path":  "config/nav/Caves of Steel.nav",
+                      "sha256":  "170980de7a7775aa4c8581085acb9dc4c18a59008b264350bb852e81a708b8e5",
+                      "size":  7116125
+                  },
+                  {
+                      "path":  "config/nav/Centerside.nav",
+                      "sha256":  "531d233de2de0bd6248cf5035f94a91631cc6f8679d36f6acb0c917c61173fa2",
+                      "size":  640018
+                  },
+                  {
+                      "path":  "config/nav/Challenge_Plas.nav",
+                      "sha256":  "54a109fe61cd0a74aaca91815db7cc948840c96c0d68b38f9d6df79268d413dc",
+                      "size":  4266904
+                  },
+                  {
+                      "path":  "config/nav/Challenge2.nav",
+                      "sha256":  "fc322aa43d8641d2b2a00d35e7aa5146c6977c60cf9e52f160d70bc4518002d4",
+                      "size":  1757895
+                  },
+                  {
+                      "path":  "config/nav/Chaos_Wastelands.nav",
+                      "sha256":  "3537b08602f8deed04dade9681b2de1538c6fda83466c3b5047ed86b616fa3d7",
+                      "size":  2772625
+                  },
+                  {
+                      "path":  "config/nav/Chasm.nav",
+                      "sha256":  "a19f0429b36edf0d7020b0126446401562a4bc96c90027f484272f45155321b0",
+                      "size":  828729
+                  },
+                  {
+                      "path":  "config/nav/Cityscape.nav",
+                      "sha256":  "7832366309aaab5282830ffd18d3a7451b8b55e3aca59dd5fddecbb444229dfa",
+                      "size":  428506
+                  },
+                  {
+                      "path":  "config/nav/Cityscape_Ghost.nav",
+                      "sha256":  "390b8f54a6a9976f6acca761bf19f3634110c07bd6f9dd77d0e87a753a2fb83a",
+                      "size":  4910219
+                  },
+                  {
+                      "path":  "config/nav/Close_C\u0026H.nav",
+                      "sha256":  "64aa50128b416249373aea465d5d0be89985881deb5de5fb20c4542c3ef30d0f",
+                      "size":  1172500
+                  },
+                  {
+                      "path":  "config/nav/CloseCombat102.nav",
+                      "sha256":  "83d78746c9a7f2a2952ec363f260362d835bf619c17802bf273b736759a75b54",
+                      "size":  502296
+                  },
+                  {
+                      "path":  "config/nav/CloseCombat103.nav",
+                      "sha256":  "062ebdb6eff7613982a364f299312d0af44df9ba01c6c2dd9984eb690f582f5b",
+                      "size":  1447933
+                  },
+                  {
+                      "path":  "config/nav/Cloud IX.nav",
+                      "sha256":  "52cecaec597d5a203e7abf5d038b438033c72f3c742dccc61961f373a8be2100",
+                      "size":  3317410
+                  },
+                  {
+                      "path":  "config/nav/Colossus.nav",
+                      "sha256":  "ef88d9e924383ec68c4af9056046166dd53b6a4d0481717f44e19bcd5989eac2",
+                      "size":  1268505
+                  },
+                  {
+                      "path":  "config/nav/Complex.nav",
+                      "sha256":  "c3ffca4fd9aca6590452c025db7adc23823a577cc2945b4ffbb4d025a0f1a995",
+                      "size":  2355343
+                  },
+                  {
+                      "path":  "config/nav/Crapgasm.nav",
+                      "sha256":  "91b7ddb02634281d50da585222927dcf6fb2ec2f9889a090037cb318be07ece2",
+                      "size":  503923
+                  },
+                  {
+                      "path":  "config/nav/Crapgasm_Bong.nav",
+                      "sha256":  "b15bec45a131ddce80dd68181fe7eebe80663d8fd6cc87ec199297a545564025",
+                      "size":  1989430
+                  },
+                  {
                       "path":  "config/nav/CrissCross.nav",
                       "sha256":  "faafedde90cd61ac90b2bc8f51bc2ad12226af456971a6661b31c24bed7cc018",
                       "size":  214127
+                  },
+                  {
+                      "path":  "config/nav/D R O P Z O N E_2 0 0 5.nav",
+                      "sha256":  "850572c8bb532e7492f928f95e232817d1d96bdd419b751c8436e827d4422f00",
+                      "size":  335449
+                  },
+                  {
+                      "path":  "config/nav/Dam_it.nav",
+                      "sha256":  "cdd02f6a7c90891d28a683ff240a65b0f000f68f07f65a20320e5ab6e1f71370",
+                      "size":  3283531
+                  },
+                  {
+                      "path":  "config/nav/Dam_it_Perr.nav",
+                      "sha256":  "a65ed7c59b5db543e0cb5647777bce7aad8d8821f023cb846f1011c89bdd965c",
+                      "size":  4383343
+                  },
+                  {
+                      "path":  "config/nav/Damn Tarts.nav",
+                      "sha256":  "75318fc1db53b6c0eae6c1c1b984c43797684d2f3b02eeb2b7af1b67f9b54f8d",
+                      "size":  2572201
                   },
                   {
                       "path":  "config/nav/DangerousCrossing.nav",
@@ -45688,9 +46523,24 @@
                       "size":  4028245
                   },
                   {
+                      "path":  "config/nav/DarkAuroras.nav",
+                      "sha256":  "5b8f99b17f37cc510afb6bd9c10047580d8a2074e841ad3f4423aaccf9041332",
+                      "size":  5522076
+                  },
+                  {
                       "path":  "config/nav/DayFallLT.nav",
                       "sha256":  "e3bede5e7620deafc7a2bc5ded6bc83bf6f93bb55dc5b8792dd28bc4ae456077",
                       "size":  2122354
+                  },
+                  {
+                      "path":  "config/nav/Dead_Landing_CTF.nav",
+                      "sha256":  "7e11a0c25027bbe02f5483bb5674e8b4286f5679e4c4c588bbc012b1cd7919ed",
+                      "size":  3358911
+                  },
+                  {
+                      "path":  "config/nav/DeadlyTunnel.nav",
+                      "sha256":  "4b5a01f0489418f3a9d08f04b677abdd30a0d70bda156febe32f48f678f9b53d",
+                      "size":  2344956
                   },
                   {
                       "path":  "config/nav/Death_Row.nav",
@@ -45698,9 +46548,39 @@
                       "size":  1777155
                   },
                   {
+                      "path":  "config/nav/DeathAlley.nav",
+                      "sha256":  "28dfb351ac421e60588992a088c996ce96e065feebc3a90b69513830d414527d",
+                      "size":  1400337
+                  },
+                  {
+                      "path":  "config/nav/Deaths_Row.nav",
+                      "sha256":  "5fe96022e72154277807e53f494ff14c9f1435782e71ebd98da879b5f6c871de",
+                      "size":  1069732
+                  },
+                  {
+                      "path":  "config/nav/DeathValley_CTF.nav",
+                      "sha256":  "a5982b43b5fd6765189f918cafdf07ea5f5dc9d2927cd14108c63c32e5cdcc4c",
+                      "size":  3855737
+                  },
+                  {
+                      "path":  "config/nav/DemonGrounds.nav",
+                      "sha256":  "94e5b9f9ec99bd6791dc90116cb69e4da6b794eb46732c2fe92d40a0e1159aa0",
+                      "size":  3594976
+                  },
+                  {
                       "path":  "config/nav/Desert_Rain.nav",
                       "sha256":  "fb2307364b2cdd964b8df16e26cad5df19719c5a87013a2e933906bb855d593a",
                       "size":  5302805
+                  },
+                  {
+                      "path":  "config/nav/DesertFlats.nav",
+                      "sha256":  "60bfbc93b54620a4e20c05c46b91d2988abbce4394022e6d2e123d7ab58b50e2",
+                      "size":  1432922
+                  },
+                  {
+                      "path":  "config/nav/DethHole.nav",
+                      "sha256":  "213654d1b070d5e325c0c5536b46f9848096ba34bc8f7a76b617da9ef419de3f",
+                      "size":  1899328
                   },
                   {
                       "path":  "config/nav/DonkeyLT.nav",
@@ -45708,14 +46588,119 @@
                       "size":  1956296
                   },
                   {
+                      "path":  "config/nav/DoTheRightThing.nav",
+                      "sha256":  "1600589c7f9f6d566fef1819909cf1443fd19e6fd0675a1030011ad6025a3946",
+                      "size":  572135
+                  },
+                  {
+                      "path":  "config/nav/Doughnut_of_Death.nav",
+                      "sha256":  "ce882df89e7b153eafc84e2877fc40239603508c91604347807364f347f22760",
+                      "size":  884541
+                  },
+                  {
+                      "path":  "config/nav/Doughnut_of_Death_HAM.nav",
+                      "sha256":  "32c81f6861276c9e1f6190aaea15e38a2f11d43cd2d6e2b21c29713c49b97c4f",
+                      "size":  1654729
+                  },
+                  {
+                      "path":  "config/nav/Down in a Hole.nav",
+                      "sha256":  "2a3e7485cfc51dc2f1937a35463427be8fced5622f890c2d66a0ca578465471f",
+                      "size":  519390
+                  },
+                  {
+                      "path":  "config/nav/DownFall.nav",
+                      "sha256":  "f23876531ea7e2edd2db3122afdcfb22559a390971f2111be80a2aab3b7b56e9",
+                      "size":  1072319
+                  },
+                  {
+                      "path":  "config/nav/Downside_HAM.nav",
+                      "sha256":  "472593b697d04d3a9dc95485392f2d1bcc71ac9f9abe6fefc59e7c2afb889a83",
+                      "size":  2022009
+                  },
+                  {
                       "path":  "config/nav/DriForcLT.nav",
                       "sha256":  "ef5c3c2a4ff85ab5b3f95e64b25564fafa99987e96503e89f1e4b72d0b27dde8",
                       "size":  2850352
                   },
                   {
+                      "path":  "config/nav/Drop_Of_Salt.nav",
+                      "sha256":  "8092592cfe8c0cd8c3ba224881c0a8329a5691389cc55e230e28261c01c651de",
+                      "size":  1581318
+                  },
+                  {
+                      "path":  "config/nav/Dropzone_2.nav",
+                      "sha256":  "a945047f9c110a39dbe3dab16704ce5305df4e57f6ab991da6165a110b0fb575",
+                      "size":  1590435
+                  },
+                  {
+                      "path":  "config/nav/Drydock.nav",
+                      "sha256":  "b3bda3edd2900370bc61f921626d45b797dc41da1fde179dadda6abc78f5b379",
+                      "size":  1475981
+                  },
+                  {
+                      "path":  "config/nav/Drydock_S_hift.nav",
+                      "sha256":  "84e258003e30be1892ecc3c014cf21814aba6497ad846f5a5d6a41ca99eacbf2",
+                      "size":  3128360
+                  },
+                  {
+                      "path":  "config/nav/Drydock2.nav",
+                      "sha256":  "3b04b29b047ad3370baaae40468a6284cce2092450248d9d5ad8be1189d3565f",
+                      "size":  5001866
+                  },
+                  {
+                      "path":  "config/nav/Drydock2_S_hift.nav",
+                      "sha256":  "bd3bd1fd1dc8b83dace2b808164e1a8ab42fa39d49a5dc71ccf17fc89e258047",
+                      "size":  4903547
+                  },
+                  {
                       "path":  "config/nav/DX2011LT.nav",
                       "sha256":  "6802072f258764226366f8a72e507d33a488e8675c9861efa0d5c718e51b1f44",
                       "size":  1818150
+                  },
+                  {
+                      "path":  "config/nav/Dynasty.nav",
+                      "sha256":  "33b329edd02526106cc9e355871e8756b4d4b02a28e5fd5ca4ba7927c87b69d2",
+                      "size":  4561959
+                  },
+                  {
+                      "path":  "config/nav/Dynasty_S_hift.nav",
+                      "sha256":  "8a511964fe45ceda205e64eafd537d6d660114e3cede52b88f522b8e71dff83a",
+                      "size":  5702835
+                  },
+                  {
+                      "path":  "config/nav/Egypt.nav",
+                      "sha256":  "d609c4cd1085d62ef79c5a02e3fd3a3cc09a1df83c57b0d436f891f891a581fa",
+                      "size":  1758084
+                  },
+                  {
+                      "path":  "config/nav/Egypt_S_hift.nav",
+                      "sha256":  "4b01d4e727ba5d57fad86d8267674b2be84d47fc8d7a1703600e40b80e5bbe45",
+                      "size":  2146819
+                  },
+                  {
+                      "path":  "config/nav/Egyptian.nav",
+                      "sha256":  "1a88833707eb93408efbadb8f97e5ee51c85c8cf5f8766a8d52e17c7e2e80bbd",
+                      "size":  893295
+                  },
+                  {
+                      "path":  "config/nav/Elbonia.nav",
+                      "sha256":  "af4e0f14484dc37248cf45f749b5e53f61bd1ed7c8eb6e12e4fccff8939772e4",
+                      "size":  1988499
+                  },
+                  {
+                      "path":  "config/nav/Elbonia_S_hift.nav",
+                      "sha256":  "e9e57953511fd3b985e61a5c7b2a62107c4a59bd1fce501959210005a2425358",
+                      "size":  2426531
+                  },
+                  {
+                      "path":  "config/nav/electrolyte.nav",
+                      "sha256":  "26f56a764177690fa05bdae0ee70efada554cb9ac16ffca68c9efc7731157a25",
+                      "size":  822478
+                  },
+                  {
+                      "path":  "config/nav/electrolyte_Bong.nav",
+                      "sha256":  "95fc6734f91482edfff08f5056ed60e96d0e058de198f0329f17dac28295b597",
+                      "size":  2825818
                   },
                   {
                       "path":  "config/nav/Emerald_Valley.nav",
@@ -45726,6 +46711,271 @@
                       "path":  "config/nav/EmeraldValleyLT.nav",
                       "sha256":  "fc194b5df453adf410daf5850a8a88d51222752781ed41de4044a9a78286c292",
                       "size":  2506451
+                  },
+                  {
+                      "path":  "config/nav/Enlightenment_Plas.nav",
+                      "sha256":  "c1c85ca094db00e445d4888c6a439a25e563df91250b84b9af653ef606630f3b",
+                      "size":  329685
+                  },
+                  {
+                      "path":  "config/nav/Ewection.nav",
+                      "sha256":  "5d95d6c310835df657b26b611e258b0c2b913bd832cf381a0b274ee7495663b0",
+                      "size":  273500
+                  },
+                  {
+                      "path":  "config/nav/Ewection_Bong.nav",
+                      "sha256":  "9dd635640f84c27a397f5c79e26ffe7fe871590636e627be15c19759ad9039a9",
+                      "size":  947684
+                  },
+                  {
+                      "path":  "config/nav/Exclusion_Zone.nav",
+                      "sha256":  "6ff4329a1b0e8b89bbe8ca238fe63eed52fd7811e43f856be39e5eebfc253791",
+                      "size":  722069
+                  },
+                  {
+                      "path":  "config/nav/Exclusion_Zone_Ghost.nav",
+                      "sha256":  "ae086e8b9f3de59d156e0d86d5b1bd5d3aaa9632bb4c54552c59919f4bd4a4a7",
+                      "size":  4760382
+                  },
+                  {
+                      "path":  "config/nav/Fallout.nav",
+                      "sha256":  "35039dfe882d6f62576844807bf86e1c297441abb96e85bfd0457016a496ebee",
+                      "size":  2490045
+                  },
+                  {
+                      "path":  "config/nav/Fallout_Perr.nav",
+                      "sha256":  "3017ad167633a3c35da7ff43b8af721ef302ca7b76107f699818af7828e21223",
+                      "size":  2608391
+                  },
+                  {
+                      "path":  "config/nav/FogBlind_HAM.nav",
+                      "sha256":  "35bb29a7b7a91c7fffd14a2b35e2ed08e47a9228fc9318550763d401a022b1cd",
+                      "size":  3311083
+                  },
+                  {
+                      "path":  "config/nav/FogHorn_F\u0026R.nav",
+                      "sha256":  "933c02f95b0cc0f0a78aa1e88c8dde5b842d7e61d506bd256cce7c15465a1650",
+                      "size":  2864344
+                  },
+                  {
+                      "path":  "config/nav/Fort_Randall.nav",
+                      "sha256":  "5a9cd0a724d237700e79e5244228e0c812f209bc4bd0ab6e2fb18947d31a8305",
+                      "size":  4708384
+                  },
+                  {
+                      "path":  "config/nav/Fort_Randall_Ghost.nav",
+                      "sha256":  "74689ed0353d6e47479361a58026f9d8647e02ea018800e0f972958c91d76228",
+                      "size":  5913689
+                  },
+                  {
+                      "path":  "config/nav/FreeTreats.nav",
+                      "sha256":  "0fb4f82bfe4ff7180c7bbf85e0f420fcc30ec42d75aa098162f294baa3fa29f6",
+                      "size":  3190291
+                  },
+                  {
+                      "path":  "config/nav/FreeTreats_S_hift.nav",
+                      "sha256":  "c52a445e5879a33b8c2714177b324a676ebd5582e2b1609395864a08ea70ca66",
+                      "size":  3349879
+                  },
+                  {
+                      "path":  "config/nav/Freezer.nav",
+                      "sha256":  "2e692af619a0dda275720b5173094fd2c2200801a233132f5073b24665b44eef",
+                      "size":  1458496
+                  },
+                  {
+                      "path":  "config/nav/FrontLine2.nav",
+                      "sha256":  "ed413c6ea139a43a142b1e69ac719722774c442bd824c411d7a7ebfa5857744e",
+                      "size":  1788172
+                  },
+                  {
+                      "path":  "config/nav/Frontside.nav",
+                      "sha256":  "671ea1a0a3fbf1620e0771630f94cf63fb919358b4088bab9ce3873316fb5602",
+                      "size":  2788526
+                  },
+                  {
+                      "path":  "config/nav/Gabulon5.nav",
+                      "sha256":  "c681bd5da49b8d79532d4439f45ce11c481c33bfbf76bf61b38db865f8ad2f93",
+                      "size":  900584
+                  },
+                  {
+                      "path":  "config/nav/Gabulon5_Bong.nav",
+                      "sha256":  "41bee466ef42cd6e651397b16e73782d32f4e4ed56f88693b59690f0d271b215",
+                      "size":  1736725
+                  },
+                  {
+                      "path":  "config/nav/Ghosts_Mansion.nav",
+                      "sha256":  "8755969da83f6ee5dac64d271fa2007faf4799799182b1235ce652c909109564",
+                      "size":  4380397
+                  },
+                  {
+                      "path":  "config/nav/Ghosts_Mansion_Ghost.nav",
+                      "sha256":  "01476f2487f17bdd246f5a27cb4398dc15b640bc9519d88360f8ccfb6446af0a",
+                      "size":  4986730
+                  },
+                  {
+                      "path":  "config/nav/GlassSide_Plas.nav",
+                      "sha256":  "2399cc17b9c0eb47c1753b19665786292c9976c27c2e25e34308e97238763461",
+                      "size":  990254
+                  },
+                  {
+                      "path":  "config/nav/Glitch.nav",
+                      "sha256":  "67f8599c7851ebc4769e089467d9eebb4b4c92a04823a53257c892dbd15afb4e",
+                      "size":  1538960
+                  },
+                  {
+                      "path":  "config/nav/Glitch_Ghost.nav",
+                      "sha256":  "94a50610778a8541df871a9d61a5d4e3fd375dd9b87b84a5f199f0b076adfaf3",
+                      "size":  3723274
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Basement.nav",
+                      "sha256":  "44feb4328ca77d3c06eaf2c96f6892c0be141d749b78f029a532f3e066d3e9af",
+                      "size":  1714305
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Caves.nav",
+                      "sha256":  "7a0276caca8c42313759c7f740d0c7dd352ee297661b9dbfac519de4ed0e4b72",
+                      "size":  1643783
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Complex.nav",
+                      "sha256":  "3289f7c7395ed495091bb84791562a69e3805c196e1edbb2abf8501e0e6b34d1",
+                      "size":  1142739
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Egyptian.nav",
+                      "sha256":  "ac709e1eface3f65b45faf1100c87b7a2c39ad8c1fc1b37ab2e8b2a9b46c6669",
+                      "size":  1029104
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Facility.nav",
+                      "sha256":  "7344ee935692b5f8778f321f9716055005d0ce0c45ae2be787870dea5d45ad56",
+                      "size":  1151052
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Grid.nav",
+                      "sha256":  "fb0903c0986e4131e3ae53bdfd0ff3b7770f6e7dbc4fb8fd232a877812562209",
+                      "size":  1302237
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Library.nav",
+                      "sha256":  "7fc180e5c1c4c89dbb8af8ad224cbb7ae0e76e639a1a2af5d5743545dc784b4d",
+                      "size":  1844446
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Stack.nav",
+                      "sha256":  "73559317e20d130d7d695cebad1324046280e55d6d895251d035f3acee981493",
+                      "size":  1812931
+                  },
+                  {
+                      "path":  "config/nav/GoldenEye007Temple.nav",
+                      "sha256":  "9af2160908053716af386286c50636b66a69253a1a580510518be132a3b86caf",
+                      "size":  1228738
+                  },
+                  {
+                      "path":  "config/nav/Golden-X.nav",
+                      "sha256":  "c729e7320cd999658993790cdb7f3f9d34bc60797a06903738c4dace0516acc6",
+                      "size":  2182752
+                  },
+                  {
+                      "path":  "config/nav/Good ol Blue_Bong.nav",
+                      "sha256":  "9bc0735d2c0e4386afeeb7c32c7423762a655a6b96868d86034585e52d3e32d7",
+                      "size":  2199634
+                  },
+                  {
+                      "path":  "config/nav/Gore_Globe.nav",
+                      "sha256":  "4b15c10b8a31f0ad86daa0dd9188e2f6aebaee3158ecc1a6ceac8fbe8ea38b2a",
+                      "size":  296585
+                  },
+                  {
+                      "path":  "config/nav/Gorrillas_in_the_mist_CTF.nav",
+                      "sha256":  "2e02d36ab58851add625ed2289ef12db691d513c3b7962482b4efb1b1ff6c9b1",
+                      "size":  4389402
+                  },
+                  {
+                      "path":  "config/nav/Graveyardofthedamned.nav",
+                      "sha256":  "1bfe54e3b8ef1352465db7e25682d3a0a1daa8887bb3cb5856aa8ba5d5281b42",
+                      "size":  527835
+                  },
+                  {
+                      "path":  "config/nav/Gravitron_CTF.nav",
+                      "sha256":  "a3d1b9ebca3fbe9018e5f4152d41d2209354c12d19771ee1fd36fb8d1bd88324",
+                      "size":  4841966
+                  },
+                  {
+                      "path":  "config/nav/Great Wall.nav",
+                      "sha256":  "f86d0e42c24e9ba556e8d7288dfee67eb9c322e51cd65dd7a08dcb019392292e",
+                      "size":  1165684
+                  },
+                  {
+                      "path":  "config/nav/Grid.nav",
+                      "sha256":  "4b3207d18f16ed38cea9a55206bdb1bbf0c75c1de1c3be0a23c4127ce203b093",
+                      "size":  2346528
+                  },
+                  {
+                      "path":  "config/nav/Ground_Zero.nav",
+                      "sha256":  "2126df4e430c6a12b8d9bf1221e12be9aab476a61660a60bfce39c750cd14afd",
+                      "size":  1228132
+                  },
+                  {
+                      "path":  "config/nav/Hairball_TDM.nav",
+                      "sha256":  "d93107f07ec7c41fecdb75437e89e1bee7522d3405bc9fbdd00d405b457712e0",
+                      "size":  5386970
+                  },
+                  {
+                      "path":  "config/nav/Halo.nav",
+                      "sha256":  "d5f0430d17d27e8641cd44e2e01aefb058788a6ee31200e07c4a050de67a08bc",
+                      "size":  562194
+                  },
+                  {
+                      "path":  "config/nav/HALO_CTF.nav",
+                      "sha256":  "5ba3548c4be83b105bb2acefbf78648876c72e5116fe5c98e9082185fb8d5931",
+                      "size":  5185580
+                  },
+                  {
+                      "path":  "config/nav/Hamster_Wheel_HAM.nav",
+                      "sha256":  "b14775bfcfb1289a710c7975e22f632ab36f57ffc438a197b1050d8ba2bf678c",
+                      "size":  3995520
+                  },
+                  {
+                      "path":  "config/nav/Hamsterside_HAM.nav",
+                      "sha256":  "b2ce833b38d2b2b9b81c598dc06844b7966b82bdc47979caa33aaae6352d003c",
+                      "size":  3529768
+                  },
+                  {
+                      "path":  "config/nav/HardCorps.nav",
+                      "sha256":  "f9126be45872c04583cbe52077f2e95c5e7b84853a1b7f5aee8040c4323ffc38",
+                      "size":  3985068
+                  },
+                  {
+                      "path":  "config/nav/HawkEye_CTF.nav",
+                      "sha256":  "02b8d0379aec05e287f53c45b67de90f55ae7dbd4536fa061c524dba9f31ce39",
+                      "size":  5775550
+                  },
+                  {
+                      "path":  "config/nav/Hendrix_Bong.nav",
+                      "sha256":  "1967177dc69d489f4ead3e2e6bc8e40fa833bc6678be3ba357514deaafd2fcc5",
+                      "size":  690902
+                  },
+                  {
+                      "path":  "config/nav/HerGhostInTheFog.nav",
+                      "sha256":  "1cbc3c347eb3948d326e1649db7165be150d5464746d20a4b00f997b65eb0e2a",
+                      "size":  1041493
+                  },
+                  {
+                      "path":  "config/nav/HerGhostInTheFog_Bong.nav",
+                      "sha256":  "f0167a7aadbab51b8639cfdc8820bc1b0d51b9f1cd919bcc337f6ac3dd5d74e0",
+                      "size":  1807344
+                  },
+                  {
+                      "path":  "config/nav/High_Pathway.nav",
+                      "sha256":  "fc449090ddb7a2830b4cbbce47ca791681abd02c600b5fd1a22116503cefc8c7",
+                      "size":  271032
+                  },
+                  {
+                      "path":  "config/nav/Highdive.nav",
+                      "sha256":  "94b4080f997465aa8cdb42aba84feee9cf018e22058f4201134db38b33cd03a1",
+                      "size":  274983
                   },
                   {
                       "path":  "config/nav/HildebrandLT.nav",
@@ -45743,6 +46993,36 @@
                       "size":  2448473
                   },
                   {
+                      "path":  "config/nav/HouseOfTheHoly.nav",
+                      "sha256":  "7483e3b98574c4bb92b8fa6f92b2fb4135b8024b36f7066174e8f6518baf5484",
+                      "size":  420718
+                  },
+                  {
+                      "path":  "config/nav/Hungry_Hippos.nav",
+                      "sha256":  "c97f8438fb4143822e3df6aa2c7b541950c6c1d0edb1f267ba8cd327615aed7b",
+                      "size":  223379
+                  },
+                  {
+                      "path":  "config/nav/Hungry_Hippos_Perr.nav",
+                      "sha256":  "687287f6c3924ee0ad5b6fe3255a991321457a53f01db112deef0bb81ce9e683",
+                      "size":  2625404
+                  },
+                  {
+                      "path":  "config/nav/hvPoint_Barrow.nav",
+                      "sha256":  "83e1289bc3989ea32abd4cd81498276a83c550a27332d52514147a37a3bf5b44",
+                      "size":  1486139
+                  },
+                  {
+                      "path":  "config/nav/hvWOODSTOCK.nav",
+                      "sha256":  "085e5900d51bbc5a1a2b9cc0b4812d50225a0541a918d29ebea9501193a60149",
+                      "size":  1011205
+                  },
+                  {
+                      "path":  "config/nav/Ice_Fusion_CTF.nav",
+                      "sha256":  "81120725df0e9136264f758ebf8069994cda27e8059911c7987d8f223774fe04",
+                      "size":  5822710
+                  },
+                  {
                       "path":  "config/nav/IceRidge.nav",
                       "sha256":  "f1ca585100c2269bd33e8aec2831287da22e1acde6dc1842317b2212797dd592",
                       "size":  1197933
@@ -45753,14 +47033,129 @@
                       "size":  2088380
                   },
                   {
+                      "path":  "config/nav/iphwn.nav",
+                      "sha256":  "de19fe7983043796fc13c2bf09dd85d5a268b86b62c8bf21529cbbcba0d586dc",
+                      "size":  1337967
+                  },
+                  {
+                      "path":  "config/nav/iphwn_Bong.nav",
+                      "sha256":  "320bbdfe39d588e2e38a913bee39117b7127aa7c24cc4c03f16b9f16301c866e",
+                      "size":  1380953
+                  },
+                  {
+                      "path":  "config/nav/IX_NabooHills.nav",
+                      "sha256":  "07bafef7f2a26674f9a31e4481ba8fd74edd8663040ded0d446e34fd0146ac96",
+                      "size":  1415206
+                  },
+                  {
                       "path":  "config/nav/JaggedClawLT.nav",
                       "sha256":  "6dd2e6ab1914981374c82d7db10e30f139623dc11f6f3ad6acc9bea869eb9ffc",
                       "size":  2067661
                   },
                   {
+                      "path":  "config/nav/Jive_Turkey_Plas.nav",
+                      "sha256":  "bcb4011fc31b6401a7fabc515d7e4bf4329ae9eb55f1046b0e5cc1368924a32b",
+                      "size":  2020171
+                  },
+                  {
+                      "path":  "config/nav/Jumpers_Place.nav",
+                      "sha256":  "0112cdf7ae8d0e85a2fa5ae5a057cac50c74f2b29fb79c4e7db20b89c021d697",
+                      "size":  4089950
+                  },
+                  {
+                      "path":  "config/nav/JustHoldIt_C\u0026H.nav",
+                      "sha256":  "2fef1e22841245f4f4c9a7c291047adf3c67cdd7dc0a96d72226bfb554a748c5",
+                      "size":  3645113
+                  },
+                  {
+                      "path":  "config/nav/kardasian_prime.nav",
+                      "sha256":  "08381c09f018fce08648ab18ecc023614304ecbb89bb691a712f43d20f542b59",
+                      "size":  1732989
+                  },
+                  {
+                      "path":  "config/nav/King_of_the_Hill.nav",
+                      "sha256":  "5427f8e891f154998a20aebd117f741d83108928b0d9f1542b7118ac968b52f8",
+                      "size":  1845200
+                  },
+                  {
+                      "path":  "config/nav/KingdomOfMist.nav",
+                      "sha256":  "7e479444d1c47225f8422b60054ff3497c5867fc68eca27d37f37f7f3e574cf7",
+                      "size":  3421511
+                  },
+                  {
+                      "path":  "config/nav/Kings_Extreme.nav",
+                      "sha256":  "b157774c831342bfdb77021ca9517feb0978a75286ec57588c749b60bed1e2d1",
+                      "size":  5496544
+                  },
+                  {
+                      "path":  "config/nav/KingsX.nav",
+                      "sha256":  "099de50993eb59b7fcca69d3c3cc8123e6ca057c12d0e313bfb4ee94fd6dd789",
+                      "size":  3085331
+                  },
+                  {
+                      "path":  "config/nav/KWSN Dome.nav",
+                      "sha256":  "f687ba78dc007f9de33590c16d000e4ae1049803841f5806304e079ff1b01f74",
+                      "size":  1670672
+                  },
+                  {
+                      "path":  "config/nav/Labyrinth.nav",
+                      "sha256":  "ed7435c7d71fd6471a0eb59881aa5f5f1c43704ef23301a8cddecfb8c737d817",
+                      "size":  285993
+                  },
+                  {
+                      "path":  "config/nav/Labyrinth_Perr.nav",
+                      "sha256":  "1d57caa544c462f49341cac236a460511299283102d569df70aa194e8d42c82f",
+                      "size":  1194945
+                  },
+                  {
+                      "path":  "config/nav/LandMine.nav",
+                      "sha256":  "403121a5a59eee9b2f52686ec7e5f632b8a42cf5ce50714178d0409d5817bcc5",
+                      "size":  1427875
+                  },
+                  {
+                      "path":  "config/nav/LandMine_S_hift.nav",
+                      "sha256":  "5d6c084ee3edffc4ea33ba52c4f2655faf6d40c0179c055e75cdf883228d6209",
+                      "size":  2675264
+                  },
+                  {
+                      "path":  "config/nav/Last_Ditch_HAM.nav",
+                      "sha256":  "4677a799aff90463c1b6b910022da849b9fb9e9a8b1d397bbc072994005dcd50",
+                      "size":  1657222
+                  },
+                  {
+                      "path":  "config/nav/Library.nav",
+                      "sha256":  "d91e19798f21a5b4d10b02eae5081609af3ad31b0836fab70863ddee454ba233",
+                      "size":  2812997
+                  },
+                  {
+                      "path":  "config/nav/lolwut.nav",
+                      "sha256":  "d042b93a952a163086fb3a3801e06c81787c1e4701f52551f520f73e08a45212",
+                      "size":  2287602
+                  },
+                  {
+                      "path":  "config/nav/lolwut_Ghost.nav",
+                      "sha256":  "8f99d73dfaf0197036dbda8ec48f02fe597c5a9b3b3afa29b916ae7fdd08c982",
+                      "size":  5368341
+                  },
+                  {
+                      "path":  "config/nav/Longside.nav",
+                      "sha256":  "00446f499f3473cbc39d2a588c1b5f383b0b1e7728567ddb9cf20e97d28168c2",
+                      "size":  2512142
+                  },
+                  {
+                      "path":  "config/nav/Longside_S_hift.nav",
+                      "sha256":  "50907e85c10f7ddf3e7420d34bf5f458da217216cafd51e00e3df20d2e1f50af",
+                      "size":  3552047
+                  },
+                  {
                       "path":  "config/nav/LotusLT.nav",
                       "sha256":  "f9bcb9cd3fd8df0a6796fe663749f6008a3782ecee196b2fbf9fb9b06c086744",
                       "size":  1339642
+                  },
+                  {
+                      "path":  "config/nav/Martyr_Bong.nav",
+                      "sha256":  "79a0db6ef1d2cf83a09e63cde5ac51560ab700573aa4d8d7a2122cf4b49be376",
+                      "size":  286557
                   },
                   {
                       "path":  "config/nav/MechArena1.nav",
@@ -45798,9 +47193,24 @@
                       "size":  1148477
                   },
                   {
+                      "path":  "config/nav/MidnightMayhemCTF.nav",
+                      "sha256":  "7a933fd2ff28c15a5fe714c2158d06abae7dca448adbe02445513f55ec5415ac",
+                      "size":  491214
+                  },
+                  {
                       "path":  "config/nav/MirageLT.nav",
                       "sha256":  "17ea020da2247e98cc5f88fccdca3385c03c6fb12d8866b376b94007d6835150",
                       "size":  5833569
+                  },
+                  {
+                      "path":  "config/nav/Mortum_Plas.nav",
+                      "sha256":  "991864881a6ef09c16329c8da2fa5db2c0b963c86d0605cbc15a79c6ac2b0209",
+                      "size":  1217195
+                  },
+                  {
+                      "path":  "config/nav/Mud Buds.nav",
+                      "sha256":  "b03a90d83e1aa95b5a09ca1b7992595547f12115acdb828b0cfed4dc137caab6",
+                      "size":  4255845
                   },
                   {
                       "path":  "config/nav/MudvaniaLT.nav",
@@ -45808,9 +47218,39 @@
                       "size":  1775652
                   },
                   {
+                      "path":  "config/nav/NashaBoo.nav",
+                      "sha256":  "cf538960d17fef03c4efeda387a802ca12bb1cdf3eddd33dd1b66cd7dc5ae36c",
+                      "size":  649602
+                  },
+                  {
+                      "path":  "config/nav/NightFlyers_CTF.nav",
+                      "sha256":  "a2da2debee61678639cef6e1437f45dc66c0bd9186cce19b1111187cfda6e0f3",
+                      "size":  4455254
+                  },
+                  {
                       "path":  "config/nav/NightSlide.nav",
                       "sha256":  "509b88c04f69d18e40429119c86b7f6a96768aeb1f306875e01723947f504a47",
                       "size":  3051278
+                  },
+                  {
+                      "path":  "config/nav/NoMan_sLand.nav",
+                      "sha256":  "c803960b6c69028b01c9d489241982f17a16f8820e92d56f6f79b7bd954a95a9",
+                      "size":  2545046
+                  },
+                  {
+                      "path":  "config/nav/Nymphetamine.nav",
+                      "sha256":  "c1bd9cbf65953d64c37d31846530c630f477c37cd16f031aab705b492787dc5d",
+                      "size":  2663892
+                  },
+                  {
+                      "path":  "config/nav/Nymphetamine_Bong.nav",
+                      "sha256":  "778bdc6c7c3c9e3572adbdffae972f746f1829e36b748f28bbdec9234b18457c",
+                      "size":  2661626
+                  },
+                  {
+                      "path":  "config/nav/OGL_Shazbot.nav",
+                      "sha256":  "12fb473ebd794a5384f988eceee7dbd6989ff0a82d6673497c694b028e2263af",
+                      "size":  791470
                   },
                   {
                       "path":  "config/nav/OneSmallStep.nav",
@@ -45818,14 +47258,124 @@
                       "size":  1387750
                   },
                   {
+                      "path":  "config/nav/Onyx Night.nav",
+                      "sha256":  "9fddb122fd4f094b32ac7a38c3bf113fa18d75ab68d8d45052d6f3c88e99874f",
+                      "size":  2730947
+                  },
+                  {
+                      "path":  "config/nav/Oupost_D\u0026D.nav",
+                      "sha256":  "8d41c5b48ed21e6ede188b754a85b19425bbd4325a15df3e59b54feadd398467",
+                      "size":  4748288
+                  },
+                  {
                       "path":  "config/nav/PalatineLT.nav",
                       "sha256":  "66abbff8dbfe1afa4010914b15ed793f4d998383f0b2668511d4795b4ea476b7",
                       "size":  1538476
                   },
                   {
+                      "path":  "config/nav/Pandemonia.nav",
+                      "sha256":  "6682873a78853ef32cb16b0e604c09d71df3be53bb5bdb29b601a78c06d11866",
+                      "size":  6270715
+                  },
+                  {
+                      "path":  "config/nav/ParsonsSkys_CTF.nav",
+                      "sha256":  "57ccab3a51bef2d24ad7604c069efd48b7ccac918d03845d2f121d9c5becf589",
+                      "size":  4797072
+                  },
+                  {
+                      "path":  "config/nav/PartyGirl_Plas.nav",
+                      "sha256":  "187e34a65239cae95ffdef93d9e47fb44753e69519419a9c2a95b5f5966b146e",
+                      "size":  1522333
+                  },
+                  {
                       "path":  "config/nav/PeakPerformance.nav",
                       "sha256":  "625fd7846b6928317e6c8384700a6f78b94a5718a75169248d0a4406d9c28282",
                       "size":  1053882
+                  },
+                  {
+                      "path":  "config/nav/Phallic.nav",
+                      "sha256":  "d9d0a87a69955a53546b2f06da7d5fa0fe9caa62dcb0423e7487855f9f3341c1",
+                      "size":  443928
+                  },
+                  {
+                      "path":  "config/nav/Phat_planet.nav",
+                      "sha256":  "262fc3839523cfcf2133ea24ceaeee85e68b90ecbbb55e8ca4dfd245bc03475a",
+                      "size":  2639073
+                  },
+                  {
+                      "path":  "config/nav/Pitch.nav",
+                      "sha256":  "a658cc4e8d23c8abcf7775cb2d4cc3eccd4113fea676556ce2ac88e70149cc49",
+                      "size":  2347916
+                  },
+                  {
+                      "path":  "config/nav/PLATFORMS.nav",
+                      "sha256":  "e850a7b1002932b6a61b08af2e659892cb3ef469e762e6773a71523ba363da32",
+                      "size":  1816794
+                  },
+                  {
+                      "path":  "config/nav/PotHole_CTF.nav",
+                      "sha256":  "216e973f418fee49bb406d9f7ba352e61d9150f998705ca5a7a49ef916700981",
+                      "size":  5199873
+                  },
+                  {
+                      "path":  "config/nav/PowerPlay_CTF.nav",
+                      "sha256":  "c2f0d23723abbbcbf62baa29b826ee788150270134dd0ad95351b6eaf2a76b48",
+                      "size":  6229717
+                  },
+                  {
+                      "path":  "config/nav/Price_War.nav",
+                      "sha256":  "e4f8cc078212cc06cb9344b89b51b6d36adaab3083e88d15f2d2b7d3321c51a2",
+                      "size":  2801797
+                  },
+                  {
+                      "path":  "config/nav/Project_2501.nav",
+                      "sha256":  "3c51155b43c4f8d106c64c5b5db82e3d9b00d71851256c55ce026189b15e20ba",
+                      "size":  709655
+                  },
+                  {
+                      "path":  "config/nav/PronBot.nav",
+                      "sha256":  "0a54d69ad60bb3c2cd7915390e31e4a76c9333e26ca7b2b8ac9e30e2e7f649c8",
+                      "size":  612275
+                  },
+                  {
+                      "path":  "config/nav/PronBot_Bong.nav",
+                      "sha256":  "d79df6555fd560b7f8260febbaa77feee6c27501b4b73043cf3111daea6fad40",
+                      "size":  2840053
+                  },
+                  {
+                      "path":  "config/nav/Psychonaut.nav",
+                      "sha256":  "a9e5d457c6c157f554e5e485dd9bf943800ff768d8bb692c29246dcaf23b3325",
+                      "size":  1728406
+                  },
+                  {
+                      "path":  "config/nav/Psychonaut_Ghost.nav",
+                      "sha256":  "82b993452b382b0860e1db8ec350414b11c3a5e3065870a26ac6f1727e85c77d",
+                      "size":  2589517
+                  },
+                  {
+                      "path":  "config/nav/Push_It_CTF_HAM.nav",
+                      "sha256":  "58de7358183105dcf10e68cb83fbd19565db0316619271f4424d058e67309e4c",
+                      "size":  1238574
+                  },
+                  {
+                      "path":  "config/nav/Quad_Temple.nav",
+                      "sha256":  "8a944aaf63086f54b6ee2cf7e004352fc64db3558bac8dea0f7279eba0f46208",
+                      "size":  1125729
+                  },
+                  {
+                      "path":  "config/nav/QuadControl.nav",
+                      "sha256":  "2d6e766bed7c62e4f992285db8e9c612a1dab4a79bb383742535db30cb0dbee6",
+                      "size":  587804
+                  },
+                  {
+                      "path":  "config/nav/RabbitHole.nav",
+                      "sha256":  "0f097d422a74c4b6310cc73e61d7e59573cabfde27a0e0f41cc14bf8389b8bde",
+                      "size":  5002193
+                  },
+                  {
+                      "path":  "config/nav/RabbitHole_Ghost.nav",
+                      "sha256":  "c5b3ddf595c62d14c4ee4407bb91f83cc67ba5f025520710d7cfebd7434c7054",
+                      "size":  4862474
                   },
                   {
                       "path":  "config/nav/Raindance.nav",
@@ -45838,9 +47388,54 @@
                       "size":  2541665
                   },
                   {
+                      "path":  "config/nav/Rancor-X.nav",
+                      "sha256":  "e4b115812e0e809c423c57fcdfe918863cf090edc1a2359cfd0b09d4ebcd41e3",
+                      "size":  3271728
+                  },
+                  {
+                      "path":  "config/nav/RelayStation.nav",
+                      "sha256":  "b42b645f03e97f37e4e8c89d2766b1421fe32df4336f51166d74f4ef1cbbf55c",
+                      "size":  3507495
+                  },
+                  {
                       "path":  "config/nav/RhaskicLT.nav",
                       "sha256":  "729df92ab9f44e7a5ff552cab703b0efc164b845701c8e9a6d7eb7a82fed2578",
                       "size":  2750348
+                  },
+                  {
+                      "path":  "config/nav/RickRollin.nav",
+                      "sha256":  "67237c9cdc63c73a20e4e18fc90f6e79c6a8059797fcbe25afae2a66a34ec06d",
+                      "size":  1471945
+                  },
+                  {
+                      "path":  "config/nav/RickRollin_Bong.nav",
+                      "sha256":  "e2e781aa746bd081f35f6f11732d4613dbd986b5583034f76537e57b180285cd",
+                      "size":  2657392
+                  },
+                  {
+                      "path":  "config/nav/Ridged_Ice.nav",
+                      "sha256":  "c7e2c9f85f397bb1fb52bbbc09fbbfce703aa9903d55db1bcde91bf5a317b62b",
+                      "size":  1772925
+                  },
+                  {
+                      "path":  "config/nav/Riot.nav",
+                      "sha256":  "27677a627a1b06bf4b6d1b8b36d99eb98642a38f05a957b9f734d05fbef192c8",
+                      "size":  1219121
+                  },
+                  {
+                      "path":  "config/nav/RMR.nav",
+                      "sha256":  "c2d0a54b34a8c16a508ca6c5f0c780e1bf2906c0a1b1eb847592f450d464b6a6",
+                      "size":  4498851
+                  },
+                  {
+                      "path":  "config/nav/RoachMotel_Plas.nav",
+                      "sha256":  "835f52354a16166e23fb95bb687ae56e06afebc247691a1399b38a49873b06ac",
+                      "size":  944305
+                  },
+                  {
+                      "path":  "config/nav/Roadkill2.nav",
+                      "sha256":  "1808118412b720d509deb22c599aca8b566b4c9538b49c4ce186094d8aca1f12",
+                      "size":  2255451
                   },
                   {
                       "path":  "config/nav/Rollercoaster.nav",
@@ -45848,9 +47443,34 @@
                       "size":  2534405
                   },
                   {
+                      "path":  "config/nav/Rollercoaster_2.nav",
+                      "sha256":  "06182e147ac1a2f9c8d80ec90dbf316b1463567e734e2d4ed79c11032ce13441",
+                      "size":  4008757
+                  },
+                  {
                       "path":  "config/nav/RollercoasterLT.nav",
                       "sha256":  "c298ebc6d8791d9299947bd94697151ff5504e5f3d703d384534a695c9c9f322",
                       "size":  2150554
+                  },
+                  {
+                      "path":  "config/nav/Rotten Oasis.nav",
+                      "sha256":  "4fe5efd50f599d2435e0659de4479c227bf5812fcfe2d8a60a77105c2dbbac30",
+                      "size":  937295
+                  },
+                  {
+                      "path":  "config/nav/Rotten Oasis_S_hift.nav",
+                      "sha256":  "95689cd14a49b358995c124315ba6b6cce04227329ea38d098d00e08e180ee5a",
+                      "size":  2587993
+                  },
+                  {
+                      "path":  "config/nav/RuleTheSkies_TDM.nav",
+                      "sha256":  "84c354c92e374d26a789d4c1944ff9ba88b443f6000203d6a887299dd31495c5",
+                      "size":  5013637
+                  },
+                  {
+                      "path":  "config/nav/Run_the_Halfpipe.nav",
+                      "sha256":  "563dd18121e6536678c178be0661418cf7ea0bf5674eafab6793bdcf19747cf6",
+                      "size":  1133561
                   },
                   {
                       "path":  "config/nav/RunoutLT.nav",
@@ -45863,9 +47483,84 @@
                       "size":  3241778
                   },
                   {
+                      "path":  "config/nav/Sarkanus-3_C\u0026H.nav",
+                      "sha256":  "a76d79a4aec63eabceb2a53956f060c5c32abf4c428e83fc0568e8b0af17fdc1",
+                      "size":  2593689
+                  },
+                  {
                       "path":  "config/nav/Scarabrae.nav",
                       "sha256":  "ed29463cb53936eb003037b73d875d30d6b9353fd855f2706ed07be096445420",
                       "size":  4849665
+                  },
+                  {
+                      "path":  "config/nav/Scooby_Snack_Plas.nav",
+                      "sha256":  "93ff22ec6b1418af0b3fb317c080126e8d7764e13a05c21461ddb0aff5f95d61",
+                      "size":  2068522
+                  },
+                  {
+                      "path":  "config/nav/Scorn.nav",
+                      "sha256":  "8db8cbe53ba1cb9e4056e842ff68e39287be529eec4b4daf65caa7b479899342",
+                      "size":  1198689
+                  },
+                  {
+                      "path":  "config/nav/Scorn_Bong.nav",
+                      "sha256":  "4bd850ab64076947ed449ef6f8344077fd40d4a4acc92ad9fa76a5f48c8ea4ae",
+                      "size":  3282878
+                  },
+                  {
+                      "path":  "config/nav/Searches_End.nav",
+                      "sha256":  "b010b9aa010601cf63dec246fded39ae941e5234879c07afcccc691076f3987f",
+                      "size":  3158021
+                  },
+                  {
+                      "path":  "config/nav/SG_Scarabrae.nav",
+                      "sha256":  "822cb52f7b79307562cf0d69cd80cb42b45f794966a3e2fbb64988a22d82fdde",
+                      "size":  1005505
+                  },
+                  {
+                      "path":  "config/nav/Shooters_OnTheRocks.nav",
+                      "sha256":  "8850a25bd15f4ecab91da2e77cc019f59a2c7052fe48840d29e43459e6928851",
+                      "size":  691495
+                  },
+                  {
+                      "path":  "config/nav/Showdown_HAM.nav",
+                      "sha256":  "a97a19583a42c3765b44805e6a653f38959c91d8bc9518d4d33b45cbf26f62e4",
+                      "size":  2056305
+                  },
+                  {
+                      "path":  "config/nav/Siegeside.nav",
+                      "sha256":  "37f1c1b636505bca56a7bb899b4d85eab7925b819d2fd81be8de4331a94ecabb",
+                      "size":  362474
+                  },
+                  {
+                      "path":  "config/nav/Silver Star.nav",
+                      "sha256":  "f5e92bf78a0d71416b67c5fd009f9cebbdaaa2abbe8a303f05e675c3387090dd",
+                      "size":  789368
+                  },
+                  {
+                      "path":  "config/nav/SkiJump_CTF.nav",
+                      "sha256":  "b04fe004c8cde4c90d02bdffc557b401210fe91afbe7b52803b832582a948967",
+                      "size":  2536674
+                  },
+                  {
+                      "path":  "config/nav/SkiWay.nav",
+                      "sha256":  "82b926031e9cde40215bdfa9f3cdaee39ea88a33b4b0289bdf260cac09b79fd8",
+                      "size":  3626323
+                  },
+                  {
+                      "path":  "config/nav/SkyCradle_HAM.nav",
+                      "sha256":  "3eb67d97b5fe8c5a1d67f981a9771931d687c46c3bae71b38c233584bfecfb91",
+                      "size":  885855
+                  },
+                  {
+                      "path":  "config/nav/Snatch.nav",
+                      "sha256":  "447eb24f019d38754b309bd577be4addf6fa5595b984f2ab579b31eb7293a765",
+                      "size":  268511
+                  },
+                  {
+                      "path":  "config/nav/Snipers_Dream2.nav",
+                      "sha256":  "6f71b7268525e7fb836b598012bd23dda4760f855638f01a1a09510ea0be1636",
+                      "size":  271334
                   },
                   {
                       "path":  "config/nav/Snowblind.nav",
@@ -45873,14 +47568,54 @@
                       "size":  1766077
                   },
                   {
+                      "path":  "config/nav/Snypress\u0027sCity.nav",
+                      "sha256":  "78c078a739e51fd40dfb303a8421854363947dee6dc84fe551ea2b49d7159fca",
+                      "size":  655305
+                  },
+                  {
+                      "path":  "config/nav/Soprano_Bong.nav",
+                      "sha256":  "a1301dec9cc21335b23553fa34f015b2883a59ea103fb22bcce3fa40fedb9aea",
+                      "size":  2101293
+                  },
+                  {
                       "path":  "config/nav/SpinCycleLT.nav",
                       "sha256":  "1cc416450be08c17dbf1277b141c0c9a710ef720f287f02ff43e8b6cbb44f887",
                       "size":  1438175
                   },
                   {
+                      "path":  "config/nav/Spire_C\u0026H.nav",
+                      "sha256":  "e5cae5f2c2f3e398024254ed23cc5e163fb81d48c54da11f79c7ef240851776e",
+                      "size":  4827369
+                  },
+                  {
+                      "path":  "config/nav/Spiridan.nav",
+                      "sha256":  "fbbf69772c33ac3f7f9b7c40180036bb74dfb856b5a7c6da7b91f67e413da609",
+                      "size":  1106072
+                  },
+                  {
+                      "path":  "config/nav/Spyder.nav",
+                      "sha256":  "d64487f12a9c4fd99da6a38aa52f8a851fb85c04842a8c8f7ef1640ece435dc4",
+                      "size":  4316787
+                  },
+                  {
+                      "path":  "config/nav/Starburst_HAM.nav",
+                      "sha256":  "74378a6005d190afaea8783acf4043d8012b04ac79fcf1f85f55c1a204abb67d",
+                      "size":  1181337
+                  },
+                  {
                       "path":  "config/nav/StarFallLT.nav",
                       "sha256":  "e80f4f418002bb8ba8f279d31bc97489765a2c4ae181a7068b009c1d5355503d",
                       "size":  2122355
+                  },
+                  {
+                      "path":  "config/nav/Starwolfenstien.nav",
+                      "sha256":  "1491470937d4610e4cce09c29e3a201602dbe8e2d8a64102226f2100a39150a1",
+                      "size":  2056047
+                  },
+                  {
+                      "path":  "config/nav/StolenTech_HAM.nav",
+                      "sha256":  "3d2e72d51c3c3afea759126cc97d2e9c71b6451a231a09f870fca6e61a94c83a",
+                      "size":  3687345
                   },
                   {
                       "path":  "config/nav/Stonehenge.nav",
@@ -45893,6 +47628,26 @@
                       "size":  1547755
                   },
                   {
+                      "path":  "config/nav/Str8_Shot.nav",
+                      "sha256":  "d59469972e8eb014977207d4351c29dbcecedc669326b44748a38eb3e4720722",
+                      "size":  1687410
+                  },
+                  {
+                      "path":  "config/nav/Strong Sauce.nav",
+                      "sha256":  "7ce6330fa8d6497d9c2a2d8b0780b737cfece1dfad601c1790e9eacd8237da69",
+                      "size":  1761306
+                  },
+                  {
+                      "path":  "config/nav/Strong Sauce_Bong.nav",
+                      "sha256":  "80d990acb349017964a1d9158da6c55799446bc3c6fca7a2b816a343bd3a47bc",
+                      "size":  3719540
+                  },
+                  {
+                      "path":  "config/nav/Suicide.nav",
+                      "sha256":  "c5b68b77b9281cfc9e8b251b920a9dc0fc20c9dc0f3c77a3d7167e10a08720a2",
+                      "size":  1238237
+                  },
+                  {
                       "path":  "config/nav/Sulfurious.nav",
                       "sha256":  "1fcc5368fe7a1d6aa732294e9a13cde9d46835a894235549ae22fd1048821700",
                       "size":  843223
@@ -45903,9 +47658,159 @@
                       "size":  1529165
                   },
                   {
+                      "path":  "config/nav/Sunny_Days_CTF.nav",
+                      "sha256":  "415ce85255a30d4fb671a26e05308a282213621fd199a2ea98d20e668dc51f84",
+                      "size":  1358328
+                  },
+                  {
+                      "path":  "config/nav/SVS.nav",
+                      "sha256":  "51f192b5d239e3acee51d757501d9356ee9010f8ed8fd400233b3fbf76e2f55e",
+                      "size":  1865947
+                  },
+                  {
+                      "path":  "config/nav/SW_Battle of Hoth.nav",
+                      "sha256":  "23f1e1561c90edb3fc3d030a11afe1ef807647d44f30f2261cafa811fd8d704d",
+                      "size":  4628137
+                  },
+                  {
+                      "path":  "config/nav/SW_Dantooine.nav",
+                      "sha256":  "312aed7105a09f2a6df1532994f2016f5fdf91419654d25ca62dd2286186c8d9",
+                      "size":  3234880
+                  },
+                  {
+                      "path":  "config/nav/SW_Mos Eisley.nav",
+                      "sha256":  "f1aabbca30d0d4c41fae2ca262454aab05c0698376a8ad8855e10d0c1fc9d651",
+                      "size":  3970441
+                  },
+                  {
+                      "path":  "config/nav/SW_Mos Espa.nav",
+                      "sha256":  "83d93a1c49dd3af21d065759f771c144b30c6c4422814464f9df1b339efb18f1",
+                      "size":  1455504
+                  },
+                  {
+                      "path":  "config/nav/SW_Sarlaac Pit.nav",
+                      "sha256":  "0e72df9045d178ffdb183a0a0fc3bfaf2cd373c12d16beae0f1e72cb7d8bd0a7",
+                      "size":  1385485
+                  },
+                  {
+                      "path":  "config/nav/SW_SithKnight.nav",
+                      "sha256":  "6fd1d7d59d812ba73fffdadfb9948e14b38f33abe2a3119e13ecac65dfaf676a",
+                      "size":  2838499
+                  },
+                  {
+                      "path":  "config/nav/SW_Tatooine.nav",
+                      "sha256":  "d296f4977fb8221d1775028fd532aeea2e4dbc155f1d4d57d090205833426d6e",
+                      "size":  3151337
+                  },
+                  {
+                      "path":  "config/nav/SW_Yavin Base.nav",
+                      "sha256":  "d1f3acb7e6e82bf77f13e8c7fab43bbe8bd745e27dcf97ae9534d84b2f49b979",
+                      "size":  2781323
+                  },
+                  {
+                      "path":  "config/nav/Tatooine.nav",
+                      "sha256":  "4c933ddab58bcbcc73813ed35cf0017f83a1bf6f3c7682513c3f9d93eb7b1f8e",
+                      "size":  4481108
+                  },
+                  {
+                      "path":  "config/nav/Teams!_Bong.nav",
+                      "sha256":  "8251289eb81b375375a0fba665db301e628af5de71233ced4c368af9fd7529fc",
+                      "size":  1705742
+                  },
+                  {
+                      "path":  "config/nav/Temple.nav",
+                      "sha256":  "527f85418da0252273c2262db81171447576cd70bd372994772831cc61044824",
+                      "size":  1937983
+                  },
+                  {
                       "path":  "config/nav/TesseractLT.nav",
                       "sha256":  "6a316b003b9fe1891520059823d26872c4f6fac984ef0f27c0f283e83e1c03cb",
                       "size":  2601411
+                  },
+                  {
+                      "path":  "config/nav/The Green Mile.nav",
+                      "sha256":  "ff1f6493ed55758239979010c0ac02a96b2ced336683edf7c83dcba8e097aa93",
+                      "size":  2252621
+                  },
+                  {
+                      "path":  "config/nav/The Lost City.nav",
+                      "sha256":  "42c80a145c4b3b461c65733e1617526a4a9f5d7174f1978e585adfd6e1a5131b",
+                      "size":  714121
+                  },
+                  {
+                      "path":  "config/nav/The Lost City_S_hift.nav",
+                      "sha256":  "03e1a555b9fbe331d9c4483f288d90737c21dcb598f8067a366a036d68b8466a",
+                      "size":  2581405
+                  },
+                  {
+                      "path":  "config/nav/The_Big_Blue.nav",
+                      "sha256":  "50844c7fbf93fbf0a352551aac5ea3d20a5961cbdfb3eb64138c251647e15cd2",
+                      "size":  1617782
+                  },
+                  {
+                      "path":  "config/nav/The_Big_Blue_Ghost.nav",
+                      "sha256":  "d04dde12581400a53c849e309207707c4b60012236289ffa72f63ddb11d85164",
+                      "size":  3843986
+                  },
+                  {
+                      "path":  "config/nav/TheNoFlyZone_CTF.nav",
+                      "sha256":  "70cdf5cbf38191e0e621522a35118c1b47a9943b87a6dbbb30c0a46fc8c43770",
+                      "size":  3441138
+                  },
+                  {
+                      "path":  "config/nav/TheValley.nav",
+                      "sha256":  "47c0f865662fa949e8e41acfb09e0bbb76cf86756eac63c7beebe710c3b6c8b4",
+                      "size":  852521
+                  },
+                  {
+                      "path":  "config/nav/TheWastes.nav",
+                      "sha256":  "6af8d4048af83387133a1b95df883240749d08fe9193758328e9ced5f035318e",
+                      "size":  4998317
+                  },
+                  {
+                      "path":  "config/nav/TheWastes_Ghost.nav",
+                      "sha256":  "c98c4b8766fe5d9447db56df6bb6d402dddf0e9dabd34c2aa8abc3a7ed3b473b",
+                      "size":  5623029
+                  },
+                  {
+                      "path":  "config/nav/Tightrope_HAM.nav",
+                      "sha256":  "d89b738c85f11fc307429870206f42c76b04de68082de81bb526f78de77e2a6e",
+                      "size":  1567068
+                  },
+                  {
+                      "path":  "config/nav/TIJO3hreeCorridors.nav",
+                      "sha256":  "7172d8f99e496dbb60a89bd112192533c86f2630436ce44182f070733e8d76db",
+                      "size":  1714625
+                  },
+                  {
+                      "path":  "config/nav/Tombstone.nav",
+                      "sha256":  "f047a98df3c537c4eec7e5bfdd6826062d1a0731b677d56d90f3a8beb6d9ca2b",
+                      "size":  202279
+                  },
+                  {
+                      "path":  "config/nav/Trapped Force.nav",
+                      "sha256":  "98b68beeaf5333684d328dc9dd229a9d7ccac5330dc7869e244fdec68a6fef4a",
+                      "size":  284163
+                  },
+                  {
+                      "path":  "config/nav/Trident_HAM.nav",
+                      "sha256":  "f5b7fcb0dedc6b117214147806a7ade2c8222e3ef7e3dfa9845db32ce44bde69",
+                      "size":  2983137
+                  },
+                  {
+                      "path":  "config/nav/TriSide_Bong.nav",
+                      "sha256":  "6c4a3b8a770027fd5e331f038e45b229216c4dab3965206391602fb0043413a0",
+                      "size":  1552511
+                  },
+                  {
+                      "path":  "config/nav/TrollerCoaster_S_hift.nav",
+                      "sha256":  "ec7ab06765ec1acff348f0c250e9f94c7068f3932721c0894a4a1ef824a936ea",
+                      "size":  215544
+                  },
+                  {
+                      "path":  "config/nav/Twilight Horizon.nav",
+                      "sha256":  "62c918d3f11a37d603fab9de91ae29a3f63fcc709acb40a314f4dbefa0e85366",
+                      "size":  1938463
                   },
                   {
                       "path":  "config/nav/TwinPeaksLT.nav",
@@ -45913,13 +47818,68 @@
                       "size":  3168086
                   },
                   {
+                      "path":  "config/nav/Two-Towers.nav",
+                      "sha256":  "0f610b7c9cd06be45a6995bc43407fb5e9e37059fea1fc7f52aa40137336fbc5",
+                      "size":  152942
+                  },
+                  {
+                      "path":  "config/nav/Ultimate_Dropzone_Y2K_HAM.nav",
+                      "sha256":  "38e6d195885a0f6c970a32bac42c195f7077fa37374118d17207e94a44410de8",
+                      "size":  631934
+                  },
+                  {
+                      "path":  "config/nav/Vip3rsVag_Bong.nav",
+                      "sha256":  "cea19d4dcc7b1a79d99d50aae7161a83b88ef8fbf31ecb2d1fc2713f4707f246",
+                      "size":  275260
+                  },
+                  {
                       "path":  "config/nav/VortexLT.nav",
                       "sha256":  "8e37db01cf3f144a149bc94dbf5bba15b3e834f70b9ad2075e757d4b658b6fdf",
                       "size":  2071250
                   },
                   {
+                      "path":  "config/nav/w00\u0027sGauntlet_HAM.nav",
+                      "sha256":  "aff3f33b1845b25d1548bb4967d87da3d559ea6522a927cc8dd7b161045835fa",
+                      "size":  2258303
+                  },
+                  {
+                      "path":  "config/nav/Watch_Your_Step.nav",
+                      "sha256":  "22844c05bc677951dee88b6b4b4f56c14bead92ccd36503ae09fe2234bb3339d",
+                      "size":  2326560
+                  },
+                  {
+                      "path":  "config/nav/Winter_C\u0026H.nav",
+                      "sha256":  "8a4cf815d5a4e5004fea4757ffe47c472aea7d1085df38f7bb2218ccc971e18f",
+                      "size":  3393306
+                  },
+                  {
+                      "path":  "config/nav/Witching Hour.nav",
+                      "sha256":  "2dcb80bb92ba0f963bb6cb48eae4a21223aa8959b58ac4b9a6ea266a76d23038",
+                      "size":  3670539
+                  },
+                  {
+                      "path":  "config/nav/WOP!.nav",
+                      "sha256":  "acd7afe116d231bf2ba8546952f0f9fda0d1f3d373bfaf4f9dd2473cd2a6bfe6",
+                      "size":  3847152
+                  },
+                  {
+                      "path":  "config/nav/YugoStein.nav",
+                      "sha256":  "6f8df2f84c27226739569283ab0c09d1bd51b2332be834fb106bbfcab29aa9e9",
+                      "size":  739294
+                  },
+                  {
+                      "path":  "config/nav/YugoStein_Bong.nav",
+                      "sha256":  "c3f547edd622ae63da1ea579f5a9348a38ddbc544d6d8aa4c6c68211fc7ce4a2",
+                      "size":  4726254
+                  },
+                  {
+                      "path":  "config/nav/Zen.nav",
+                      "sha256":  "696bc7a1df10f29cb04b7b3f5be779e578a0b9f9a3dda43d75db70b60b86f7d2",
+                      "size":  1446479
+                  },
+                  {
                       "path":  "config/play.gui",
-                      "sha256":  "6d375832963587d71abdc4792d2099e7ff220a95523d50389255f3df94f4f77a",
+                      "sha256":  "c2539c41abf8a2ba350cb102700e5820e08e481d25a5dc3ca53d7a180fb5b6a6",
                       "size":  107426
                   },
                   {
@@ -46224,8 +48184,8 @@
                   },
                   {
                       "path":  "config/ServerPrefs.cs",
-                      "sha256":  "c4439fedc48df1260ceef48b4d876d3e4156c0ac7226e9b7f0b8a8d33ae4c907",
-                      "size":  3644
+                      "sha256":  "bca96199ade4bbddd03dbfaf631ece8c48c00bfbff8d5b1ac38f4c6351354bf9",
+                      "size":  3673
                   },
                   {
                       "path":  "config/SinConnect.cs",
@@ -46989,8 +48949,8 @@
                   },
                   {
                       "path":  "console.cs",
-                      "sha256":  "621d5453f0d74fcd89f4f2b7d78597ee3d17008ac0b7cf88943f9b12e473afe1",
-                      "size":  10861
+                      "sha256":  "be3a962476294fc941610cf6cfdf03418c36ed461f1cc3eb7e055ba9ab200da3",
+                      "size":  13053
                   },
                   {
                       "path":  "gui/cmdinventory.gui",
@@ -47094,8 +49054,8 @@
                   },
                   {
                       "path":  "ModernTribes.exe",
-                      "sha256":  "ed3055b399e893745338c23370c9202c6263f6892d10b7fb6014cb022751eb46",
-                      "size":  5491712
+                      "sha256":  "22b619bdb5dae0167a5acc23f76119f55f78d12050c0864e102fe6d50d348252",
+                      "size":  5825024
                   },
                   {
                       "path":  "modlist.txt",
@@ -47176,6 +49136,26 @@
                       "path":  "Mods/DeltaAirForce/Missions/DF_Annihilator.mis",
                       "sha256":  "00458d183ef6e0bdb93b5879d3063ac39be75297110a7f01957f3af1d41f65d0",
                       "size":  84954
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_BackToIraq.dsc",
+                      "sha256":  "a6a25cc6551e104fb18b1511952c7fe856a4ea43cfaae5dd4b6a87e35ea0a8d3",
+                      "size":  648
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_BackToIraq.mis",
+                      "sha256":  "25de8f4915eb67956fb533238a571e0cf10e84b565d5a7b32d17a9804f54a7ea",
+                      "size":  54611
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_Belal_Al_Kahmin.dsc",
+                      "sha256":  "e8119776a89d56cab5bc8d81bcc0585dfdac631ed21beff3e6e7ee8f59214ad1",
+                      "size":  1080
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_Belal_Al_Kahmin.mis",
+                      "sha256":  "d8a9c62fde0d078a1a8923d71f0a6885e33bc5f1e9f9267d1daa08f268bf026c",
+                      "size":  123066
                   },
                   {
                       "path":  "Mods/DeltaAirForce/Missions/DF_BoaOps.dsc",
@@ -47316,6 +49296,26 @@
                       "path":  "Mods/DeltaAirForce/Missions/DF_JailBreak.ted",
                       "sha256":  "5306052b9daffcecf9ee56b8a439517c845f0c901e6dd99a88eba4821ef00fe7",
                       "size":  302872
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_LastMan.dsc",
+                      "sha256":  "382615cc2208fd3831c1c7ce4fd460027347745829fb2ed5fc1f3bf111485f92",
+                      "size":  410
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_LastMan.mis",
+                      "sha256":  "7dbdadcc5cf8f89a96d9a6d88e58e4a7f5b1b366fb1447ac0f34b6b28f3e90bb",
+                      "size":  143652
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_ManDown.dsc",
+                      "sha256":  "0cf1082d88db1bdc7f01f1ee08346c88347e0bd0fbfdba471a4d1701d3b9bcfd",
+                      "size":  433
+                  },
+                  {
+                      "path":  "Mods/DeltaAirForce/Missions/DF_ManDown.mis",
+                      "sha256":  "10724540c0e33a8cb8b2caab870e5baf91888fa7e6fa3934cf9116b13bc58a63",
+                      "size":  45007
                   },
                   {
                       "path":  "Mods/DeltaAirForce/Missions/DF_PorkchopHill.dsc",
@@ -47989,8 +49989,8 @@
                   },
                   {
                       "path":  "Mods/MechMayhem/README.txt",
-                      "sha256":  "5e52d66d148e49b1eb1644a196a0ae2ac310342cda4c8ad56ca5f2f66d784702",
-                      "size":  6894
+                      "sha256":  "1787ea404c38488ea3a1e6d542cca5a628eaee33e138d7701fea7c87810fa75c",
+                      "size":  7854
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechChassis.cs",
@@ -47999,18 +49999,28 @@
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechDamage.cs",
-                      "sha256":  "fd9cfd7444124fe83487f41f708ed328cb2b30a9d55ded95d3dea4835785b17d",
-                      "size":  16516
+                      "sha256":  "787d829a3390c57e379d5effa2b51b9661def46d64056ccb6324f89ca4613289",
+                      "size":  16957
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/scripts/MechEject.cs",
+                      "sha256":  "9848306de2a43cbdf878f670daf7120ee655ff30a24652afdcbb0b92e201f1b6",
+                      "size":  7782
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechGame.cs",
-                      "sha256":  "dff7dd1466d47c0176688a2939ded48e7b876334826fc1358caf185f5cfad20e",
-                      "size":  34906
+                      "sha256":  "2653c7f08fc851bb133f44c437ca28c85c542e44656289c05f82011fdde480b8",
+                      "size":  35275
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechHeat.cs",
                       "sha256":  "266ebe1448106e4ab1221c77672a486253be5be757803cd04d001e11b525d5e0",
                       "size":  4729
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/scripts/MechPilot.cs",
+                      "sha256":  "38ebfafa429e1650d4aaee483c18e709696fe258929f0e8abb00169fb34df06e",
+                      "size":  12950
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechProgress.cs",
@@ -48039,8 +50049,8 @@
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/modDataBlocks.cs",
-                      "sha256":  "2dba9cd112cda4155c560234064630953d5b893d2526f7e977260d009fcedd4f",
-                      "size":  965
+                      "sha256":  "0b612cad463e8ad2cd3191271f4d10f6abfbe8b6c69d749215f6d30a538f0d45",
+                      "size":  1044
                   },
                   {
                       "path":  "Mods/RPG/!waterblue.png",
@@ -57779,7 +59789,7 @@
                   },
                   {
                       "path":  "Mods/RPG/scripts/move.cs",
-                      "sha256":  "a31b94a962b7b5750214ab3a9461bd46706f5b297925c0f474fc281d8f177f28",
+                      "sha256":  "e7d97d0084bedaa6b6f3047e68fbaf033d366d1ebf97860b0323643771883485",
                       "size":  5756
                   },
                   {
@@ -67390,6 +69400,26 @@
                       "size":  17462
                   },
                   {
+                      "path":  "Plugins/anim_textures/Lava2.gif",
+                      "sha256":  "6d5a5cd1c3695e7846a911aba3426e0756d9517f20e84ea4e25dcb857041d6f9",
+                      "size":  1465649
+                  },
+                  {
+                      "path":  "Plugins/anim_textures/lava3.gif",
+                      "sha256":  "adf2c21c986524deecc98c28df3d8dc5f04fc8115fc88406b260a1f76993d467",
+                      "size":  275834
+                  },
+                  {
+                      "path":  "Plugins/anim_textures/lava4.gif",
+                      "sha256":  "6ad6775c85376bccbd5f6ea57c9fe1b2db2a3c301a9805369019e3235ef53252",
+                      "size":  2288437
+                  },
+                  {
+                      "path":  "Plugins/anim_textures/ripplingwaves.gif",
+                      "sha256":  "1c129d11d858b314d23b0b546a4f388c7c0024aa76e1154a53af84e30673bd26",
+                      "size":  53563681
+                  },
+                  {
                       "path":  "Plugins/anim_textures/water01/0001.bmp",
                       "sha256":  "866cee4baa588b7c736f8d327aca349dfe30372548b962eb9c4ac9ce1da314d3",
                       "size":  50230
@@ -67798,6 +69828,11 @@
                       "path":  "Plugins/anim_textures/water03/0041.bmp",
                       "sha256":  "2a6556a53ef575a17f5da9a44dbf9f8ebe6651509c1500de12bb93e8162d0ec7",
                       "size":  50230
+                  },
+                  {
+                      "path":  "Plugins/anim_textures/water2.gif",
+                      "sha256":  "ab29dc992c5d677f5b55b10b505e2448978f9f9f40857962ca12c51afcb578a8",
+                      "size":  4134579
                   },
                   {
                       "path":  "Plugins/anim_textures/waterfall_1_/0001.bmp",
@@ -68611,8 +70646,8 @@
                   },
                   {
                       "path":  "README - Modern Client.txt",
-                      "sha256":  "1be6b43cbfcdc5da428e3d645d47c0261827de6f682285dca5e5b64939ecdc30",
-                      "size":  9286
+                      "sha256":  "08d46efa9e00b38cd5ac47151040bf8e0ac61eb041694f29a6c84c83b18b05fc",
+                      "size":  10163
                   },
                   {
                       "path":  "smackw32.dll",
@@ -68621,8 +70656,8 @@
                   },
                   {
                       "path":  "TribesHost.exe",
-                      "sha256":  "5af89a1939a47cb40986ca44d7a1eae7221f903967c8306831acdd83b1339d58",
-                      "size":  220672
+                      "sha256":  "59d66a26433aaf68e07eafa2275339f6b31b3110932b665871be3b60a1886df4",
+                      "size":  212992
                   },
                   {
                       "path":  "vccorlib140.dll",
