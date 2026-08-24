@@ -126,15 +126,38 @@ function EvalSearchPath()
       deleteObject(%vol);
 
    // load all the volumes:
+   // .vol is a dead archive format. The engine reads an archive by its PK magic
+   // (resManager.cpp), not by its extension, so new content ships as a plain .zip
+   // and legacy packs keep their .vol. These globs only ever matched "*.vol",
+   // which is why a correctly named .zip was silently ignored here.
+   //
+   // Both are scanned now, and %i carries across the second loop so the object
+   // names (VoiceVolume0, VoiceVolume1, ...) cannot collide.
    %file = File::findFirst("voices\\*.vol");
    for(%i = 0; %file != ""; %file = File::findNext("voices\\*.vol"))
       if(newObject("VoiceVolume" @ %i, SimVolume, %file))
          %i++;
 
+   %file = File::findFirst("voices\\*.zip");
+   while(%file != "")
+   {
+      if(newObject("VoiceVolume" @ %i, SimVolume, %file))
+         %i++;
+      %file = File::findNext("voices\\*.zip");
+   }
+
    %file = File::findFirst("skins\\*.vol");
    for(%i = 0; %file != ""; %file = File::findNext("skins\\*.vol"))
       if(newObject("SkinVolume" @ %i, SimVolume, %file))
          %i++;
+
+   %file = File::findFirst("skins\\*.zip");
+   while(%file != "")
+   {
+      if(newObject("SkinVolume" @ %i, SimVolume, %file))
+         %i++;
+      %file = File::findNext("skins\\*.zip");
+   }
 }
 
 function LoadModVolumes()
@@ -143,9 +166,17 @@ function LoadModVolumes()
    for(%i = $modCount - 1; %i >= 0; %i--)
    {
 		%word = getWord($modList, %i);
-		%vol = %word @ ".vol";
-		if (isFile(%word @ "\\" @ %vol))
-			newObject(%word @ "Volume", SimVolume, %vol);
+		// No isFile() guard, deliberately. It tested a literal cwd-relative path
+		// ("RPG\RPG.vol"), which stopped being where mods live when they moved under
+		// Mods\ in v16 -- so this gate had been silently failing for the relocated
+		// layout, for .vol as much as for .zip.
+		//
+		// newObject -> ResourceManager::addVolume already does the right thing twice
+		// over: it resolves against the SEARCH PATH (which is Mods-redirected), and
+		// when "<mod>.vol" is absent it retries the same stem as ".zip". So one call
+		// covers a legacy .vol pack, a relocated one, and a modern zip. A pack with
+		// no archive at all just fails the call harmlessly.
+		newObject(%word @ "Volume", SimVolume, %word @ ".vol");
    }
 }
 
@@ -289,6 +320,25 @@ else
    // Action map for flying cameras
    exec("move.cs");
    move();
+
+   // NATIVE-EDITOR (2026-08-22): enter the mission editor from a running client
+   // (same effect as launching with `-edit <mission>`, no restart needed).
+   // Console: editMission("Broadside");  The editor GUI comes up via
+   // ME::BringUp once the loopback join completes (see editor.cs trailer).
+   function editMission(%mission)
+   {
+      if(%mission == "")
+      {
+         echo("usage: editMission(<missionName>);  e.g. editMission(\"Broadside\");");
+         return;
+      }
+      $EditingMission = true;
+      $EditMission = %mission;
+      setCursor(MainWindow, "Cur_Arrow.bmp");
+      cursorOn(MainWindow);
+      exec(editor);
+      createServer(%mission, false);
+   }
 
    // Play the intro smacker file
    setCursor(MainWindow, "Cur_Empty.bmp");

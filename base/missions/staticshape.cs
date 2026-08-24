@@ -1347,3 +1347,7 @@ StaticShapeData LargeSolarPanel {
 //------------------------------------------------------------------------
 //-----------------------------End-of-File--------------------------------
 //------------------------------------------------------------------------
+
+// Optional Planetside 1 model fixtures. Keep default-off so servers do not
+// register art datablocks that connecting clients may not have installed.
+if ($PS1Models::Enable == 1) { exec("ps1_vs_max_look001.cs"); }

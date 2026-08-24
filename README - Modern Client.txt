@@ -11,9 +11,9 @@ question -- see HOSTING A SERVER below.)
 No installer. Extract the folder anywhere and play.
 
 Everything here -- every mod, and hosting a server for any of
-them -- is driven by ONE client (ModernTribes.exe) and ONE
-text file (modlist.txt). There are no per-mod launchers to
-hunt for.
+them -- is driven by ONE client (ModernTribes.exe). You pick
+the mod in the game itself; there are no per-mod launchers to
+hunt for and no text file to edit.
 
 
 -------------------------------------------------------------
@@ -32,37 +32,47 @@ downloaded .zip BEFORE extracting, choosing Properties, and
 ticking "Unblock". Players who update through the in-game
 Update button will never see the warning.
 
-Out of the box it runs whatever modlist.txt selects. To change
-mods, see the next section.
+The first time you start it, it asks which mod you want. To
+change your mind later, see the next section.
 
 
 -------------------------------------------------------------
- CHOOSING WHAT YOU PLAY  (modlist.txt)
+ CHOOSING WHAT YOU PLAY
 -------------------------------------------------------------
 
-Open  modlist.txt  in this folder with Notepad. Each line is a
-launch argument; a line starting with '#' or ';' is ignored.
-Uncomment the ONE block you want:
+The first launch asks. A window lists every mod this install
+has, you pick one and press PLAY. Tick "Remember my choice"
+and it stops asking.
 
-  Base Tribes ......... (leave every line commented out)
-  Tribes RPG / Kronos . -mod rpg
-  Red Moon RPG ........ -mod rpg
-                        -mod rmrpg     <-- BOTH lines
-  Star Wars RPG ....... -mod SWRPG
-  Star Wars ........... -mod StarWars
-  Delta Air Force ..... -mod DeltaAirForce
-  Warhammer 40k ....... -mod War40k
-  TAC ................. -mod Tac
-  TSC ................. -mod TSC
+To change mod after that, any of these:
 
-Save the file and start the game. That is the whole procedure.
+  * MODS on the main menu.
+  * The MOD panel in the top bar of any menu screen -- it
+    always shows what you are running now. Click it.
+  * Options -> Configs -> Mod.
+  * Hold SHIFT while the game starts to get the first-launch
+    picker back.
 
-WHY RED MOON NEEDS TWO LINES: Red Moon is built ON TOP of
-Tribes RPG, so both mods must load, in that order. Loading
-"-mod rmrpg" on its own will not work properly.
+Changing mod restarts Tribes. That is not a limitation we can
+remove: a mod's scripts are loaded once at startup and the
+engine has no way to unload them again.
 
-The same file decides what a dedicated server hosts -- see
-HOSTING below.
+JOINING A MODDED SERVER: you do not have to match it yourself.
+Pick the server in the browser and, if it runs a mod you are
+not currently in, Tribes restarts into that mod and joins for
+you. Your saved default is left alone.
+
+WHY RED MOON IS ONE ENTRY, NOT TWO: Red Moon is built ON TOP
+of Tribes RPG, so both mods have to load, in that order. The
+selector knows, and picks both for you. (It used to be two
+hand-typed lines, and getting the order wrong half-worked in
+confusing ways.)
+
+modlist.txt is still there and still works. The game now owns
+a block at the top of it, so if you had uncommented a line by
+hand, that choice is picked up automatically the first time
+you run this version -- your old file is kept as
+modlist.txt.pre-modsel.bak.
 
 
 -------------------------------------------------------------
@@ -96,7 +106,7 @@ Star Wars, Delta Air Force, Warhammer 40k, TAC, TSC
 
 The CustomConfigs folder holds alternative HUD and interface
 layouts (ProConfig, Overstep, xLoader, Minimalist and others).
-These are NOT mods -- do not put them in modlist.txt. They are
+These are NOT mods -- they do not appear in the mod picker. They are
 overlays you switch on inside the game, from the Configs tab
 in Options, and they apply on top of whichever mod you are
 running.
@@ -142,10 +152,15 @@ WHAT YOU CAN HOST
   To play Kronos, just join it from the server browser.
 
 THE OLD WAY (still works)
-  1. Pick the mod in modlist.txt, exactly as for playing.
+  1. Pick the mod with -mod on the command line (below).
+     NOTE: a bare "-dedicated" run still inherits whatever mod
+     you picked for PLAYING, exactly as it always has. Naming
+     -mod explicitly is what makes a server independent of it.
   2. Set your server name and port in config\ServerPrefs.cs
      (base) or config\rpgserv.cs / rmrpgserv.cs (RPG mods).
   3. Run:  InfiniteSpawn.exe *ModernTribes.exe -dedicated
+     or, for a specific mod regardless of your play choice:
+           InfiniteSpawn.exe *ModernTribes.exe -mod rpg -dedicated
 
   InfiniteSpawn restarts a crashed server, but silently --
   a crash-looping server can look like a healthy one, so
@@ -211,7 +226,8 @@ News and downloads:  kingdomofkronos.com/beta
 - Custom keybinds fighting the pack's extras: edit
   config\extra-controls.cs.
 - HUD stuck from another mod or pack: delete config\play.gui.
-- A mod will not load: check modlist.txt for a stray '#', and
+- A mod will not load: open MODS on the main menu and check it
+  is not greyed out as "not installed"; and
   that the mod's folder is still present in this directory.
 
 

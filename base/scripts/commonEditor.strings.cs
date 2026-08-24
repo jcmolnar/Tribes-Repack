@@ -113,7 +113,7 @@ IDITG_SIS_DISABLECOLLISIONS        = 01010407, "Disable Collisions:";
 // simVolumetric
 IDITG_SV_POSITION                  = 01010500, "Box Position:";
 IDITG_SV_DIMENSIONS                = 01010501, "Box Dimensions:";
-IDITG_SV_TEXTURE_SCALE             = 01010502, "Texture Scale:";
+IDITG_SV_TEXTURE_SCALE             = 01010502, "Tile Size (units):";
 IDITG_SV_TRANS_LEVEL               = 01010503, "Translucency Level:";
 IDITG_SV_ANIM_SCALE                = 01010504, "Anim Cycles / Sec:";
 IDITG_SV_TOGGLES                   = 01010505, "Flags (upper=ON):";
@@ -133,6 +133,30 @@ IDITG_SV_BOX_DIVISIONS             = 01010517, "Number of Divisions:";
 IDITG_SV_TYPE_WATER                = 01010520, "Water";
 IDITG_SV_TYPE_AIR                  = 01010521, "Air Current";
 IDITG_SV_TYPE_ACID                 = 01010522, "Acid";
+
+        // NATIVE-EDITOR: liquid texture dropdown (wz*.dml presets in base\)
+IDITG_SV_LIQUID_TEXTURE            = 01010530, "Liquid Texture:";
+IDITG_SV_LIQTEX_CUSTOM             = 01010531, "(custom dml)";
+IDITG_SV_LIQTEX_WATER1             = 01010532, "Water";
+IDITG_SV_LIQTEX_WATER2             = 01010533, "Water 2";
+IDITG_SV_LIQTEX_LAVA1              = 01010534, "Lava";
+IDITG_SV_LIQTEX_LAVA2              = 01010535, "Lava 2";
+IDITG_SV_LIQTEX_LAVA3              = 01010536, "Lava 3";
+IDITG_SV_LIQTEX_LAVA4              = 01010537, "Lava 4";
+        // NATIVE-EDITOR: thunderstorm marker fields (weather.cs Storm* markers)
+IDITG_STORM_MIN_DELAY              = 01010540, "Strike Delay Min (s):";
+IDITG_STORM_MAX_DELAY              = 01010541, "Strike Delay Max (s):";
+IDITG_STORM_RADIUS                 = 01010542, "Strike Scatter Radius:";
+IDITG_STORM_HEIGHT                 = 01010543, "Strike Height:";
+IDITG_STORM_DAMAGE                 = 01010544, "Strike Damage:";
+
+
+// gravityContainer
+IDITG_GC_OVERRIDE                  = 01010600, "Override Gravity:";
+IDITG_GC_GRAVITY                   = 01010601, "Gravity (m/s^2):";
+IDITG_GC_WIND                      = 01010602, "Wind Velocity:";
+IDITG_GC_WIND_DRAG                 = 01010603, "Wind Drag:";
+IDITG_GC_DRAG                      = 01010604, "Container Drag:";
 
 
 IDCOMEDIT_END_ITG				        = 01019999; // "-- Inspect Window Tags --";

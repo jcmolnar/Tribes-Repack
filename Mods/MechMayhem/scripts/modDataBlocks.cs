@@ -15,6 +15,7 @@
 exec(MechWeapons);
 exec(MechTwins);
 exec(MechChassis);
+exec(MechPilot);     // Last Stand pilot armor + kit (needs MechWeapons' tags)
 
 $MechMayhem::DataBlocksLoaded = 1;
 echo("[MECH] modDataBlocks.cs exec'd (pre-preload hook OK).");

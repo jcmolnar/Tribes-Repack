@@ -32,7 +32,12 @@ if( $ME::Loaded == "true" )
 	$ME::AIObjectType            	= 1 << 19;
 
 	// all but SimTerrain and SimContainerObject and SimDefaultObject
-	ME::SetGrabMask( ~( $ME::SimTerrain | $ME::SimContainerObject | $ME::SimDefaultObject ) );
+	// NATIVE-EDITOR: was ~( $ME::SimTerrain | $ME::SimContainerObject |
+	// $ME::SimDefaultObject ) -- this dialect has no unary ~, so the line was a
+	// SYNTAX ERROR ("med.cs Line: 35") and everything after it in this block
+	// (default place mask, $ME::camera, sensitivities) silently never ran --
+	// since 1998. ~(1|2|64) == ~67 == -68 as a signed int, same bits.
+	ME::SetGrabMask( -68 );
 
 	// place masks
 	ME::SetDefaultPlaceMask( $ME::SimTerrain | $ME::SimInteriorObject );

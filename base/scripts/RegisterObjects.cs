@@ -25,6 +25,7 @@ MissionRegObject( Mission, "Map Marker", MissionCreateObject, "Map Marker", Mark
 MissionRegObject( Mission, "Drop Point", MissionCreateObject, "Drop Point", Marker, DropPointMarker );
 MissionRegObject( Mission, Trigger, MissionCreateObject,GroupTrigger, Trigger, GroupTrigger );
 MissionRegObject( Mission, Volume, ME::onCreateVolume);
+MissionRegObject( Mission, "Gravity Zone", MissionCreateObject, GravityZone, GravityContainer );
 MissionRegObject( Mission, "Point Light", MissionCreateObject, PointLight, SimLight, Point, 10, 1, 1, 1, 0, 0, 0);
 
 //

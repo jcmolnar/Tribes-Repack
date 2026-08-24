@@ -431,8 +431,17 @@ function Game::playerSpawn(%clientId, %respawn)
 	   else
 	      %armor = "lfemale";
 
+	   // The PS1 MAX PlayerData is opt-in and is loaded by ArmorData.cs before
+	   // datablock preload.  Selecting it here makes respawns authoritative on
+	   // both server and client; a late Player::setArmor alone is not enough for
+	   // every legacy client spawn path.
+	   if($PS1Models::Enable == 1 && $PS1Models::UseAsPlayer == 1)
+	      %armor = "PS1VSMaxPlayer";
+
 	   %pl = spawnPlayer(%armor, %spawnPos, %spawnRot);
 	   echo("SPAWN: cl:" @ %clientId @ " pl:" @ %pl @ " marker:" @ %spawnMarker @ " armor:" @ %armor);
+	   if(%pl != -1)
+	      echo("SPAWN_ACTUAL: armor:" @ Player::getArmor(%pl) @ " data:" @ GameBase::getDataName(%pl));
 	   if(%pl != -1)
 	   {
 	      GameBase::setTeam(%pl, Client::getTeam(%clientId));

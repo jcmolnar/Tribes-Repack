@@ -17,6 +17,7 @@ exec(MechDamage);
 exec(MechWaves);
 exec(MechZones);
 exec(MechProgress);
+exec(MechEject);
 
 $MM::TicketPool = 40000;
 
@@ -103,6 +104,7 @@ function MechMayhem::grantLoadout(%pl, %clientId, %chassis)
 function Game::playerSpawned(%pl, %clientId, %armor)
 {
    Client::setSkin(%clientId, $Client::info[%clientId, 0]);
+   %clientId.mmOnFoot = "";   // a fresh mech ends any Last Stand on-foot life
 
    // a pilot's MMPick beats the round-robin; validity re-checked each spawn
    %chassis = %clientId.mmChassis;
@@ -278,6 +280,7 @@ function Game::clientKilled(%playerId, %killerId)
    // victim OBJECT (real chassis CV) and works when the victim is a bot --
    // Client::getOwnedObject on a bot rep resolves nothing, which is why every
    // kill used to pay the flat 500 fallback and bot kills mispaid.
+   MechEject::bounty(%playerId, %killerId);
    if (%playerId != -1 && %playerId.mmKey != "")
       $MMP::deaths[%playerId.mmKey] = $MMP::deaths[%playerId.mmKey] + 1;
 }
@@ -518,6 +521,8 @@ function MechMayhem::garageMenu(%clientId)
 function MechMayhem::garageLabel(%clientId, %db)
 {
    %lbl = %db @ "  T" @ $MM::Tech[%db] @ "  CV " @ $MM::CV[%db] @ "  [" @ $MM::Slots[%db] @ "]";
+   if ($MM::EjectChassis[%db] == 1)
+      %lbl = %lbl @ "  +EJECT";
    if(MechProgress::canUse(%clientId, %db))
       return %lbl;
    return "LOCKED  " @ %lbl @ "  -- buy for " @ ($MM::CV[%db] * $MM::UnlockCostMult) @ " salvage";
@@ -711,6 +716,7 @@ function MechMayhem::objectives(%final, %headline)
       Team::setObjective(%l, %n++, "<f1>   - TAB, then Mech Garage picks your chassis (next spawn).");
       Team::setObjective(%l, %n++, "<f1>   - The trigger chain-fires every pod; heat is your ammo -- overheat = shutdown.");
       Team::setObjective(%l, %n++, "<f1>   - Jump = dash. Scout chassis (Talon/Seeker/Goad/Eman) fly on jets.");
+      Team::setObjective(%l, %n++, "<f1>   - Tech-5+ human chassis (+EJECT in the garage) carry EJECTION SEATS: the pilot bails out and fights on foot.");
       Team::setObjective(%l, %n++, " ");
       Team::setObjective(%l, %n++, "<f5>TOP PILOTS");
       Team::setObjective(%l, %n++, "<f1>Pilot<L40>Kills<L55>Deaths");

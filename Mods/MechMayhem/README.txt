@@ -48,6 +48,22 @@ DAMAGE MODEL
     cockpit hits hurt more, component damage lights the LEGS / GUNS /
     SENS / RCTR lamps on the right of the HUD.
 
+LAST STAND -- THE EJECTION SEAT
+  - Every tech-5+ HUMAN-faction chassis (marked +EJECT in the Garage:
+    Harabec's Apocalypse, the Knights' Apocalypse and Gorgon) carries an
+    ejection system: the blow that would kill it instead blasts you out of
+    the cockpit as the mech's reactor cooks off beneath you. Cybrid hulls
+    have no cockpit to eject from.
+  - You come down in a hardened flight suit with jump jets, an energy pack,
+    and an anti-HERC kit:
+        HERC Lance     shoulder-fired seeking missile; punches shields
+        Demo Charge    lobbed satchel, short fuse -- the real mech-killer
+        Pilot Sidearm  fast blaster for the other ejected pilot
+    All three feed off the suit capacitor -- no ammo, just recharge.
+  - The mech's CV is charged when the hull dies; your time on foot is free.
+    Your killer only CONFIRMS the kill (and a salvage bounty) by hunting
+    you down. Die on foot and you respawn into a fresh mech as normal.
+
 THE GARAGE  (TAB menu -> "Mech Garage")
   - Browse by class (Light / Medium / Heavy / Assault). Every entry shows
     tech level, CV, and hardpoint rack.

@@ -403,6 +403,45 @@ function Vector::vmeter(%x, %y, %w, %h, %segs, %frac, %rgb, %alpha)
    }
 }
 
+//------------------------------------------------------------------------------
+// ★Every angled quad in this pack goes through here, and it is load-bearing.★
+//
+// glAngledPolygon does NOT disable GL_CULL_FACE (scriptGL.cpp c_glAngledPolygon
+// pushes GL_ENABLE_BIT and clears only TEXTURE_2D and ALPHA_TEST), so it
+// INHERITS the frame's culling -- which in the ModernHUD pass is ON. A quad
+// wound the wrong way is dropped silently. The function's own comment claims the
+// opposite ("Winding is not enforced: the surface's 2D pass runs with culling
+// off"), which is why this went unnoticed for so long; glRectangle is immune
+// because it derives its four corners itself, always in the same order.
+//
+// ★This pack was SHIPPING with the damage.★ Measured 2026-08-22 at 200% reticle
+// scale, one frame, four predictions in two directions -- all four correct:
+//   Vector::caps  dir=1  (left/health)  shoelace -48 -> cap MISSING   [observed]
+//   Vector::caps  dir=-1 (right/energy) shoelace +48 -> cap present   [observed]
+//   drawReticle style 2, left chevron   shoelace +2LT -> present      [observed]
+//   drawReticle style 2, right chevron  shoelace -2LT -> MISSING      [observed]
+// So the health bracket had no end caps and the "Chevrons" reticle had only its
+// left half, in every session since those shapes were written.
+//
+// ★The test is the SHOELACE over all four vertices, not (v1-v0)x(v2-v0).★ The
+// menu-frame chamfers and the caps are triangles written with a repeated vertex,
+// where the three-point cross product is exactly 0 -- a three-point test waves
+// through the very shapes that go missing.
+//
+// Reversing v0..v3 to v3..v0 flips the winding and leaves the polygon identical.
+// This becomes a harmless no-op if the engine ever disables culling there.
+//------------------------------------------------------------------------------
+function Vector::quad(%x1, %y1, %x2, %y2, %x3, %y3, %x4, %y4)
+{
+   %a = (%x1 * %y2 - %x2 * %y1) + (%x2 * %y3 - %x3 * %y2) +
+        (%x3 * %y4 - %x4 * %y3) + (%x4 * %y1 - %x1 * %y4);
+
+   if(%a >= 0)
+      glAngledPolygon(%x1, %y1, %x2, %y2, %x3, %y3, %x4, %y4);
+   else
+      glAngledPolygon(%x4, %y4, %x3, %y3, %x2, %y2, %x1, %y1);
+}
+
 // Angled caps above and below a meter column. %dir is 1 for the left bracket
 // (points left) and -1 for the right. This is what glAngledPolygon was added
 // for -- as axis-aligned rects the same shape is a visible staircase.
@@ -415,9 +454,9 @@ function Vector::caps(%x, %y, %w, %h, %dir, %rgb, %alpha)
    %ox = %x - %dir * %k;         // outer edge, away from the crosshair
 
    // top cap
-   glAngledPolygon(%x, %y - 4, %ox, %y - 4 - %k, %ox, %y - 4 - %k + %t, %x, %y - 4 + %t);
+   Vector::quad(%x, %y - 4, %ox, %y - 4 - %k, %ox, %y - 4 - %k + %t, %x, %y - 4 + %t);
    // bottom cap
-   glAngledPolygon(%x, %y + %h + 4 - %t, %ox, %y + %h + 4 + %k - %t,
+   Vector::quad(%x, %y + %h + 4 - %t, %ox, %y + %h + 4 + %k - %t,
                    %ox, %y + %h + 4 + %k, %x, %y + %h + 4);
 }
 
@@ -454,9 +493,9 @@ function Vector::drawReticle(%cx, %cy, %spread, %rgb)
       // shape glAngledPolygon exists for -- as rects it is a staircase.
       %kk = floor(5 * %k);
       if(%kk < 1) %kk = 1;
-      glAngledPolygon(%cx - %inner - %len, %cy - %kk, %cx - %inner, %cy,
+      Vector::quad(%cx - %inner - %len, %cy - %kk, %cx - %inner, %cy,
                       %cx - %inner, %cy + %t, %cx - %inner - %len, %cy - %kk + %t);
-      glAngledPolygon(%cx + %inner + %len, %cy - %kk, %cx + %inner, %cy,
+      Vector::quad(%cx + %inner + %len, %cy - %kk, %cx + %inner, %cy,
                       %cx + %inner, %cy + %t, %cx + %inner + %len, %cy - %kk + %t);
       glRectangle(%cx - floor(%t / 2), %cy - %inner - %len, %t, %len);
       return;
@@ -1523,8 +1562,8 @@ function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
       glRectangle(%x, %y, %w, 3);
       glRectangle(%x, %y + %h - 3, %w, 3);
       Vector::color($Vector::Accent, 165);
-      glAngledPolygon(%x, %y, %x + 24, %y, %x + 12, %y + %head, %x, %y + %head);
-      glAngledPolygon(%x + %w - 24, %y, %x + %w, %y, %x + %w, %y + %head, %x + %w - 12, %y + %head);
+      Vector::quad(%x, %y, %x + 24, %y, %x + 12, %y + %head, %x, %y + %head);
+      Vector::quad(%x + %w - 24, %y, %x + %w, %y, %x + %w, %y + %head, %x + %w - 12, %y + %head);
       Vector::color($Vector::Primary, 180);
       for(%i = 0; %i < 4; %i++)
       {
@@ -1562,8 +1601,8 @@ function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
       for(%i = 0; %i < 7; %i++)
       {
          %sx = %x + 8 + (%i * floor((%w - 16) / 7));
-         glAngledPolygon(%sx, %y, %sx + 13, %y, %sx + 5, %y + 6, %sx - 8, %y + 6);
-         glAngledPolygon(%sx, %y + %h - 6, %sx + 13, %y + %h - 6,
+         Vector::quad(%sx, %y, %sx + 13, %y, %sx + 5, %y + 6, %sx - 8, %y + 6);
+         Vector::quad(%sx, %y + %h - 6, %sx + 13, %y + %h - 6,
                          %sx + 5, %y + %h, %sx - 8, %y + %h);
       }
       Vector::color($Vector::Primary, 90);
@@ -1576,8 +1615,8 @@ function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
       Vector::color("7 20 31", 238);
       glGradientRect(%x, %y, %w, %h, 22, 58, 78, 245);
       Vector::color($Vector::Primary, 210);
-      glAngledPolygon(%x, %y, %x + 28, %y, %x + 10, %y + 10, %x, %y + 30);
-      glAngledPolygon(%x + %w - 28, %y, %x + %w, %y,
+      Vector::quad(%x, %y, %x + 28, %y, %x + 10, %y + 10, %x, %y + 30);
+      Vector::quad(%x + %w - 28, %y, %x + %w, %y,
                       %x + %w, %y + 30, %x + %w - 10, %y + 10);
       Vector::color($Vector::Accent, 75);
       for(%i = 1; %i < 5; %i++)
@@ -1616,7 +1655,7 @@ function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
       for(%i = 0; %i < 5; %i++)
       {
          %rx = %x + %w - 16 - (%i * 18);
-         glAngledPolygon(%rx, %y + 3, %rx + 8, %y + 3,
+         Vector::quad(%rx, %y + 3, %rx + 8, %y + 3,
                          %rx - 3, %y + %head, %rx - 11, %y + %head);
       }
       Vector::color($Vector::Primary, 155);
@@ -1694,10 +1733,10 @@ function ModernHUDPack::menuFrame(%x, %y, %w, %h, %head)
    glRectangle(%x, %y, %w, 1);
    glRectangle(%x, %y + %h - 1, %w, 1);
    Vector::color("10 13 16", 252);
-   glAngledPolygon(%x + %w - 18, %y, %x + %w, %y,
+   Vector::quad(%x + %w - 18, %y, %x + %w, %y,
                    %x + %w, %y + 18, %x + %w - 18, %y);
    Vector::color($Vector::Primary, 200);
-   glAngledPolygon(%x + %w - 18, %y, %x + %w, %y + 18,
+   Vector::quad(%x + %w - 18, %y, %x + %w, %y + 18,
                    %x + %w - 1, %y + 18, %x + %w - 17, %y);
    Vector::color($Vector::Primary, 40);
    glGradientRect(%x + 3, %y + 1, %w - 4, %head - 2,

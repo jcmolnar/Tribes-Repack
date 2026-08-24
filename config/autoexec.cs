@@ -28,7 +28,7 @@ function OptionsVideo::validate()
 	}
 	if($pref::VideoWindowedDriver == "") $pref::VideoWindowedDriver = "Software";
 	if($pref::VideoFullScreenRes == "") $pref::VideoFullScreenRes = "640x480";
-	if($pref::VideoGamma == "") $pref::VideoGamma = "0.5";
+	if($pref::VideoGamma == "") $pref::VideoGamma = "0.65";
 
 	if(!$KV::reapplyArmed)
 	{

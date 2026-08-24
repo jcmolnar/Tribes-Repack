@@ -49,7 +49,19 @@ if($pref::quickStart == "")             { $pref::quickStart = true; }
 if($pref::lastTrainingMission == "")    { $pref::lastTrainingMission = "1_Welcome"; }
 if($pref::autoWaypoint == "")           { $pref::autoWaypoint = true; }
 if($pref::helpPopups == "")             { $pref::helpPopups = true; }
-if($pref::VideoFullScreen == "")        { $pref::VideoFullScreen = True; }
+
+// First-boot video (2026-08-22). A fresh install has no ClientPrefs.cs, and the old
+// defaults (fullscreen True here + 640x480 fullscreen res + Software drivers from the
+// autoexec.cs validate) gave new players a 640x480 software-rendered fullscreen first
+// boot. Default instead to a 1024x768 window on the OpenGL driver. softwareRes is the
+// windowed client size GUI.cs refreshWindowSize() applies (its own fallback is 936x702);
+// the windowed OpenGL device not taking on the early apply is already handled by
+// KronosVideo::reapply in autoexec.cs. All guarded: anything the player saved wins.
+if($pref::VideoFullScreen == "")        { $pref::VideoFullScreen = False; }
+if($pref::softwareRes == "")            { $pref::softwareRes = "1024 768"; }
+if($pref::VideoFullScreenRes == "")     { $pref::VideoFullScreenRes = "1024x768"; }
+if($pref::VideoWindowedDriver == "")    { $pref::VideoWindowedDriver = "OpenGL"; }
+if($pref::VideoFullScreenDriver == "")  { $pref::VideoFullScreenDriver = "OpenGL"; }
 if($pref::noEnterInvStation == "")      { $pref::noEnterInvStation = false; }
 if($pref::messageMask == "")            { $pref::messageMask = -1; }
 if($pref::filterBadWords == "")         { $pref::filterBadWords = true; }

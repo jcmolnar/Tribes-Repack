@@ -12,14 +12,14 @@ if( $ME::Loaded == "true" )
    }
 
    newActionMap( "editor.sae" );
-   bindAction( keyboard, make, s, TO, IDACTION_MOVELEFT, 1 );
-   bindAction( keyboard, break, s, TO, IDACTION_MOVELEFT, 0 );
-   bindAction( keyboard, make, f, TO, IDACTION_MOVERIGHT, 1 );
-   bindAction( keyboard, break, f, TO, IDACTION_MOVERIGHT, 0 );
-   bindAction( keyboard, make, d, TO, IDACTION_MOVEBACK, 1 );
-   bindAction( keyboard, break, d, TO, IDACTION_MOVEBACK, 0 );
-   bindAction( keyboard, make, e, TO, IDACTION_MOVEFORWARD, 1 );
-   bindAction( keyboard, break, e, TO, IDACTION_MOVEFORWARD, 0 );
+   bindAction( keyboard, make, a, TO, IDACTION_MOVELEFT, 1 );
+   bindAction( keyboard, break, a, TO, IDACTION_MOVELEFT, 0 );
+   bindAction( keyboard, make, d, TO, IDACTION_MOVERIGHT, 1 );
+   bindAction( keyboard, break, d, TO, IDACTION_MOVERIGHT, 0 );
+   bindAction( keyboard, make, s, TO, IDACTION_MOVEBACK, 1 );
+   bindAction( keyboard, break, s, TO, IDACTION_MOVEBACK, 0 );
+   bindAction( keyboard, make, w, TO, IDACTION_MOVEFORWARD, 1 );
+   bindAction( keyboard, break, w, TO, IDACTION_MOVEFORWARD, 0 );
    bindAction( keyboard, make, r, TO, IDACTION_MOVEUP, 1 );
    bindAction( keyboard, break, r, TO, IDACTION_MOVEUP, 0 );
    bindAction( keyboard, make, c, TO, IDACTION_MOVEDOWN, 1 );
@@ -97,14 +97,14 @@ else
       %NegRotation = strcat( "-", $PosRotation );
 
       newActionMap("move.sae");
-      bindAction( keyboard, make, s, TO, IDACTION_MOVELEFT, $MoveSpeed );
-      bindAction( keyboard, break, s, TO, IDACTION_MOVELEFT, 0 );
-      bindAction( keyboard, make, f, TO, IDACTION_MOVERIGHT, $MoveSpeed );
-      bindAction( keyboard, break, f, TO, IDACTION_MOVERIGHT, 0 );
-      bindAction( keyboard, make, d, TO, IDACTION_MOVEBACK, $MoveSpeed );
-      bindAction( keyboard, break, d, TO, IDACTION_MOVEBACK, 0 );
-      bindAction( keyboard, make, e, TO, IDACTION_MOVEFORWARD, $MoveSpeed );
-      bindAction( keyboard, break, e, TO, IDACTION_MOVEFORWARD, 0 );
+      bindAction( keyboard, make, a, TO, IDACTION_MOVELEFT, $MoveSpeed );
+      bindAction( keyboard, break, a, TO, IDACTION_MOVELEFT, 0 );
+      bindAction( keyboard, make, d, TO, IDACTION_MOVERIGHT, $MoveSpeed );
+      bindAction( keyboard, break, d, TO, IDACTION_MOVERIGHT, 0 );
+      bindAction( keyboard, make, s, TO, IDACTION_MOVEBACK, $MoveSpeed );
+      bindAction( keyboard, break, s, TO, IDACTION_MOVEBACK, 0 );
+      bindAction( keyboard, make, w, TO, IDACTION_MOVEFORWARD, $MoveSpeed );
+      bindAction( keyboard, break, w, TO, IDACTION_MOVEFORWARD, 0 );
       bindAction( keyboard, make, r, TO, IDACTION_MOVEUP, $MoveSpeed );
       bindAction( keyboard, break, r, TO, IDACTION_MOVEUP, 0 );
       bindAction( keyboard, make, v, TO, IDACTION_MOVEDOWN, $MoveSpeed );

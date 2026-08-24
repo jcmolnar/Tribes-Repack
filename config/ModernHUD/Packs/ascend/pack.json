@@ -1,0 +1,156 @@
+{
+  "format": 2,
+  "framework": 2,
+  "id": "ascend",
+  "name": "Ascend",
+  "category": "original",
+  "releaseState": "partial",
+  "authoring": "manual",
+  "reference": {
+    "width": 1920,
+    "height": 1080
+  },
+  "assets": {},
+  "prefs": {
+    "$pref::miniMapSquare": "True",
+    "$pref::miniMapWidth": "176",
+    "$pref::miniMapZoom": "6",
+    "$pref::miniMapRotate": "False"
+  },
+  "stockHuds": [
+    {
+      "name": "crosshairHud",
+      "class": "FearGui::Crosshair",
+      "visible": true
+    },
+    {
+      "name": "chatDisplayHud",
+      "class": "FearGui::FearGuiChatDisplay",
+      "visible": true
+    },
+    {
+      "name": "Minimap",
+      "class": "FearGui::Minimap",
+      "visible": true
+    },
+    {
+      "name": "clockHud",
+      "class": "FearGui::ClockHud",
+      "visible": false
+    },
+    {
+      "name": "healthHud",
+      "class": "FearGui::HealthHud",
+      "visible": false
+    },
+    {
+      "name": "jetPackHud",
+      "class": "FearGui::JetHud",
+      "visible": false
+    },
+    {
+      "name": "weaponHud",
+      "class": "FearGui::WeaponHud",
+      "visible": false
+    },
+    {
+      "name": "compassHud",
+      "class": "FearGui::CompassHud",
+      "visible": false
+    },
+    {
+      "name": "sensorHUD",
+      "class": "FearGui::SensorHud",
+      "visible": false
+    }
+  ],
+  "parts": [
+    {
+      "id": "topbar",
+      "slot": [
+        "ctf",
+        "clock"
+      ],
+      "handle": "ModernHUD::AscendTop",
+      "anchor": "top-center",
+      "offset": [
+        0,
+        14
+      ],
+      "size": [
+        760,
+        76
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Ascend::TopBar",
+          "body": [
+            "Ascend::TopBar(%x, %y, %partW);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vitals",
+      "slot": [
+        "healthenergy",
+        "items"
+      ],
+      "handle": "ModernHUD::AscendVitals",
+      "anchor": "bottom-left",
+      "offset": [
+        26,
+        34
+      ],
+      "size": [
+        430,
+        104
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Ascend::Vitals",
+          "body": [
+            "Ascend::Vitals(%x, %y, %partW);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weapons",
+      "slot": "weapon",
+      "handle": "ModernHUD::AscendWeapons",
+      "anchor": "bottom-center",
+      "offset": [
+        0,
+        18
+      ],
+      "size": [
+        576,
+        78
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Ascend::Weapons",
+          "body": [
+            "Ascend::Weapons(%x, %y, %partW);"
+          ]
+        }
+      ]
+    }
+  ]
+}

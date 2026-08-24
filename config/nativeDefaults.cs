@@ -304,3 +304,12 @@ exec("hoverHelp.cs");
 // render the old inverted-wall .dts. Guarded: an explicit 0 survives.
 //====================================================================================
 if($pref::gltfShapes == "") { $pref::gltfShapes = 1; }
+
+//====================================================================================
+// BAKE LIGHTING AT LOAD (2026-08-23, Joe's ship call for v18): the raytraced
+// relight-at-load can hitch on load and is not yet proven across different PCs,
+// so it ships OFF. The engine treats an ABSENT $pref::gpuLmapBake as ON (mode 3,
+// rt.cpp "absent bake -> 3"), so absence is not enough -- seed the explicit 0.
+// Guarded: a player who turned it ON in Options -> Graphics keeps it.
+//====================================================================================
+if($pref::gpuLmapBake == "") { $pref::gpuLmapBake = 0; }

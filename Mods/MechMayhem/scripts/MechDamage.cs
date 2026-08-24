@@ -293,6 +293,16 @@ function MechDamage::apply(%this, %type, %value, %pos, %vec, %mom, %vertPos, %qu
    }
 
    %dlevel = GameBase::getDamageLevel(%this) + %through;
+
+   // LAST STAND: a perk chassis about to take the killing blow ejects its
+   // pilot instead (MechEject.cs). fire() handles ALL of the death's
+   // bookkeeping (charge, spectacle, scoring); on spawn failure it returns 0
+   // and the normal death below proceeds untouched.
+   if (%dlevel >= %armor.maxDamage && MechEject::canEject(%this)) {
+      if (MechEject::fire(%this, %damagedClient, %shooterClient, %type))
+         return;
+   }
+
    GameBase::setDamageLevel(%this, %dlevel);
    %flash = Player::getDamageFlash(%this) + %through * 2;
    if (%flash > 0.75)

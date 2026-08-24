@@ -1143,3 +1143,7 @@ PlayerData mfemale
 // clients connect normally.
 if($MechPack::Enable == 1) { exec("MechArmorData.cs"); }
 // <<< starsiege herc pack: PlayerData armors <<<
+
+// Planetside 1 model tests are opt-in.  PlayerData must be declared here,
+// before createServer() calls preloadServerDataBlocks().
+if($PS1Models::Enable == 1) { exec("ps1_vs_max_player.cs"); }

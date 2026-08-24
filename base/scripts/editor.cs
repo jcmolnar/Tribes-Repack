@@ -320,7 +320,7 @@ function MEShowCreator()
    unfocus(TedObject);
    focus(MissionEditor);
    focus(editCamera);
-   postAction(EditorGui, Attach, editCamera);
+   postAction(EditorGui, 103, editCamera);   // 103 = ActionAttach (genericActions.h:16); the bareword Attach atoi-ed to 0 and the post was silently dropped (simGame.cpp:583) -- the viewport never followed the edit camera
    cursorOn(MainWindow);
 
    Control::setVisible("MEObjectList", true);
@@ -349,7 +349,7 @@ function MEShowInspector()
    unfocus(TedObject);
    focus(MissionEditor);
    focus(editCamera);
-   postAction(EditorGui, Attach, editCamera);
+   postAction(EditorGui, 103, editCamera);   // 103 = ActionAttach (genericActions.h:16); the bareword Attach atoi-ed to 0 and the post was silently dropped (simGame.cpp:583) -- the viewport never followed the edit camera
    cursorOn(MainWindow);
 
    Control::setVisible("MEObjectList", true);
@@ -379,7 +379,7 @@ function MEShowTed()
    unfocus(MissionEditor);
    focus(TedObject);
    focus(editCamera);
-   postAction(EditorGui, Attach, editCamera);
+   postAction(EditorGui, 103, editCamera);   // 103 = ActionAttach (genericActions.h:16); the bareword Attach atoi-ed to 0 and the post was silently dropped (simGame.cpp:583) -- the viewport never followed the edit camera
    cursorOn(MainWindow);
 
    // set the right button to nothing
@@ -475,10 +475,11 @@ function MESetupTedButton( %button, %func, %usePref )
 
 function MEMode()
 {
+   $ME::inGameMode = false;
    $ME::InspectObject = -1;
    if($ME::loaded != true)
       ME::init();
-   
+
    if(!isObject(editCamera))
       return;
 
@@ -498,10 +499,24 @@ function MEMode()
    MissionObjectList::SetSelMode(1);
    MEShowInspector();
    ME::GetConsoleOptions();
+   ME::StartAutoSave();
+
+   // NATIVE-EDITOR: the edit camera only receives input after a FOCUS event --
+   // EditCamera pushes its action map on SimGainFocusEvent (editCamera.cpp:
+   // 176-187), and stock MEMode never focused it (only F1's MEHide did), so
+   // the fly keys (ESDF + R/V up/down, 1-9 speed) were dead in the main editor
+   // view. Focus + attach exactly as MEHide does.
+   if(isObject(editCamera))
+   {
+      focus(editCamera);
+      meAttachCamera();
+      postAction(EditorGui, 103, editCamera);   // 103 = ActionAttach (genericActions.h:16); the bareword Attach atoi-ed to 0 and the post was silently dropped (simGame.cpp:583) -- the viewport never followed the edit camera
+   }
 }
 
 function MEGameMode(%doRebuild)
 {
+   $ME::inGameMode = true;
    if(%doRebuild != false)
       ME::RebuildCommandMap();
    unfocus(TedObject);
@@ -518,7 +533,7 @@ function MEHide()
       GuiLoadContentCtrl("MainWindow", "gui\\editor.gui");
 
    focus(editCamera);
-   postAction(EditorGui, Attach, editCamera);
+   postAction(EditorGui, 103, editCamera);   // 103 = ActionAttach (genericActions.h:16); the bareword Attach atoi-ed to 0 and the post was silently dropped (simGame.cpp:583) -- the viewport never followed the edit camera
 
    Control::setVisible("TedBar", false);
    Control::setVisible("MEObjectList", false);
@@ -579,6 +594,15 @@ function MEDuplicateSelection()
       Ted::floatSelection();
    if( Control::getVisible("MEObjectList") )
       ME::DuplicateSelection();
+}
+
+// NATIVE-EDITOR: move.cs binds Ctrl+S to MESave(), and this function did not
+// exist -- so the editor's save shortcut had silently done nothing since 1998.
+// (An unknown function in a bindCommand fails quietly; nothing is echoed.)
+function MESave()
+{
+   ME::Save();
+   echo("Mission saved.");
 }
 
 function MEUndo()
@@ -697,9 +721,30 @@ function ME::ReloadMission(%mission)
    newObject(ConsoleScheduler, SimConsoleScheduler);
    purgeResources();
    purgeResources();
+   // NATIVE-EDITOR: prefer the mission actually being edited. $pref::lastMission
+   // is the last map PLAYED, so a bare ME::ReloadMission() used to yank you into
+   // an unrelated map -- and because the C++ callers passed the name UNQUOTED,
+   // %mission arrived empty and that fallback fired every single relight.
    if(%mission == "")
+   {
+      %mission = File::getBase($missionFile);
+      if(%mission != "")
+         echo("ME::ReloadMission: no mission given, using the loaded one (" @ %mission @ ")");
+   }
+   if(%mission == "")
+   {
       %mission = $pref::lastMission;
-   schedule("createServer(" @ %mission @ ", false);", 3);
+      echo("ME::ReloadMission: falling back to $pref::lastMission (" @ %mission @ ")");
+   }
+   // NATIVE-EDITOR: come back INTO the editor, not to the server browser.
+   // createServer alone rebuilds the world and reconnects, but nothing re-execs
+   // the editor scripts or restores its GUI, so a relight left you staring at
+   // the JOIN GAME list with the map loaded behind it. editMission() is exactly
+   // that sequence plus createServer, so reuse it while $EditingMission holds.
+   if($EditingMission)
+      schedule("editMission(\"" @ %mission @ "\");", 3);
+   else
+      schedule("createServer(\"" @ %mission @ "\", false);", 3);
 }
 
 //--------------------------------------------------------------
@@ -767,6 +812,142 @@ function ME::init()
 }
 
 //--------------------------------------------------------------
+// NATIVE-EDITOR (2026-08-22): resilient bring-up.
+//
+// The stock trailer `if(focusServer()) ME::init();` only worked when a server
+// already existed at exec time -- but the -edit boot execs this file BEFORE
+// createServer, so ME::init never ran, and even when it did, med.cs's
+// newObject(editCamera, EditCamera, ...) silently fails until the loopback
+// connection is ESTABLISHED (EditCamera::onAdd requires cg.packetStream with a
+// LOOPTransport VC -- editCamera.cpp:119-128). On top of that, the engine loads
+// play.gui when the join completes (PlayerPSC PlayGuiMode -> loadPlayGui),
+// stomping the editor GUI.
+//
+// ME::BringUp() is idempotent and self-retrying: it initialises the editor
+// once a server exists, creates the edit camera once the connection is up
+// (placed at a spawn point, not underground at the origin), and enters MEMode.
+// The loadPlayGui override below makes the engine's own play-gui handover the
+// trigger, so bring-up fires exactly when the world is ready -- and stays out
+// of the way during MEGameMode play-testing ($ME::inGameMode).
+
+function ME::PlaceCamera()
+{
+   %pos = "0 0 300";
+   focusServer();
+   %marker = AI::pickRandomSpawn(0);
+   if(%marker != -1 && %marker != "")
+      %pos = GameBase::getPosition(%marker);
+   focusClient();
+   %x = getWord(%pos, 0);
+   %y = getWord(%pos, 1);
+   %z = getWord(%pos, 2) + 25;
+   if(!isObject(editCamera))
+      newObject(editCamera, EditCamera, "editor.sae", %x, %y, %z);
+}
+
+function ME::BringUp()
+{
+   if(!$EditingMission)
+      return;
+
+   if(!$ME::Loaded)
+   {
+      if(focusServer())
+      {
+         ME::init();
+         focusClient();
+      }
+      else
+      {
+         schedule("ME::BringUp();", 1);
+         return;
+      }
+   }
+
+   focusClient();
+   ME::PlaceCamera();
+   if(!isObject(editCamera))
+   {
+      // loopback connection not established yet -- retry until it is
+      schedule("ME::BringUp();", 1);
+      return;
+   }
+
+   // sane default fly speed (stock default of 2 is glacial on big maps;
+   // number keys 1-9 rescale, 0 = 1024)
+   ME::Move(16);
+   ME::BindEditorKeys();
+
+   MEMode();
+}
+
+// NATIVE-EDITOR: autosave. Writes temp\<mission>.autosave.mis (never the
+// real .mis -- ME::Save stays a deliberate act) every $pref::meAutoSaveMinutes
+// (default 5; 0 disables). Generation counter kills stale loops across mission
+// reloads (ME::ReloadMission recreates ConsoleScheduler, dropping schedules,
+// and MEMode restarts the loop after every bring-up).
+function ME::AutoSave(%gen)
+{
+   if(!$EditingMission || %gen != $ME::autoSaveGen)
+      return;
+   if($pref::meAutoSaveMinutes > 0 && $EditMission != "")
+   {
+      saveMission("MissionGroup", "temp\\" @ $EditMission @ ".autosave.mis");
+      echo("ME: autosaved " @ $EditMission @ ".autosave.mis");
+   }
+   %mins = $pref::meAutoSaveMinutes;
+   if(%mins <= 0)
+      %mins = 5;
+   schedule("ME::AutoSave(" @ %gen @ ");", %mins * 60);
+}
+
+function ME::StartAutoSave()
+{
+   if($pref::meAutoSaveMinutes == "")
+      $pref::meAutoSaveMinutes = 5;
+   $ME::autoSaveGen++;
+   %mins = $pref::meAutoSaveMinutes;
+   if(%mins <= 0)
+      %mins = 5;
+   schedule("ME::AutoSave(" @ $ME::autoSaveGen @ ");", %mins * 60);
+}
+
+// NATIVE-EDITOR: F-row on the keyboard0 DEVICE for the whole editing session.
+// Device binds fire in editor AND play-test mode (the editor.sae action map
+// pops with the camera's focus), and they REPLACE extra-controls.cs's raw-key
+// relay binds for these keys (same device + key = rebind), killing the "this
+// server does not support the use of extra keybinds" spam in edit sessions.
+function METoggleMode()
+{
+   if($ME::inGameMode)
+      MEMode();
+   else
+      MEGameMode();
+}
+
+function ME::BindEditorKeys()
+{
+   echo("[MEDIAG] editor F-row device binds applied");
+   bindCommand(keyboard0, make, "f1", TO, "MEHide();");
+   bindCommand(keyboard0, make, "f2", TO, "MEShowInspector();");
+   bindCommand(keyboard0, make, "f3", TO, "MEShowCreator();");
+   bindCommand(keyboard0, make, "f4", TO, "MEShowTed();");
+   bindCommand(keyboard0, make, "f5", TO, "METoggleMode();");
+   bindCommand(keyboard0, make, "f9", TO, "METoggleHelp();");
+}
+
+// The engine calls loadPlayGui on every PlayGuiMode entry. In an editing
+// session, divert that handover to the editor; MEGameMode play-testing sets
+// $ME::inGameMode and gets the stock play gui.
+function loadPlayGui()
+{
+   if($EditingMission && !$ME::inGameMode)
+   {
+      ME::BringUp();
+      return;
+   }
+   GuiLoadContentCtrl(MainWindow, "gui\\play.gui");
+}
 
 if(focusServer())
    ME::init();
