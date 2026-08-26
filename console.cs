@@ -192,6 +192,11 @@ EvalSearchPath();
 LoadModVolumes();
 newObject(FontsVolume, SimVolume, "fonts.vol");
 newObject(ScriptsVolume, SimVolume, "scripts.vol");
+// MOD-ARCHIVE RANK: a mod that ships its scripts as an archive (War40k, SEX, Tac) loses
+// every name base also has, because an archive entry is registered behind every loose
+// file and this repack ships base's scripts LOOSE. Mark the volume so its entries rank
+// by SEARCH-PATH position instead. No-op unless $pref::resModArchiveRank is on.
+File::rankVolume("scripts.vol");
 newObject(GuiVolume, SimVolume, "gui.vol");
 newObject(EditVolume, SimVolume, "edit.vol");
 newObject(EditorVolume, SimVolume, "editor.vol");

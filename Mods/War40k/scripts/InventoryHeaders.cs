@@ -1,0 +1,16 @@
+$InvHead[ihMar] = "aSpace Marine Troops";
+$InvHead[ihEld] = "bEldar Troops";
+$InvHead[ihTls] = "cTools";
+$InvHead[ihWea] = "dGeneric Weaponry";
+$InvHead[ihWma] = "eSpace Marine Weapons";
+$InvHead[ihWel] = "fEldar Weapons";
+$InvHead[ihBac] = "gWar Gear";
+$InvHead[ihGui] = "hGuided Systems";
+$InvHead[ihMis] = "iMiscellany";
+$InvHead[ihDWe] = "jDefensive Armaments";
+$InvHead[ihDSe] = "kSensor Networks";
+$InvHead[ihDOb] = "lTechnology";
+$InvHead[ihDrs] = "mBarriers";
+$InvHead[ihPsi] = "nPsionic Powers";
+$InvHead[ihAmm] = "xAmmunition";
+$InvHead[ihVeh] = "zAssault Craft";

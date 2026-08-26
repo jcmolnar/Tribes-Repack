@@ -4,9 +4,9 @@
 
 A modern, from-source rebuild of the Starsiege: TRIBES client.
 The classic community mods come already installed -- Tribes
-RPG / Kingdom of Kronos, Red Moon RPG, Star Wars RPG and more
--- so one client plays all of them. (Hosting is a separate
-question -- see HOSTING A SERVER below.)
+RPG / Kingdom of Kronos, Red Moon RPG, Mech Mayhem, Star Wars
+RPG and more -- so one client plays all of them. (Hosting is a
+separate question -- see HOSTING A SERVER below.)
 
 No installer. Extract the folder anywhere and play.
 
@@ -22,6 +22,10 @@ hunt for and no text file to edit.
 
   1. Double-click  ModernTribes.exe
   2. Play.
+
+The game opens in a window; resolution, fullscreen and the
+renderer live under Options > Video. The default controls are
+WASD.
 
 Windows SmartScreen note: the first time you run a freshly
 downloaded copy, Windows may show "Windows protected your PC /
@@ -92,27 +96,106 @@ Red Moon RPG (RMRPG)
   A large expansion built on Tribes RPG -- its own world,
   items and progression. Needs both mod lines (above).
 
+Mech Mayhem
+  Pilot HERCs from Starsiege: giant walking war machines,
+  hardpoint weapons, a cockpit view. When your mech goes
+  down you eject and finish the fight on foot.
+
 Star Wars RPG (SWRPG)
   RPG-style play in the Star Wars setting.
 
-Star Wars, Delta Air Force, Warhammer 40k, TAC, TSC
+Annihilation, Star Wars, Delta Air Force, Warhammer 40k,
+TAC, TSC
   Classic community mods preserved from the repack lineage.
   Each is a straight one-line mod switch.
 
+Bigger mods and extra maps live in the ASSET STORE (next
+section) so the base download stays small.
+
 
 -------------------------------------------------------------
- HUD / INTERFACE PACKS  (CustomConfigs)
+ THE ASSET STORE
 -------------------------------------------------------------
 
-The CustomConfigs folder holds alternative HUD and interface
-layouts (ProConfig, Overstep, xLoader, Minimalist and others).
-These are NOT mods -- they do not appear in the mod picker. They are
-overlays you switch on inside the game, from the Configs tab
-in Options, and they apply on top of whichever mod you are
-running.
+ASSET STORE on the main menu opens an in-game catalog of
+extra content: map packs, larger mods, HD asset packs and
+the complete converted Starsiege asset library. Pick what
+you want and it downloads and installs itself -- every file
+hash-verified, nothing to unzip by hand.
+
+Bot navigation data ships for the whole store map catalog,
+so offline / bot matches work on store maps too.
+
+
+-------------------------------------------------------------
+ THE MISSION EDITOR
+-------------------------------------------------------------
+
+EDIT MISSION on the main menu opens a picker listing every
+map you have installed (including the mod you are running);
+pick one and you are editing it.
+
+The basics:
+
+  * HELP (or F9) shows every control -- start there.
+  * Fly with WASD, R/V for up and down; hold right-click
+    and drag to look around.
+  * Click an object to select and inspect it. Drag to move,
+    shift-drag to rotate. UNDO and REDO on the toolbar.
+  * SAVE AS keeps your edits under a new name and leaves
+    the original map alone.
+  * MODELS lets you place any model in your install, with a
+    3D preview. TERRAIN has raise / lower / flatten brushes.
+  * The palette places working water and lava zones,
+    thunderstorms, gravity zones, rain and more -- all with
+    live settings in the inspector.
+  * PLAY (F5) jumps into the map to test it; F5 again comes
+    back to the editor.
+
+To share a finished map, run  captureMission();  in the
+console -- it bundles the mission and everything it needs
+into  base\export\<map>\  and prints a manifest of what it
+found.
+
+
+-------------------------------------------------------------
+ HUD / INTERFACE PACKS
+-------------------------------------------------------------
+
+Alternative HUD layouts are switched inside the game, from
+Options -> Configs, and apply on top of whichever mod you are
+running. Installed packs include a 1:1 recreation of the
+Tribes: Ascend combat HUD, plus Overstep, ProConfig, Vantage,
+Vector, Vodka, xLoader and others (they live in
+config\ModernHUD\Packs).
+
+You can also mix and match: the HUD Parts list on the same
+screen swaps individual pieces -- health, weapons, chat,
+minimap, scoreboard -- between packs, live. Press K in game
+to drag HUD parts and the minimap wherever you like, and
+save the whole arrangement as a named preset.
 
 If a HUD ever looks wrong after switching mods or packs,
 delete  config\play.gui  -- a fresh one is created next launch.
+
+
+-------------------------------------------------------------
+ GOOD TO KNOW IN GAME
+-------------------------------------------------------------
+
+  L            Skin / loadout menu (comma / period step
+               skins, slash steps packs).
+  K            HUD-edit mode -- drag HUD parts around.
+  PrintScreen  Screenshot, saved as a timestamped JPEG in
+               the Screenshots folder next to the exe.
+
+Options > Graphics has the GPU renderer settings: shadow
+quality, draw distance and an opt-in "Bake Lighting At Load"
+that re-lights maps with raytraced sun and shadows while
+they load (off by default -- it lengthens map loads).
+
+Options > Sound has master / effects / world volume, weather
+sounds, and an on/off switch and volume for the intro video.
 
 
 -------------------------------------------------------------
@@ -133,6 +216,18 @@ restarts. It also shows live status -- players, current
 map, uptime, restart count -- and has one-click buttons
 for the Windows Firewall rule and a UPnP router
 port-forward.
+
+There is also HOST GAME inside the client itself: it lists
+the maps that belong to the mod you are running, and a SHOW
+ALL MAPS toggle lets you host anything you have installed.
+
+BOTS: hosting base Tribes comes with bots that fill out the
+teams and play real CTF -- they grab, carry, escort and cap.
+They are switched by $Server::BotBrain in
+config\ServerPrefs.cs (fresh installs ship it on; updates
+never touch your server settings, so an older install can
+add  $Server::BotBrain = 1;  by hand). The bot roster and
+team make-up live in config\botbrain.cfg.
 
 WHAT YOU CAN HOST
   Base Tribes and the mods that ship with server settings in

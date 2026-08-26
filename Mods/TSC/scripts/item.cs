@@ -1813,7 +1813,7 @@ ItemImageData ShieldPack2Image
 
 ItemData ShieldPack2
 {
-	description = "JNCO "Ravage" Snowboard";
+	description = "JNCO \"Ravage\" Snowboard";
 	shapeFile = "armorPack";
 	className = "Backpack";
    heading = "cBackpacks";
@@ -1900,7 +1900,7 @@ ItemImageData MotionSensorPackImage
 
 ItemData MotionSensorPack
 {
-	description = "JNCO "Ravage" Snowboard";
+	description = "JNCO \"Ravage\" Snowboard";
 	shapeFile = "armorPack";
 	className = "Backpack";
    heading = "cBackpacks";
@@ -2482,7 +2482,7 @@ ItemData RepairKit
 function RepairKit::onUse(%player,%item)
 {
 	Player::decItemCount(%player,%item);
-	Player::setPosition(%player, 0 0 10);
+	Player::setPosition(%player, "0 0 10");
 }
 
 

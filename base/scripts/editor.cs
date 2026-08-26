@@ -934,6 +934,7 @@ function ME::BindEditorKeys()
    bindCommand(keyboard0, make, "f4", TO, "MEShowTed();");
    bindCommand(keyboard0, make, "f5", TO, "METoggleMode();");
    bindCommand(keyboard0, make, "f9", TO, "METoggleHelp();");
+   bindCommand(keyboard0, make, "f6", TO, "ME::ToggleSmooth();");
 }
 
 // The engine calls loadPlayGui on every PlayGuiMode entry. In an editing

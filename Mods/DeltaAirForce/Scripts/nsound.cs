@@ -87,7 +87,15 @@ SoundProfileData Profile3dMediumLoop
 SoundProfileData Profile3dMediumLoop2
 {
    baseVolume = 0;
-   minDistance = 50.0;
+   // minDistance is the DS3D reference distance: NO attenuation is applied inside it
+   // (soundFXBuffer.cpp SetMinDistance/SetMaxDistance), and the engine never sets
+   // MUTE3DATMAXDISTANCE, so rolloff STOPS at maxDistance instead of silencing.
+   // At 50 that meant every idle aircraft played at FULL volume within 50 units and
+   // never fell below its 800-unit level anywhere on the map -- and SoundDiscSpin and
+   // SoundFlyerIdle are the idle loops of 10 vehicles, so hosting a map stacked them
+   // all. 2.0 matches Profile3dNearLoop/Profile3dMediumLoop; maxDistance stays 800 so
+   // the sounds still carry, which is what this profile was added for.
+   minDistance = 2.0;
    maxDistance = 800.0;
    flags = { SFX_IS_HARDWARE_3D, SFX_IS_LOOPING };
 };
