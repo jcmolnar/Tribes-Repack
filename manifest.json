@@ -1,11 +1,11 @@
 {
-    "version":  18,
-    "generated":  "2026-08-24T02:28:02Z",
-    "notes":  "v18: mission editor overhaul (drag/select/undo finally work), liquid water+lava zones, thunderstorms with real lightning, rain everywhere + audible weather at last, master volume, Ascend HUD, mod selector, relit-world opt-in",
-    "sourceCommit":  "358ee47c2fa741610241447e1aa16f557c5c12a5",
-    "sourceDirty":  "0",
-    "targetCommit":  "f874f5c7d23abae32528d9729fa1b0212812e293",
-    "baseUrl":  "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/f874f5c7d23abae32528d9729fa1b0212812e293/",
+    "version":  19,
+    "generated":  "2026-08-26T09:06:54Z",
+    "notes":  "v19: GPU terrain seam fix, per-material terrain surfaces, mod archive script loading, editor terrain safety",
+    "sourceCommit":  "f3e580a0e008e7ea87bc065d5f6769d4e81a88c8",
+    "sourceDirty":  "1",
+    "targetCommit":  "007c5d3bb76213327a5301c60614be0743839af3",
+    "baseUrl":  "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/007c5d3bb76213327a5301c60614be0743839af3/",
     "files":  [
                   {
                       "path":  "base/@fx_blast.BMP",
@@ -24338,6 +24338,21 @@
                       "size":  72709
                   },
                   {
+                      "path":  "base/missions/SmoothTest.dsc",
+                      "sha256":  "0b89daf4c177605a13ad0db22e98035bb3e2bce534e38fa15b3a42cecc6a338a",
+                      "size":  602
+                  },
+                  {
+                      "path":  "base/missions/SmoothTest.mis",
+                      "sha256":  "7f052f8c2599d61e57afec6afd713c806fa0d388648d96c6ab939e7368baed44",
+                      "size":  44956
+                  },
+                  {
+                      "path":  "base/missions/SmoothTest.ted",
+                      "sha256":  "ca4e028c3657abf5210ec057db7c4d5570a0d5435610a102ac7cfcc0bc4888f1",
+                      "size":  263684
+                  },
+                  {
                       "path":  "base/missions/Snake_Slide.dsc",
                       "sha256":  "3530878cdd6e552f6dc39845351d05497e4c1f59707dfeb2f5cfa1886bd5866c",
                       "size":  140
@@ -27644,8 +27659,8 @@
                   },
                   {
                       "path":  "base/scripts/editor.cs",
-                      "sha256":  "d1fe1652ccdf1a928f6c057d7ceb12d7fe5557a68bc6c7d31135adefc44cc474",
-                      "size":  25335
+                      "sha256":  "607a7dd8ffc191a466991a1199050eb1d495936b39fdc396df597f5c927ada8e",
+                      "size":  25401
                   },
                   {
                       "path":  "base/scripts/editor.strings.cs",
@@ -44963,9 +44978,19 @@
                       "size":  11790
                   },
                   {
+                      "path":  "config/HDNormals/CrystalIceLush-materials.zip",
+                      "sha256":  "e0e36d50f2fae9f10f41c3e805331a45a1792d723dd46e136155f794840ad17a",
+                      "size":  35341
+                  },
+                  {
                       "path":  "config/HDNormals/CrystalIceLush-normals.zip",
                       "sha256":  "5892926f43f7c8d0a97fb22830216192a491362617a1cd2ef0ce4c3d25a7870e",
                       "size":  32059064
+                  },
+                  {
+                      "path":  "config/HDNormals/DesertLush-materials.zip",
+                      "sha256":  "0cc6e1dd784be8b2014b3aef1c5cdc2348e6aa99e3950f04d7a18983e106f26b",
+                      "size":  35478
                   },
                   {
                       "path":  "config/HDNormals/DesertLush-normals.zip",
@@ -44973,9 +44998,24 @@
                       "size":  37384360
                   },
                   {
+                      "path":  "config/HDNormals/FourKayLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
+                  },
+                  {
                       "path":  "config/HDNormals/FourKayLush-normals.zip",
                       "sha256":  "4acfa9e803ea5c0ce95ae5fc79a99d97702aa4632cdbefc4a700019cac50c82f",
                       "size":  71970491
+                  },
+                  {
+                      "path":  "config/HDNormals/generated-rs.zip",
+                      "sha256":  "f0d838ffc069c79fb5a87f1f2b5b3f3a5210b8e34b6a39b2a9c5b652a223ac8e",
+                      "size":  4212994
+                  },
+                  {
+                      "path":  "config/HDNormals/GreenMarsLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
                   },
                   {
                       "path":  "config/HDNormals/GreenMarsLush-normals.zip",
@@ -44983,9 +45023,19 @@
                       "size":  14892459
                   },
                   {
+                      "path":  "config/HDNormals/HaloLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
+                  },
+                  {
                       "path":  "config/HDNormals/HaloLush-normals.zip",
                       "sha256":  "4b3d7ba8e7a5c36872fef2cfd44d2ff944869f7918dc9f856d21fc142fe2a73e",
                       "size":  18353360
+                  },
+                  {
+                      "path":  "config/HDNormals/HDLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
                   },
                   {
                       "path":  "config/HDNormals/HDLush-normals.zip",
@@ -44993,9 +45043,19 @@
                       "size":  62961547
                   },
                   {
+                      "path":  "config/HDNormals/IceColdLush-materials.zip",
+                      "sha256":  "e0e36d50f2fae9f10f41c3e805331a45a1792d723dd46e136155f794840ad17a",
+                      "size":  35341
+                  },
+                  {
                       "path":  "config/HDNormals/IceColdLush-normals.zip",
                       "sha256":  "1bec44873aefacb190f6e35d681f49a024c1acfa1a9fa3fbe832d78dbfacd2e9",
                       "size":  32286313
+                  },
+                  {
+                      "path":  "config/HDNormals/IceLush-materials.zip",
+                      "sha256":  "e0e36d50f2fae9f10f41c3e805331a45a1792d723dd46e136155f794840ad17a",
+                      "size":  35341
                   },
                   {
                       "path":  "config/HDNormals/IceLush-normals.zip",
@@ -45009,6 +45069,11 @@
                       "url":  "https://github.com/jcmolnar/Tribes-Repack/releases/download/assets/config__HDNormals__interiors.5321c70c55801f7b.zip"
                   },
                   {
+                      "path":  "config/HDNormals/MarshianLush-materials.zip",
+                      "sha256":  "0cc6e1dd784be8b2014b3aef1c5cdc2348e6aa99e3950f04d7a18983e106f26b",
+                      "size":  35478
+                  },
+                  {
                       "path":  "config/HDNormals/MarshianLush-normals.zip",
                       "sha256":  "51d3034267db3f64bdd9b431dfdef629e748f04b53ab888f3b651a3b4308bfd5",
                       "size":  9855238
@@ -45020,9 +45085,19 @@
                       "url":  "https://github.com/jcmolnar/Tribes-Repack/releases/download/assets/config__HDNormals__mods.fd0818c4fa26d463.zip"
                   },
                   {
+                      "path":  "config/HDNormals/OldSchoolHDLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
+                  },
+                  {
                       "path":  "config/HDNormals/OldSchoolHDLush-normals.zip",
                       "sha256":  "50623cf0e492332df3191c05721a3aa148e7948aa2074e18e33a498572896ed6",
                       "size":  59169131
+                  },
+                  {
+                      "path":  "config/HDNormals/ShadowsLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
                   },
                   {
                       "path":  "config/HDNormals/ShadowsLush-normals.zip",
@@ -45036,9 +45111,19 @@
                       "url":  "https://github.com/jcmolnar/Tribes-Repack/releases/download/assets/config__HDNormals__skins.422861fc8168a47b.zip"
                   },
                   {
+                      "path":  "config/HDNormals/SmallGreenLush-materials.zip",
+                      "sha256":  "8b9e5d3442bac468743abe91a6e638b05bd693cb53df5baec9c684d417973ebf",
+                      "size":  51512
+                  },
+                  {
                       "path":  "config/HDNormals/SmallGreenLush-normals.zip",
                       "sha256":  "2ec6f37db0455daf200825a096023050faef8f3d9a98302b704676898356bce4",
                       "size":  12105496
+                  },
+                  {
+                      "path":  "config/HDNormals/SmallLush-materials.zip",
+                      "sha256":  "c71c650b686ba2d4dc0f0a37b77e96a6a64672a175fe61834c4cbeb11f4d5e32",
+                      "size":  70630
                   },
                   {
                       "path":  "config/HDNormals/SmallLush-normals.zip",
@@ -45050,6 +45135,11 @@
                       "sha256":  "f3f6dd0ac5ddc52ad3bfa713a66dcce00067f05d5078415dfe7b4bc7411623d9",
                       "size":  214853513,
                       "url":  "https://github.com/jcmolnar/Tribes-Repack/releases/download/assets/config__HDNormals__terrain.f3f6dd0ac5ddc52a.zip"
+                  },
+                  {
+                      "path":  "config/HDNormals/VRLush-materials.zip",
+                      "sha256":  "0cc6e1dd784be8b2014b3aef1c5cdc2348e6aa99e3950f04d7a18983e106f26b",
+                      "size":  35478
                   },
                   {
                       "path":  "config/HDNormals/VRLush-normals.zip",
@@ -47879,7 +47969,7 @@
                   },
                   {
                       "path":  "config/play.gui",
-                      "sha256":  "c2539c41abf8a2ba350cb102700e5820e08e481d25a5dc3ca53d7a180fb5b6a6",
+                      "sha256":  "ad5ccb064c7cdb80d17d6d94957b74cc81ed73a223ce4e221f09a22eb2eaebc3",
                       "size":  107426
                   },
                   {
@@ -48184,8 +48274,8 @@
                   },
                   {
                       "path":  "config/ServerPrefs.cs",
-                      "sha256":  "bca96199ade4bbddd03dbfaf631ece8c48c00bfbff8d5b1ac38f4c6351354bf9",
-                      "size":  3673
+                      "sha256":  "cf86a39ca7d47543e517a37e5aae8b157650fd2d98d98402fb182fa5f2a39145",
+                      "size":  3672
                   },
                   {
                       "path":  "config/SinConnect.cs",
@@ -48949,8 +49039,8 @@
                   },
                   {
                       "path":  "console.cs",
-                      "sha256":  "be3a962476294fc941610cf6cfdf03418c36ed461f1cc3eb7e055ba9ab200da3",
-                      "size":  13053
+                      "sha256":  "565d1b5730071fc9bbb7c803cf92610088f5fb5801145b1b2cfd49adddd0a332",
+                      "size":  13436
                   },
                   {
                       "path":  "gui/cmdinventory.gui",
@@ -49054,8 +49144,8 @@
                   },
                   {
                       "path":  "ModernTribes.exe",
-                      "sha256":  "22b619bdb5dae0167a5acc23f76119f55f78d12050c0864e102fe6d50d348252",
-                      "size":  5825024
+                      "sha256":  "ec5ad1c0875d9c003de08733b1be36ed3d3b627c3f392056fb76f644b87ea5f0",
+                      "size":  5864448
                   },
                   {
                       "path":  "modlist.txt",
@@ -49659,8 +49749,8 @@
                   },
                   {
                       "path":  "Mods/DeltaAirForce/Scripts/nsound.cs",
-                      "sha256":  "fb4d0b00f03d0ab33e4e38942c003ec1bdfbeb4460766febd593532638308c73",
-                      "size":  19717
+                      "sha256":  "bf6dbf4ee2fa393f9ca8080377e0671f6296ad96eb51d3c89eeaada339b483e7",
+                      "size":  20391
                   },
                   {
                       "path":  "Mods/DeltaAirForce/Scripts/NukeStuff.cs",
@@ -49719,8 +49809,8 @@
                   },
                   {
                       "path":  "Mods/DeltaAirForce/Scripts/scripts.zip",
-                      "sha256":  "e5500f398eeecd08aacf8982e0ad46f648beba1e2785911014a8b33ce41b322f",
-                      "size":  3834119
+                      "sha256":  "3d99dfe9a9c6d60ef7b216aa828bcb5ae9e12bc45d4cbb695c88847f83995b42",
+                      "size":  3834793
                   },
                   {
                       "path":  "Mods/DeltaAirForce/Scripts/sensor.cs",
@@ -65030,6 +65120,426 @@
                       "size":  3095924
                   },
                   {
+                      "path":  "Mods/SEX/scripts/admin.cs",
+                      "sha256":  "2651adbdf436271349a3f57a679841a25b07347e47a32fd41c11ce5a30055f9f",
+                      "size":  119971
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/ai.cs",
+                      "sha256":  "dca0513df0af5b43e65fc934410c718bca8518d4a602a955435ba49449b2acc9",
+                      "size":  14466
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/alien.terrain.cs",
+                      "sha256":  "85325c81404c2fb018c174de0883767be4662e3668102bda1fc4fead7656fc28",
+                      "size":  8894
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/armorData.cs",
+                      "sha256":  "17dd5d8a6e667623bbd8687f9bf3a0d29f7f28b7a6bf6b473751f65b7c846255",
+                      "size":  64841
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Background.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Background0.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Background1.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Background2.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/baseDebrisData.cs",
+                      "sha256":  "96e797bca0d56597cd94b6eaf41b8759f1707f885730731af583ef9fde0422cc",
+                      "size":  4622
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/baseExpData.cs",
+                      "sha256":  "f7dc14949f02fa988dca4bce86417bb6e68b26687cf0ef7eb65393ecc9120e8f",
+                      "size":  14008
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/baseProjData.cs",
+                      "sha256":  "dd7db7ea527f66f81373aa636f2817b8ce04b7a7f75b2702e4545cce178a1262",
+                      "size":  41228
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/changeMission.cs",
+                      "sha256":  "bce6cf505bb5899a671e1634d90fbb4c8c6cb95241553053235cfd1f4e7a1c2e",
+                      "size":  82
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/chatmenu.cs",
+                      "sha256":  "d281fa58abeaa40e9e96dad0c342ce5d12e332ca78fc8e02254cd249d92b3e27",
+                      "size":  10034
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/client.cs",
+                      "sha256":  "71c8e1822b49ff5aef795bc6ca34b2f87fcf63ee951de0c2ae924e587b7ce6b8",
+                      "size":  15503
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/clientDefaults.cs",
+                      "sha256":  "b0fdd06c24772c828877ba44fa5fea0e505f4f2b28474d60e8d7a95ae7a183fc",
+                      "size":  956
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/comchat.cs",
+                      "sha256":  "41142ae53d627057aef70e587e59f795b78f145dcf4304695261b5e4ee90b762",
+                      "size":  7548
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/commander.cs",
+                      "sha256":  "ceb5c06c72b88f8574df5ee6190f8b281ecd05dd29c1c686b9887c651355d437",
+                      "size":  974
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/commonEditor.strings.cs",
+                      "sha256":  "b962d3ea8654a750d7a4cef165cd835328c946a9625e32a42b8ce1e7e859edbd",
+                      "size":  7340
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/darkstar.strings.cs",
+                      "sha256":  "280a2a23f78931d1714e711a9c6d70cb95ffd57742fc6d072e4b6761f1f1bc9a",
+                      "size":  6403
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/desert.terrain.cs",
+                      "sha256":  "9e51991a11fc3739d21331bdc09d8863d8c4c7375dff1a49b3fca4f13502f859",
+                      "size":  15713
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/dm.cs",
+                      "sha256":  "896553724a397858f86064a4986b54a3bd19c91fa8fec46acee717c14b9fcc88",
+                      "size":  13423
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/EditMission.cs",
+                      "sha256":  "750c3d354226fc1f87b845be83d9c0f8687c8a921d356ad7265b0670aa0bf331",
+                      "size":  2184
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/editor.cs",
+                      "sha256":  "f65ca3cabc7543aee36723654011cb7e1dc0b27390ee78222da7fd3c39db38ad",
+                      "size":  18756
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/editor.strings.cs",
+                      "sha256":  "4e3492d46261c88ad62bb3992500d4962a25d969a5df8fa9e009c164b9254911",
+                      "size":  10305
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/editorconfig.cs",
+                      "sha256":  "ab63b77f51d1f25d2f64289e7bf65946074a9c4e5da114511227799441f1fc40",
+                      "size":  1050
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/esf.strings.cs",
+                      "sha256":  "2695d2e29057cf82167d1893a4ce33dc31954cdf23e21b3adb59b4259e196355",
+                      "size":  6273
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/fear.strings.cs",
+                      "sha256":  "6fcff13645da8da6e8d84caa20971da56bb3727ca231225488c71030a4117c21",
+                      "size":  74314
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/game.cs",
+                      "sha256":  "91fac5dfb49db34bd98498e3c3c440180425cb270fa2af7bb278d4b73d3fd747",
+                      "size":  35119
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/gui.cs",
+                      "sha256":  "136b97af4a87f665b46cb8d62df5b587e7a14c61f9eef7ebb0a14f215fbdd430",
+                      "size":  18665
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/help.strings.cs",
+                      "sha256":  "019379e4c3410cf7cfa927ab0030f625f79e2463512e31c9773a65ecee764b8b",
+                      "size":  23389
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/ice.terrain.cs",
+                      "sha256":  "b03005d0e6a417435340e42fdeffa4877312e6d235690db24f6ee326a88cfed9",
+                      "size":  11074
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/interiorLight.cs",
+                      "sha256":  "2cec04254e492b168ba3bdc28d53de31ef0ed049f1e8cdd18c0aa619775f3275",
+                      "size":  361
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/IRCClient.cs",
+                      "sha256":  "f7173e0f9dfc4c3c17be2b3e1446504e9b9703ed38443fd4e11764f84f9f1134",
+                      "size":  11099
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/item.cs",
+                      "sha256":  "fbec4d30fab9b476914473638895fb1e991a35191cb25f0dced9672d6a16f499",
+                      "size":  246033
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/keys.cs",
+                      "sha256":  "9bd0a9074dc471d888ee1c3d38550c209703e22a2f71ee55789e601b810e627b",
+                      "size":  1149
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/loadShow.cs",
+                      "sha256":  "6b85ab43eb40d9a05afbf7b4e43803f8dab0d63d3b933cedc496cd06d8e11f28",
+                      "size":  1308
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/lush.terrain.cs",
+                      "sha256":  "60e915c9925d08d4ed5307723d2f8698ad411f9bc0c12a95dcd3bb3a1b75bf5f",
+                      "size":  15555
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/marker.cs",
+                      "sha256":  "0b2cf39c95675e6023eaeb65e1a220f9f74f6bc64e01bc3bd2a3a5ad8c8c0013",
+                      "size":  436
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/mars.terrain.cs",
+                      "sha256":  "d0d0c2f3fece324ec2c58f6c34d0d32a229e7f9963a56c7ed613bd1e95d1265d",
+                      "size":  11519
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/med.cs",
+                      "sha256":  "000fc2290f507ebc6f5c6bc22e0d7dbe9de3f8a813fbcf698486f504b7fcf13b",
+                      "size":  2212
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/menu.cs",
+                      "sha256":  "1a2db2a8b71fc05a7a1308f5b5e45a1d29b0645f87fdb32bf54accf4e404170a",
+                      "size":  1963
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/mission.cs",
+                      "sha256":  "db84382b00bd248acc887132fc235e34450c88fe092006c85b87d9e87d4aef08",
+                      "size":  1112
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/missionList.cs",
+                      "sha256":  "405fb6e27ac665a9fd48fc711c428d0e665038b3a58f48d9ce971b818e51e745",
+                      "size":  3511
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/missiontypes.cs",
+                      "sha256":  "501ae70af33c2349148ac6fc6805803f0c978fa2d8baf289401e9088c3edc738",
+                      "size":  6416
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/move.cs",
+                      "sha256":  "39938adefa9003bd2a788e2e158a51f282adb6dcfd954ed5389caae556d0305b",
+                      "size":  5682
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/moveable.cs",
+                      "sha256":  "0864df34619fe43dc89456dbd9fc663e8e61df3614b8e3d1c2500787f3a04b5c",
+                      "size":  23678
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/mud.terrain.cs",
+                      "sha256":  "c5b794a2cd4dd9514103a45f43dff3f9a7b4b66baf74caab1c25d5c72a29cec5",
+                      "size":  12104
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/newMission.cs",
+                      "sha256":  "c2ccfc45920e5bd0a9036ff119fe89e3e9443931c31cf71b26be711419fb93ec",
+                      "size":  12279
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/nsound.cs",
+                      "sha256":  "8be3dc1001ef89da41848b7c99b1cf6f2f5189924f2358b8c1b1a412ad69f905",
+                      "size":  19686
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/objectives.cs",
+                      "sha256":  "0005e8433c2102ad68f1899c9369297d37ef548e8105859a7f38693260d58aac",
+                      "size":  51339
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/observer.cs",
+                      "sha256":  "e76f8189afdf8e5f6205da74f9b04f0efe6bc99ef4d6aff5b80e2be17ec0f1ac",
+                      "size":  6481
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Options.cs",
+                      "sha256":  "1ed0eb084efa347af9ac6a70dcb93a1cd93e8c665c7d8e71791186b9d44c7a86",
+                      "size":  23322
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/player.cs",
+                      "sha256":  "c375f9c3d30b649caba26d3328b8bd7b1ea0bda4504c7c8d3d0b4921b9ae8011",
+                      "size":  20310
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/PlayerSetup.cs",
+                      "sha256":  "19aaa646b487ab90a82bb359ab381bf09d6958f0ce6afaffe6782820c8b06b12",
+                      "size":  14935
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/RegisterObjects.cs",
+                      "sha256":  "bee8260fe359c49cbef3ef4ab0814fe8224db0dbb35dcbca44808f327e834420",
+                      "size":  14931
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/registervolume.cs",
+                      "sha256":  "ad6cd76acb4582be635ca31f9e8a9beafbfb470a6510ebbb338d383d38f3f898",
+                      "size":  467
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/sae.cs",
+                      "sha256":  "ae2e7856249ceb5d92c651c4978726f3c41083d2b35be1c37d43eae3d023c34e",
+                      "size":  5479
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/sensor.cs",
+                      "sha256":  "60585a7e0aea77981a8d4990b0ef62edf32eabf688a3d95c7bfd1d66a672c1ba",
+                      "size":  6133
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/server.cs",
+                      "sha256":  "d68b493713027c85879826dc0f36904e62e627bf64b7507853fb0920fcb0611b",
+                      "size":  20933
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/serverDefaults.cs",
+                      "sha256":  "503dc15587f6402e4b5017aad588a913a13b4dcb17db1f9fec85ee8f11059639",
+                      "size":  2211
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/sfx.strings.cs",
+                      "sha256":  "800986b583941e286fd7f6cf8e662b70f01a5900c6f2114758b064415f7f1542",
+                      "size":  6721
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/siege.cs",
+                      "sha256":  "3f5cab85b5ba85164e9b45b9a3cb0f9b02b3c43612a8d23f718bb4d7ca9910c6",
+                      "size":  9940
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/sound.cs",
+                      "sha256":  "f5179395733c302d8f73c95bf792b2e5ead6772c02a9b34399ab0123c150ee67",
+                      "size":  6294
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/staticshape.cs",
+                      "sha256":  "fc883980b5deb7774bcbb4613312a3ae1cffad7b026919e7d404eabc1b9d50cb",
+                      "size":  17922
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/station.cs",
+                      "sha256":  "709aab50396d289e665812e568bfc72fe8fdfcb786788a6c81a022b489ee1c7e",
+                      "size":  31654
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/tag.cs",
+                      "sha256":  "cb55fa27520a4d470c7faedb47500f7a14d9c1f4155bf2dfc570056ecd9d269f",
+                      "size":  1720
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/ted.cs",
+                      "sha256":  "52249c1b05729ec953b222d93af05813358977cc9dcb7ec0c489cf416da97971",
+                      "size":  3803
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/terrains.cs",
+                      "sha256":  "a1559399682675ca8b4823cbda8da17d5c1d2476c45ee45764ff7d245f5fe2e6",
+                      "size":  7073
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_AI.cs",
+                      "sha256":  "4a44be634359b762de78199f4eeace9d39ce57760972bb8650d9d09288a4e9bc",
+                      "size":  6697
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Commander.cs",
+                      "sha256":  "1dd8164dd3488cf60b683f0414c02bd7b27733def1763586e8dce53140e5aa8a",
+                      "size":  16082
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_CTF.cs",
+                      "sha256":  "9e517fd01d1b7083db9422038aefbdae0674515b99bfd79dd98991ff9c267d66",
+                      "size":  13828
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Defend_Destroy.cs",
+                      "sha256":  "681c22d543472cca60f0428a6eae1685fa5febfaeebaea3f760d4b87c37182e0",
+                      "size":  7054
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Retrieval.cs",
+                      "sha256":  "95cb61787a812844b2170ef58b2c281e61f4c9527875ce0a1d3ffcf0f77793d8",
+                      "size":  11469
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Towers.cs",
+                      "sha256":  "61480a6873508f2436ed47a076d2578264d5ea39116ccb49302f88904b4414b0",
+                      "size":  12165
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Vehicles.cs",
+                      "sha256":  "d21e6c361a5c86f151245a1c8c373c7ba7f20375c9091ffa375400870780e4de",
+                      "size":  13090
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Weapons.cs",
+                      "sha256":  "940d507d3d77c5d07ebf222dd6a5b531f87a41e3ffca3437debb719f1ef58638",
+                      "size":  24819
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/Training_Welcome.cs",
+                      "sha256":  "dbd33c45c49ee71f65de89c530478e7618ebfd9ebd8ff7dd33f1dd802c42cdc7",
+                      "size":  11645
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/trees.cs",
+                      "sha256":  "f68273bf424df514814f32444b3fd776ea18ac26dcf09f2779a9102965258119",
+                      "size":  278
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/trigger.cs",
+                      "sha256":  "cf13663d107b6fbd121945dde9912a3b6b970ae6bd5d4b65a726b12a4f868f70",
+                      "size":  345
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/TriggerFunctions.cs",
+                      "sha256":  "9a1df5f4a50e82a0bcd763412bdb189221aef97a9629deb8e2754b15f5a0ff11",
+                      "size":  1087
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/tsDefaultMatProps.cs",
+                      "sha256":  "8f1432a1ede71902f951a089a7acf399d6480aa464afdbd84b259935781a0cf0",
+                      "size":  981
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/turret.cs",
+                      "sha256":  "22e277a630cb5d25a9d5f6879cd4740889e83539a9413c5c5450f7bc8752394f",
+                      "size":  8516
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/vehicle.cs",
+                      "sha256":  "416191ce53ac7a13a25751692988ae69258d46452a86fcff1f4f735dc2d8feb6",
+                      "size":  12656
+                  },
+                  {
+                      "path":  "Mods/SEX/scripts/worlds.cs",
+                      "sha256":  "b608a57b522f70194ba8e07789791b78a178a7871f0f50a4e9bc1ae8a05ab1d0",
+                      "size":  4102
+                  },
+                  {
                       "path":  "Mods/TSC/missions/Sie_Lange_Nacht.dsc",
                       "sha256":  "c18d7694200f223a3551e0a2d745dc8a2f08abc1f1028a21ebf2156e3bbb570e",
                       "size":  743
@@ -65226,8 +65736,8 @@
                   },
                   {
                       "path":  "Mods/TSC/scripts/item.cs",
-                      "sha256":  "f112a7f22070831a72fd3cb82fc72625a286e61d812bf62dbf8e889950d97dd6",
-                      "size":  80464
+                      "sha256":  "3246bf3ad2b636be2c5b8c672b028d2e4397d79300c18304b405fa5911b5b782",
+                      "size":  80470
                   },
                   {
                       "path":  "Mods/TSC/scripts/keys.cs",
@@ -66193,6 +66703,1211 @@
                       "path":  "Mods/War40k/scripts.zip",
                       "sha256":  "282588b834e111b23363f87499efefc91314d008e96660825544ed73ef154806",
                       "size":  3483363
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/admin.cs",
+                      "sha256":  "8a624b9ee77ddd13a469412abf551cb548144ba3c2ec7a2db3a0a32db54a52ef",
+                      "size":  2341
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminChangeMissionMenu.cs",
+                      "sha256":  "c23518597755eaec4d53e981a5e7c8f84d1fd3f2805490fa621a2a19d6e29437",
+                      "size":  326
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminCheckTeams.cs",
+                      "sha256":  "ed953bed730747c89af0dcf37ce61e7b01e8399a21fb64f812ddaabe951c7120",
+                      "size":  653
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminCountVotes.cs",
+                      "sha256":  "892a7bdec898cece7ff4374133e1d3f88d8927145b203427568afa41b427bc76",
+                      "size":  2132
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminDistanceToTarget.cs",
+                      "sha256":  "76923e273ce4cf74f06fafe025ef371e587ca63c1899b08bfa1c4d815c1d4843",
+                      "size":  153
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminKick.cs",
+                      "sha256":  "b18453dcbf91ca0853b76665d7167bbf941743dac747f4be143bb3f3dcd69604",
+                      "size":  1065
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminKillAllBots.cs",
+                      "sha256":  "1457dc54c29c2a8af2dc4d733a86cef27c4799431a99bc33dd9b6b83430d3648",
+                      "size":  448
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminMenuRequest.cs",
+                      "sha256":  "aa59bf05a0391ff0c530fb92b31e148dad7149e5be6e5b80dbe5b9afd1ca75c2",
+                      "size":  3471
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminMenuRequest2.cs",
+                      "sha256":  "d143bd5aab864bb89f02154629dfacc5c08104a5284187bbe51f945a6de7e097",
+                      "size":  1355
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminMissionMenu.cs",
+                      "sha256":  "a128add0add10b1a57306e0fae06dec3fa04c804c22e0dbfc7f73e6f269a8693",
+                      "size":  339
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuAAffirm.cs",
+                      "sha256":  "ba81dd24da3df6549c1c882a402662440a95993ac66d1987cf05f6df5442d069",
+                      "size":  315
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuAMAffirm.cs",
+                      "sha256":  "5f1fb00c3ebc167b4270d3cf7607760ba4eb351640e2f8c73bc140cd92de5ac4",
+                      "size":  315
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuBAffirm.cs",
+                      "sha256":  "1fee2e0ace457bd78a787c11b157d05d764e5b830e14573d33166dbd4e449570",
+                      "size":  162
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuBotAllDone.cs",
+                      "sha256":  "0fab6b6764d5dee1ce873f121c1838cf89f365a77a7221f9711233de9caedefb",
+                      "size":  151
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuBotSelect.cs",
+                      "sha256":  "4dd7dafd706a3bb91418ad41bf154ac97c1a7c8fd582b2e39747cdd83cbd739e",
+                      "size":  207
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuCMission.cs",
+                      "sha256":  "95038a8c94a9ef41d005a7a7919f45d6065468df98d583c1e2324f223a98c888",
+                      "size":  963
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuCMType.cs",
+                      "sha256":  "3de6aadd3190bf175f118c90845b1f5d569340887f38063a98db9ec2f38249ba",
+                      "size":  534
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuCTLimit.cs",
+                      "sha256":  "1b76140045bef394732f742d5562f57a1e590c8c9eedabfade2dc1c6e6dcb4c4",
+                      "size":  89
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuDAffirm.cs",
+                      "sha256":  "024e7e2a76922f4f3e7c5cae2bee5c5697bd6f5f67fbdfaad207883b701a691b",
+                      "size":  321
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuDMAffirm.cs",
+                      "sha256":  "1982dfc016a8094b75177f963c7cd87dd984a760fa446350ae5c6bb43affab43",
+                      "size":  325
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuFPickTeam.cs",
+                      "sha256":  "da55490ecb41d4a7df52026f700e3bd9bedc5db607b6556b87c9035ef1461284",
+                      "size":  153
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuHelpers.cs",
+                      "sha256":  "9ae2cdedface74849913483b0ba3404d4a682b5b4749c50674793b56dd3e5391",
+                      "size":  2497
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuKAffirm.cs",
+                      "sha256":  "fecf2c4376b17596b3941059118e045b858e5553e0d834a3101861ff8859f75f",
+                      "size":  156
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuOptions.cs",
+                      "sha256":  "757431b45cf28ae8e4bbf60b11fe28f908da2fbac07be49ca291543b47dc50b6",
+                      "size":  13858
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuPickTeam.cs",
+                      "sha256":  "8b5592e7dbade1d643a19154cb781cdb74fc42045a30b5a9ae06197c3f633e0c",
+                      "size":  2034
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuRaces.cs",
+                      "sha256":  "6dc53a7d59f49882173652e75410331d142911402936c05cd9456de0c6adf118",
+                      "size":  719
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuRAffirm.cs",
+                      "sha256":  "e5655beeac365fae2f1ab731c70eda6e4f1b6a711a6740304db75c38e53a9d64",
+                      "size":  246
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuRBot.cs",
+                      "sha256":  "5d2040f8184e329c1d51c6d1d952128a00e91b4f370246c09e6b9f7b9a8d0622",
+                      "size":  219
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuRemoveBot.cs",
+                      "sha256":  "901666fdf1bcdd9ffebca9f737fc440a0c414d8cc6315aebb30d778f59d41152",
+                      "size":  764
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuRoamingBot.cs",
+                      "sha256":  "630cb1aa218c312f7feea8a816e428929306bf586338f6e481f4d4f7c3bd9a1b",
+                      "size":  256
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuSelBotAction.cs",
+                      "sha256":  "54af30159a59c3cb3fad63a62739af580f63fc07a5dc57d65ab19805de37601d",
+                      "size":  755
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuSelBotGender.cs",
+                      "sha256":  "3d0f397bdf08eccec0588fbd51fd5e302aa90a5b5a18a874cddde5b9568f78e4",
+                      "size":  286
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuVehicle.cs",
+                      "sha256":  "419d2c82e46ef25c6cc4d7ba6145514087ba59eb5bb71b9bfa86e24b2120a4f9",
+                      "size":  1937
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminProcessMenuWeapons.cs",
+                      "sha256":  "8fdceae760c3b788137a05ce8597efd65af60819a711a07429ff1f62c871d2ec",
+                      "size":  10142
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteAdminPassword.cs",
+                      "sha256":  "c45860434cc2614c9b2bb1c9d96a3d1dbc745b604a833f91f9a9dd613afac0e5",
+                      "size":  179
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteSelectClient.cs",
+                      "sha256":  "bb0b73a9dd17cb445fea243b2f5dae6af92534d7d9487854e0f1786df159a0fa",
+                      "size":  935
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteSetPassword.cs",
+                      "sha256":  "2f8fefbe7b3e390820ad7aa2b9c96dbd763e6d84ef69df29bbe56c819ab23cde",
+                      "size":  108
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteSetTeamInfo.cs",
+                      "sha256":  "30546fd3298f5c12e9f39031db41925d44c79d52ed65e049b3cdba17b91c6f97",
+                      "size":  393
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteSetTimeLimit.cs",
+                      "sha256":  "248dc6e7f826cabb92e9b368358dc0c93a15f540810119cc9de79b45f179bca1",
+                      "size":  399
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteVoteNo.cs",
+                      "sha256":  "b037db69b86efba7e2b6efe985e9d006a587f1612b0c212c99e046d1ea025bbe",
+                      "size":  96
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminRemoteVoteYes.cs",
+                      "sha256":  "61cb7769489f1c93c7da4c327f94ab2162d18385324451cc0e75064be51b1aa3",
+                      "size":  98
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminSetModeFFA.cs",
+                      "sha256":  "0da3d62ad2287c78392f53102ad300a1cb9d571a8883134ebb1f97d83740bfbc",
+                      "size":  561
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminSetModeTourney.cs",
+                      "sha256":  "0a53a3cf4f54e18e0c551cd12a85abcb7033cbe65d354b4504c01f9c41aec5ee",
+                      "size":  391
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminSetTeamDamageEnable.cs",
+                      "sha256":  "52d87e21d04937bf91a950d24e4eb08e66a42f1fd26eb99ba3bd3ac22f6ce3fc",
+                      "size":  528
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminStartMatch.cs",
+                      "sha256":  "fca8831f8950a8a635f35445694dc351dec04115cd8e43b0bfae79a91a7e60cf",
+                      "size":  338
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminStartVote.cs",
+                      "sha256":  "3e9026e73245d6aff586eda21352b03586adf8c704ee8e79dad034d9496b4457",
+                      "size":  1359
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminTerminate.cs",
+                      "sha256":  "d6cda3208fca7c3dd06f08cc07c1890a8448f54360d7d1f6ecab9fba962fccab",
+                      "size":  200
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminVoteFailed.cs",
+                      "sha256":  "54547708b73a6bfeee8c38e611267d11e95de33081b6ed0ac477382625a33d74",
+                      "size":  164
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/adminVoteSucceded.cs",
+                      "sha256":  "9a57f92ff6f466efd93e26fe54f32468b09b14acb7d839bf1606fd0a92228056",
+                      "size":  1020
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/ai.cs",
+                      "sha256":  "d20dc80e442a8dadf0501f811685fc01e1167da7af8dc756e3a63e3e400bc5be",
+                      "size":  12137
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorApoth.cs",
+                      "sha256":  "e34d41f37d2d24896860bc7387791833fb99660e077b790b6dcdd0b30f82e789",
+                      "size":  14041
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorAssault.cs",
+                      "sha256":  "3e9c6057bc05a743aa08827752e0bfde6aa9313ff3a502ae642f50bdafc9d128",
+                      "size":  14036
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorBonesinger.cs",
+                      "sha256":  "e0cb325e6663f36bd553e5097ce721f7b848c3945a33787f99156e421a2cceb2",
+                      "size":  6960
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armordata.cs",
+                      "sha256":  "9d906bd04b4a25a8768f8751198ac4926fa6b61878fe8e6eb96e7aa913e9bfc0",
+                      "size":  4800
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorDevastator.cs",
+                      "sha256":  "46c3b81aa6a952a8b5f2f5f62d5fb6d39af6a6b6891ab241dc028b1631767d70",
+                      "size":  13120
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorDiAvg.cs",
+                      "sha256":  "d7439dbdf13f2f1e892b9cbaf94db9dbddbc0e631289c7ee1892fdffd6275402",
+                      "size":  13366
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorDReaper.cs",
+                      "sha256":  "40b7505a4e351be63d62851d039cd5550b876051940e090a6564b559ed1c8127",
+                      "size":  14127
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorErrant.cs",
+                      "sha256":  "8e90b2313525c2e95fad6a57b6fffd15194f730d1be3648630818a25931f9036",
+                      "size":  13183
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorEversor.cs",
+                      "sha256":  "5ff9f0ae66152ad92dfc75b675f2a63c90e5d42b9b1a792c1b389db55270e617",
+                      "size":  14031
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorFiDrgn.cs",
+                      "sha256":  "9f6ed33e30fb6fa0ab48c5a0a9692292de6816066554678cd93acdeab69348c0",
+                      "size":  14309
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorGod.cs",
+                      "sha256":  "c5ea131f6b764bf80b634b938657801721dc725cd2014b30f6a9d7b79b33009e",
+                      "size":  6594
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorGuardian.cs",
+                      "sha256":  "1fe669b59862a232325813c3eec34d4892d079479c0a6506916fc113937af2af",
+                      "size":  13679
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorLib.cs",
+                      "sha256":  "955f475ad086ed90807b295f1c2951abf19edb648ed41ed5733bff0197309b95",
+                      "size":  13668
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorRanger.cs",
+                      "sha256":  "43dfc81c4257b9a7341887529e03af29cfde2fa2484bef519ff70274a56a2160",
+                      "size":  13685
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorScout.cs",
+                      "sha256":  "45dfec69551660cbf161754d79be1e4c95d1ef13611ac966d785bf2be2347a23",
+                      "size":  13617
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorSDaemon.cs",
+                      "sha256":  "bfed9b30712bea2849d6f0fb22faa6130f2826e13d315d4a5796af81f9c24d4e",
+                      "size":  7989
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorStrScorp.cs",
+                      "sha256":  "2a6ae2c738b87babf3327fbdb71c6ea20543d3d13a0788120ce409229731472f",
+                      "size":  12592
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorSwHawk.cs",
+                      "sha256":  "2cff43d91f40d9207873bf898e38f17b0229fa87b09e6d568107087fe811c5df",
+                      "size":  14192
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorTactical.cs",
+                      "sha256":  "be9edbb91c0f48aaecacb8c119d217b2fa9df2e9d70d931a6e7d4f796a86686a",
+                      "size":  14006
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorTech.cs",
+                      "sha256":  "b987cb0d6ace8b9d835a605564667db0000e88130a5acf314ffda73b638dbb7e",
+                      "size":  13416
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorTerm.cs",
+                      "sha256":  "28e2becddc772a0a7823560345eb44243a562a04f51287acc928e08e635546ab",
+                      "size":  6874
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorWarlock.cs",
+                      "sha256":  "cb27c87c23994d46617641b3dbfd8edaeab97baa0501f74be865254cb1d03817",
+                      "size":  13618
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorWarpSpider.cs",
+                      "sha256":  "4ffa3694c0cedc09f385b9dcdbabcdf7d83c2e4b47feb38329aa0446e77abd55",
+                      "size":  14359
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/armorWraith.cs",
+                      "sha256":  "f27e5d2869cec69ae168888b87b697be818e0e844f8aee5fe257e1138c5c5faf",
+                      "size":  13681
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/Background.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/Background0.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/Background1.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/Background2.png",
+                      "sha256":  "e9cbdad7265e8c931bf760308c4905b8f70ffdd8b63725b0b0f3048d1fd72587",
+                      "size":  441911
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/baseammo.cs",
+                      "sha256":  "cf3b3c268bc116f6b0ef15340be17ee90226fadf900c32707dcb393131a8fe80",
+                      "size":  8166
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/basedebrisdata.cs",
+                      "sha256":  "700a18b59e32114e96c8510a6bfbfe569589684e7cee483f97d6b01dd0b73d96",
+                      "size":  3873
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/baseexpdata.cs",
+                      "sha256":  "ccba0c549122da8f689a66c7f0058517b0b5862c755faa0622a65d3c9ed9df0c",
+                      "size":  13090
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/baseprojdata.cs",
+                      "sha256":  "a794f9234822d9642535587f7292c5a771e532f62dcbeb6a8d2398bfee046ba6",
+                      "size":  5800
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/changemission.cs",
+                      "sha256":  "bce6cf505bb5899a671e1634d90fbb4c8c6cb95241553053235cfd1f4e7a1c2e",
+                      "size":  82
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/chatmenu.cs",
+                      "sha256":  "27b8269d3a2906d9068a9d1fb8844a672c2eeabf6c75b311e1f2b0d254a67361",
+                      "size":  9558
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/client.cs",
+                      "sha256":  "21a2d164269e0f1f3df6205280a595aea09e079af50f8ceedda19a336c924c5e",
+                      "size":  12240
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/clientdefaults.cs",
+                      "sha256":  "da98a932e6831a44c7142f7f425645afca6507ebf75069b1fa57c74f091572d9",
+                      "size":  957
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/comchat.cs",
+                      "sha256":  "5fd776ee1940278079071c314e04bde5ab95b7c8be2dc4daf59870e92eae0f4c",
+                      "size":  4334
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/commander.cs",
+                      "sha256":  "6c5d5fc7de97a0819bda677b45b0684967e6e8fe9f9d4127ab750f43c6745ccd",
+                      "size":  957
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/commoneditor.strings.cs",
+                      "sha256":  "797a1e5e517e68fd06f4081ffcaf955500493519367b2bac73fb4144110a3e22",
+                      "size":  6494
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/darkstar.strings.cs",
+                      "sha256":  "054ffd79e8fa9e5e1747f842c14b466df9e16b70497492d265fe9af074d37150",
+                      "size":  5998
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deadweight.cs",
+                      "sha256":  "73ecd6012d143c9cbeb15af03dd498b9a6879ea7fd969968e05f313508620175",
+                      "size":  481
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployAccelerator.cs",
+                      "sha256":  "5c9b9ec1231bd3d24a78c0f74aaf36ec8efdf04e9c42538a7d7882f698b3f0bc",
+                      "size":  7884
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployAirPlat.cs",
+                      "sha256":  "b9c5b6d06b02e0ef4f2e2026cf4cac31f95276525064a5f603757c44f3cad24b",
+                      "size":  6771
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployBaseAlarm.cs",
+                      "sha256":  "4ee1f9755afb78dface0966604fc71589973fe2d3c6ef219a744b8b51fef8c93",
+                      "size":  4465
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployBigField.cs",
+                      "sha256":  "d136c77e1ef74a479216637413d7d2a670d6d07a4e40e364a3c6c72fd44376c3",
+                      "size":  3520
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployBlastWall.cs",
+                      "sha256":  "06c7bd14683df412f17b43be3246bca8e5b628dfa5ec7b87668686be8dde65c5",
+                      "size":  4379
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployBoltCanTurret.cs",
+                      "sha256":  "f76691b887ee9f6ebf94574d74cd80f34b7f8a6bb864951d6a8738d3d85ad06f",
+                      "size":  4758
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployBoltTurret.cs",
+                      "sha256":  "8df13e2555031f985ff5336e860482d1ff6eaec672cdea72fac257f5361ea5ad",
+                      "size":  4080
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployCamera.cs",
+                      "sha256":  "ba5550dba6b23917ccb97f8b8a0838c3401d238ee3c23a0e8f08a199c2cb74ce",
+                      "size":  4684
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployDoorPack.cs",
+                      "sha256":  "de8887822f7b2df424d52c97b235f249f4c08aa2c9b6bb809551fa38899642cb",
+                      "size":  5503
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployFlameTurret.cs",
+                      "sha256":  "9c1d2fc6fd364b368f33fe66766ef78cceef4d2a2345d09e7143c3c9fae1b1d5",
+                      "size":  4036
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployForceField.cs",
+                      "sha256":  "39e2a14ff0e27af0bc122ef83c96276324736de53c73903cd72c5aa2cd8f11cd",
+                      "size":  7093
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployFusionTurret.cs",
+                      "sha256":  "dd3e40f5163da45796681631c816ea59acb56dc5b4d89345d30d49f606e738d9",
+                      "size":  4248
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployGravTurret.cs",
+                      "sha256":  "8f26c4ef19188222ae05a5b3ffaffb1d311ecb53bedb434e9d3115c1a8d70712",
+                      "size":  3669
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployGunBatTurret.cs",
+                      "sha256":  "9f3881ff595c4e5307682c26c2eed0d6e8320be8f1aac4c6986f91406fb7b69b",
+                      "size":  6977
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployHaywireTurret.cs",
+                      "sha256":  "6aa2411864d9f109d1bd9618677e0a45dcb3b007555fd67c3b0bf0624ef5358c",
+                      "size":  4176
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployHFlameTurret.cs",
+                      "sha256":  "f7142707d695d28fcdbf3cf2ef8bb98212fdbc274bf72bf34d857819e09e8960",
+                      "size":  4491
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployIonTurret.cs",
+                      "sha256":  "0a90a3b7696919164efd866f38685f6bfc6be5ca80970cac410bc2f1c4679847",
+                      "size":  3623
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployLargeForceDoor.cs",
+                      "sha256":  "e8e1cd07b2756bb0cdb872df0e8861343358ceb0de49a854116a243f93335005",
+                      "size":  5769
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployLaserTurret.cs",
+                      "sha256":  "725dd5c9b8701ee2e1477af87e02f0bb8bca98673a82d8e5ca9ecfe54cf4f71c",
+                      "size":  4016
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployLRMotion.cs",
+                      "sha256":  "408944612e325469db68307d2e1ab05823e735a2879ca4f1901c5bcb85990d66",
+                      "size":  3463
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployLRMotionSensorPack.cs",
+                      "sha256":  "f7c696c9deb17290acae1d854b53d56fdd1b6d6088c9b36894870b2abb74e00d",
+                      "size":  4238
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployLRPulseSensorPack.cs",
+                      "sha256":  "556a9f05bab5f6b9401e2476550bc0f824032f08bf101a7b19a8c15ad69f6bff",
+                      "size":  2323
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployLRSensorJammerPack.cs",
+                      "sha256":  "d6fb1c716adc1fd2353b4c8e31f579640e1a8af2c82d450a37d2cb83d2cc6dc5",
+                      "size":  2518
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployMannequin.cs",
+                      "sha256":  "a6a644cc938e3197f5ed14a7d621ed7793125e01cfc5384020440cfca14eaf77",
+                      "size":  4845
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployMissileTurret.cs",
+                      "sha256":  "4aeb8cfc3f82304adff7c370c5ad6e56b96a2ee940b26288ed4276db9d61d89a",
+                      "size":  3889
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployMotionSensor.cs",
+                      "sha256":  "107f33e14c2498734dbd423f64ed4d29fe10cb3826044e216b3a5b420d6f5e45",
+                      "size":  3934
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployPartTurret.cs",
+                      "sha256":  "0e7d16bcfc2c5d4a66aca2758a7dd185bcce26849c6d24ccb6b424d6501d3a32",
+                      "size":  4532
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployPB.cs",
+                      "sha256":  "8fa61f6c7083c2d2b8c2699fb0ce02258e66506e911efca6b220a37bbda49048",
+                      "size":  4128
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployPB2.cs",
+                      "sha256":  "f509f8cbbf4a5220d841eecafe9aa30d3a104cc647ba85648db2b12a4905911e",
+                      "size":  4299
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployPlasmaTurret.cs",
+                      "sha256":  "722775072ff69a52ea0eda9e41062614932ecbd8a58214cc31223c4dd3ccdb68",
+                      "size":  4624
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployPlatform.cs",
+                      "sha256":  "2c12cca74286352270338aa5bd907144e15809066227dd842401f7c7ba23ebeb",
+                      "size":  3786
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployPulseSensor.cs",
+                      "sha256":  "75f125a2ab8ae8278d5f94b0a1497d80daa201bb07141e5f9390ae3ec624dca9",
+                      "size":  2046
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployRailTurret.cs",
+                      "sha256":  "8939053cb4d341254f7b53de1a15bf59ed14682616190cae7a7b6ffd7782fa70",
+                      "size":  4637
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployRegenBox.cs",
+                      "sha256":  "85c2845e94c46955f643400933f37b91b71f3adcc858b4ddb2871a7bb46bdf04",
+                      "size":  7309
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySatchelCharge.cs",
+                      "sha256":  "8c1d284e9729f68e09dead771f8f99a77fa74ed15aefbe795d5075afe877130e",
+                      "size":  9592
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySatelliteUplink.cs",
+                      "sha256":  "79dcd65352565504b2bf7b48c5ac79b3dbe8eb45c94dc2d1352ee233f7e7bd05",
+                      "size":  9223
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployScatTurret.cs",
+                      "sha256":  "2d771ede27a1c669dc5a37a58a707d56efcf4b7d4d16541d1d2cd675195a9866",
+                      "size":  4219
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySensorJammer.cs",
+                      "sha256":  "7a4df4e018500c80af46912251eb39b72d0ac70c048fb0ebf92bb461e9b475db",
+                      "size":  2248
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployShurTurret.cs",
+                      "sha256":  "2a4ef356d0a7de4d4b7775e6c3f139f4208e558959edbba71d4a7a0783203f43",
+                      "size":  4622
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySmallAmmoStation.cs",
+                      "sha256":  "6084e7f1f3d5c15c4439a95c45793fa499afc3766f8f8c5cad236a68195a456f",
+                      "size":  5073
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySmallCommandStation.cs",
+                      "sha256":  "531aa0d77ebcf6dda7fa1532312a2e83726b69f0e944d126de3c51f7063cc57b",
+                      "size":  5632
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySmallInventoryStation.cs",
+                      "sha256":  "6a747dd7f1ed1b3ddcc858b8f2de373a554f6a56c5b1244c2daa554d8dda2059",
+                      "size":  5099
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deploySpringboard.cs",
+                      "sha256":  "b9aa8507e3b33a27c7660984a17609b5e15272491b666302077fc38523cf82f0",
+                      "size":  5062
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployTeleporter.cs",
+                      "sha256":  "7016756cd7aeadad2d65edbf79ec7e7d3bd5822d172fd25a444b6693ecc35700",
+                      "size":  9044
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/deployTurret.cs",
+                      "sha256":  "617f8709db98575f9016d44f52efedc2ac930b2ff2d69732da9330bd727acd70",
+                      "size":  6198
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/dm.cs",
+                      "sha256":  "0ec20aa19d1334ada5394fda5e9e8110c33b5c46265c5e3010902c02cacd32ed",
+                      "size":  11505
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/editmission.cs",
+                      "sha256":  "750c3d354226fc1f87b845be83d9c0f8687c8a921d356ad7265b0670aa0bf331",
+                      "size":  2184
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/editor.cs",
+                      "sha256":  "d6a17a3c71b72793f315acc9ce5a24a2911da9bfb99e3207af97c4010645b1f0",
+                      "size":  15049
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/editor.strings.cs",
+                      "sha256":  "4e3492d46261c88ad62bb3992500d4962a25d969a5df8fa9e009c164b9254911",
+                      "size":  10305
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/esf.strings.cs",
+                      "sha256":  "2695d2e29057cf82167d1893a4ce33dc31954cdf23e21b3adb59b4259e196355",
+                      "size":  6273
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/fear.strings.cs",
+                      "sha256":  "17dd6cf8aca33dad17150f6bb86dacb5a59fafcdf52eccf759754d6113bfbad6",
+                      "size":  74314
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/game.cs",
+                      "sha256":  "009e28fa2d7e63a944ad8d7c33b4910d830a2c09f82dc6baee029ecda9f27691",
+                      "size":  32638
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/gui.cs",
+                      "sha256":  "0cda1d72a36fdc7c747e9a33a45ba784f203f459993e23211c65dbe741625a2c",
+                      "size":  18643
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/help.strings.cs",
+                      "sha256":  "019379e4c3410cf7cfa927ab0030f625f79e2463512e31c9773a65ecee764b8b",
+                      "size":  23389
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/interiorlight.cs",
+                      "sha256":  "2cec04254e492b168ba3bdc28d53de31ef0ed049f1e8cdd18c0aa619775f3275",
+                      "size":  361
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/InventoryHeaders.cs",
+                      "sha256":  "19f00d43582fd199cb510a60b63ced0a3e61de319143099a43e1d385563592bf",
+                      "size":  590
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/ircclient.cs",
+                      "sha256":  "f7173e0f9dfc4c3c17be2b3e1446504e9b9703ed38443fd4e11764f84f9f1134",
+                      "size":  11099
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/item.cs",
+                      "sha256":  "f8367abc36bbd316aa6641613765dd3464d5afc7ee77eef620734278e75f71fe",
+                      "size":  28144
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/keys.cs",
+                      "sha256":  "9bd0a9074dc471d888ee1c3d38550c209703e22a2f71ee55789e601b810e627b",
+                      "size":  1149
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/loadshow.cs",
+                      "sha256":  "6b85ab43eb40d9a05afbf7b4e43803f8dab0d63d3b933cedc496cd06d8e11f28",
+                      "size":  1308
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/logging.cs",
+                      "sha256":  "a212de2e3c500cf60e3ef63782a89b8d73d42ea9d0720bb11568787166d66f5f",
+                      "size":  3231
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/marker.cs",
+                      "sha256":  "0b2cf39c95675e6023eaeb65e1a220f9f74f6bc64e01bc3bd2a3a5ad8c8c0013",
+                      "size":  436
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/med.cs",
+                      "sha256":  "a369b7a9e4483ddfc5b645107f95f84a5500d8900ea8ac383004234f511403f7",
+                      "size":  2211
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/menu.cs",
+                      "sha256":  "b77d7bf639c40b97793445559085ac924d347f640d0df7735fdb01592162ff85",
+                      "size":  1989
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/MeteorChance.cs",
+                      "sha256":  "353269cddb94438369008058cb8d7d85fde17c4a3eaefcc02818ad495d1e3fc8",
+                      "size":  3744
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/miscBeacon.cs",
+                      "sha256":  "e48ff0c96a521a2dd544673f81c9849c9e2a1427c1379fcdd71c3759f766e8cc",
+                      "size":  10163
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/miscGrenade.cs",
+                      "sha256":  "d2dffc640af918f60396232d98f6690ba4a190de706a9bec8051345854662db1",
+                      "size":  930
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/miscMine.cs",
+                      "sha256":  "1285a862d3ff07e818c02dfbd935c520d28fc75f38631919674215cd7d6b2567",
+                      "size":  30321
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/miscRepairKit.cs",
+                      "sha256":  "d65b34bf9e3ff30b02f1d330da90fead807487158b704f673f6a83be077469c7",
+                      "size":  1031
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/mission.cs",
+                      "sha256":  "db84382b00bd248acc887132fc235e34450c88fe092006c85b87d9e87d4aef08",
+                      "size":  1112
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/missionlist.cs",
+                      "sha256":  "de6c682984a866faacc5f8d48fecc8ba4c236c15b6ec2742a2639afb92016984",
+                      "size":  3337
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/missionSpringPad.cs",
+                      "sha256":  "6cf25b93a90ae7037be6cb228ae97a8eb136088503f931631a5c30fc8bd12c34",
+                      "size":  1536
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/move.cs",
+                      "sha256":  "a90b84eb4ba32cad79733db30fd7c7054b8fed909f36e1bd0dedfbcdd057e814",
+                      "size":  5758
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/moveable.cs",
+                      "sha256":  "7bcef9a6b808a190779f77b3c5cf0fee8ad3cc38d5fdbe4f24382e24a29f8fe3",
+                      "size":  23450
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/newmission.cs",
+                      "sha256":  "d0cd5b2242927904f9b6125ed62ffc513c35d24e1198839f6f6efe21f8048e25",
+                      "size":  4416
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/nsound.cs",
+                      "sha256":  "6946a8167108456423f0970858a03dfdb1a3aa2827f8577b71898e92a5b5054d",
+                      "size":  20733
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/objectives.cs",
+                      "sha256":  "ddda306fefcab34ffd3eb3952fdbcf97aab825225bb89172bba2575028cfa521",
+                      "size":  43260
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/observer.cs",
+                      "sha256":  "a28915709e96cc4df787548b9f3899156a96e83a4879bd41ccb0bbd1c96dc70b",
+                      "size":  6303
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/options.cs",
+                      "sha256":  "d0ebb9a16bedbb31ad1cda0e5f93305980826dc771322f2e8f0c0ef1c2295504",
+                      "size":  22352
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packAmmo.cs",
+                      "sha256":  "9ce301c14ac4cc14bed5fef440f1ec15889b74d5e7b704aa1f14a1edb78c2de4",
+                      "size":  3296
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packarkfire.cs",
+                      "sha256":  "8a78ab3aa2fd3969b7068d3a316c35dd6c7af303a71e966a2a72d551b8ae9983",
+                      "size":  5733
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packAssault.cs",
+                      "sha256":  "4082bcc2c7b75148166e91319ee9b38d7b515c7372dc06984dd8561c74319f39",
+                      "size":  1403
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packChameleon.cs",
+                      "sha256":  "c9bc618c4065cd3f6ec869008a15a27dfe672301ca975f4edca47db2cb0de652",
+                      "size":  1888
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packCloak.cs",
+                      "sha256":  "cb501e7e22d644c3f894b10481912c8a18b42acc762922ed7b7541e2fd56550d",
+                      "size":  1705
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packCommand.cs",
+                      "sha256":  "8d5d4ad0bc4249c12f6dbf5e8f99c0ad15685a805ded3fe05af6f06df3e99066",
+                      "size":  3125
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packEnergy.cs",
+                      "sha256":  "a4aaac1ddad800a65fb639848028fd2c3453e25f57ac8989cb5523e91291a3fe",
+                      "size":  1328
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packEversor.cs",
+                      "sha256":  "6c1f27dbc4c6982f418d48053af3dbacffa3fc01bae03325c85fa7adf0997135",
+                      "size":  1140
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packFeeder.cs",
+                      "sha256":  "4d3a31dbbe940761c477da0d3a21a501fb4774d4d8bbc66d27ac79fd6e89ec6f",
+                      "size":  1085
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packFlamePack.cs",
+                      "sha256":  "0098b9583b8b55c1c5c25cc32f0fa5ab3c8c3332979187fd7ed144297a0c2b3e",
+                      "size":  1289
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packHawk.cs",
+                      "sha256":  "36cdeb3979cea6cc8acd55c87bb6b76304e146b7c32acf97423bbb634114bf65",
+                      "size":  1430
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packJammer.cs",
+                      "sha256":  "d19a787c55a7f0a4e325dbe90c3a1865675c24e20ce41fcceddb68f4be0c6363",
+                      "size":  1220
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packLaserPack.cs",
+                      "sha256":  "254d97077a21a4591ae5cc50191217619a41b1bb7feff85602e98f3b2cc3c892",
+                      "size":  1327
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packLightening.cs",
+                      "sha256":  "42e3d26598b42254cf3f853b92afc641cd6d1457da10581ca2b178fba51a57f1",
+                      "size":  1480
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packMind.cs",
+                      "sha256":  "e5025c0ac312b0de8a6d4afd8209ff6f6e36cee4f6bfdd77d111785702028fd5",
+                      "size":  1384
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packRegeneration.cs",
+                      "sha256":  "21d5412b7cb7b7dd591c09f45f2e8402f4098435a0b23303e93227e5fb5059a8",
+                      "size":  2438
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packRepair.cs",
+                      "sha256":  "c3f8657bc787109fc9bc3ecc91d854f019484acce4410373f2ef7322ad28c6cb",
+                      "size":  6184
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packRuneShield.cs",
+                      "sha256":  "23528a840a8442d95ab54c752cfa85cedd4b93c7e62ea0aab822d63a729ee4f0",
+                      "size":  1077
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packShield.cs",
+                      "sha256":  "375b212aa3e9138467a9437ca8afaf0007a208c46de3a9d8545d63fe9523f7c2",
+                      "size":  1036
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packSpy.cs",
+                      "sha256":  "9f79bec82162b2293c3626d1a1937d2542052e9402ee7e0d5e9d5e21f89d360c",
+                      "size":  8323
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packStarcannon.cs",
+                      "sha256":  "943f7c98ef900177f5b35970ae0a33cc072f0b4c0c443207e409013f2c19be8c",
+                      "size":  7124
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/packWarpPack.cs",
+                      "sha256":  "df98cd90a325f5cc3d3626ce7c8ef4ecb85f12dfdb3eae0803292200dd727f59",
+                      "size":  5763
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/player.cs",
+                      "sha256":  "603acc3b89380ce58ce434780070a3a6da341184578f12d6517ea9548c6539ab",
+                      "size":  16819
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/playersetup.cs",
+                      "sha256":  "19aaa646b487ab90a82bb359ab381bf09d6958f0ce6afaffe6782820c8b06b12",
+                      "size":  14935
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/registerobjects.cs",
+                      "sha256":  "f14ca99c17dd1fb516a474c6c949bf09612e0fcd636243c7640962216159eb9d",
+                      "size":  12334
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/sae.cs",
+                      "sha256":  "7f40b323ed92bfe3c0b8ea6e975169f84c03c22292a063ed8484b519d42beb45",
+                      "size":  5428
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/sensor.cs",
+                      "sha256":  "59028a9d2fca8e688a7f6513cf13e93d56f37c84eed860a89aaf92a5263ae932",
+                      "size":  4014
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/server.cs",
+                      "sha256":  "a71beb21fe53be83baf6606e02a1ac8248643674006dc6ca7d7f9baae5908d5c",
+                      "size":  14045
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/serverdefaults.cs",
+                      "sha256":  "84a537253a7b2eb0ae347552dd6fb62725e7ea82954dcb357b4034de32b5957e",
+                      "size":  2184
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/serverLink.cs",
+                      "sha256":  "f1e7805221f02a97b6d8209c542148b219d75e7da5473f55f94bbbaf4608e390",
+                      "size":  171
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/serverWar40k.cs",
+                      "sha256":  "eb521428648e57bc2f31735714f7d7d78115b6bbaf8c7cd62bac9de36af5f8d4",
+                      "size":  7283
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/serverWar40k_ItemUsage.cs",
+                      "sha256":  "41c10a84f7b395dfe5b92660ba25d0baef00ca5ef55b44ce9087300d2d59ad00",
+                      "size":  60192
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/sfx.strings.cs",
+                      "sha256":  "800986b583941e286fd7f6cf8e662b70f01a5900c6f2114758b064415f7f1542",
+                      "size":  6721
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/sound.cs",
+                      "sha256":  "5bc72697b42595917dd1c3265fbb857ac353e8ac8cdc2b4a1093acc7049c64ba",
+                      "size":  6352
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/staticshape.cs",
+                      "sha256":  "93c084cf96878ab93c3f69be3faed6e4538ea7b3bc05a26429609514c8c552dc",
+                      "size":  17000
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/station.cs",
+                      "sha256":  "c5b06ef7abd3cb8999d5504c8b44a98e0b733f8f9f58ee0d6160c5f334577bff",
+                      "size":  25091
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/tag.cs",
+                      "sha256":  "cb55fa27520a4d470c7faedb47500f7a14d9c1f4155bf2dfc570056ecd9d269f",
+                      "size":  1720
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/tdm.cs",
+                      "sha256":  "2dff20664455c9ccbc61238a0c56f51ebf9e4a0a1c8a9b3bc9bec96c83ed6146",
+                      "size":  23163
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/ted.cs",
+                      "sha256":  "52249c1b05729ec953b222d93af05813358977cc9dcb7ec0c489cf416da97971",
+                      "size":  3803
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_ai.cs",
+                      "sha256":  "4a44be634359b762de78199f4eeace9d39ce57760972bb8650d9d09288a4e9bc",
+                      "size":  6697
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_defend_destroy.cs",
+                      "sha256":  "681c22d543472cca60f0428a6eae1685fa5febfaeebaea3f760d4b87c37182e0",
+                      "size":  7054
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_retrieval.cs",
+                      "sha256":  "95cb61787a812844b2170ef58b2c281e61f4c9527875ce0a1d3ffcf0f77793d8",
+                      "size":  11469
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_towers.cs",
+                      "sha256":  "61480a6873508f2436ed47a076d2578264d5ea39116ccb49302f88904b4414b0",
+                      "size":  12165
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_vehicles.cs",
+                      "sha256":  "d21e6c361a5c86f151245a1c8c373c7ba7f20375c9091ffa375400870780e4de",
+                      "size":  13090
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_weapons.cs",
+                      "sha256":  "940d507d3d77c5d07ebf222dd6a5b531f87a41e3ffca3437debb719f1ef58638",
+                      "size":  24819
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/training_welcome.cs",
+                      "sha256":  "dbd33c45c49ee71f65de89c530478e7618ebfd9ebd8ff7dd33f1dd802c42cdc7",
+                      "size":  11645
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/trees.cs",
+                      "sha256":  "f68273bf424df514814f32444b3fd776ea18ac26dcf09f2779a9102965258119",
+                      "size":  278
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/trigger.cs",
+                      "sha256":  "a9dcffb786e6bae381ebeac69106662d0b6d32e1d701608b0f54db3e5da9a506",
+                      "size":  1241
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/tsdefaultmatprops.cs",
+                      "sha256":  "8f1432a1ede71902f951a089a7acf399d6480aa464afdbd84b259935781a0cf0",
+                      "size":  981
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/turret.cs",
+                      "sha256":  "e2bb28a8e1e9206429b3f6646a5baede1a59caf769f25b301240b6851262d05b",
+                      "size":  17948
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicle.cs",
+                      "sha256":  "11cc4431d3c9b5137781777e1a01767b14badf5bdd0eef73e2fc9a6fed2038db",
+                      "size":  7714
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleFighter.cs",
+                      "sha256":  "c3eab14866d3fa36f9103da5bf8e6d30afd3bc4f95e0d78b64295f8442dd182c",
+                      "size":  3900
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleHAPC.cs",
+                      "sha256":  "d36cf3aa75cd5dfc10fca24411454b9a3644830fe5f383ce744b67b30fb80b11",
+                      "size":  3818
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleHvyFighter.cs",
+                      "sha256":  "556bfd4053d1098c987b8ab5502a54467be549dbc0102f847fca657e095ca2c0",
+                      "size":  3715
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleInterceptor.cs",
+                      "sha256":  "1b2dc67f4d20dffb90559c45aa45b5775c97d1f2b66d9857368842270d649ad6",
+                      "size":  6323
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleLAPC.cs",
+                      "sha256":  "523233fda2aa9faa513d17d4638eff489d7c5751dcdddf5f714f2bf2404904fc",
+                      "size":  5484
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleScout.cs",
+                      "sha256":  "cbba709da78933c195dc94887010ccc70771e64d2699389ac44fd8a70fc6e641",
+                      "size":  3105
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleSpeeder.cs",
+                      "sha256":  "923ebc94a7ee80138a59625190791ad195ed9c67fb78419460c530edd0c5ae36",
+                      "size":  3617
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleTempest.cs",
+                      "sha256":  "d6a5704c733a7ad140e42daf0409575dcc1506bdd40c2fc6483fdcba1d085a8c",
+                      "size":  3791
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/vehicleWraith.cs",
+                      "sha256":  "d2aa78c5952d18c526939d5ef5d4d7c982854a5d3df228f26bd7adec8e8c579b",
+                      "size":  3660
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponBallistic.cs",
+                      "sha256":  "9cd4dfb5b0404bda88f8339c27ea21900cefbb82d700123d814ea8b2a46ff732",
+                      "size":  18284
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponBoltguns.cs",
+                      "sha256":  "b1a09fe474b3d3d98fff7e887bbeca30477de0e57530da9f1fc4cb91391c0bab",
+                      "size":  19023
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponIncendiary.cs",
+                      "sha256":  "09a3cf32e730971a6c8aeaec26e005aeb9c388c46e5bac094d9167e27c653be3",
+                      "size":  19969
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponLasers.cs",
+                      "sha256":  "38d34912e190b8ffa4afa37d46f0681a19961c99ab6459da1a01c1fab6fadd60",
+                      "size":  7304
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponMasterCrafted.cs",
+                      "sha256":  "52a73966071dbce43a48ae15f878661e0fa3a284d37084f1c3bb0e0b8810b615",
+                      "size":  14184
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponMelee.cs",
+                      "sha256":  "199bcaa9ae6c299e0f5203bd10785f9539f504ec5ae142d41da4292611e3e67d",
+                      "size":  1577
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponOther.cs",
+                      "sha256":  "83350d89c47bd8aaeca474ad90130b926dd4c355a880b2642625655d5b919a31",
+                      "size":  18585
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponPsionics.cs",
+                      "sha256":  "e42801c898ce81c565fc7524347060450591c868bbaace7fcf4fc9cf6a83cb83",
+                      "size":  37504
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponRockets.cs",
+                      "sha256":  "3ba9d04ba3ed693de3d3283c9c81db63082b8badbc4bd5104e185cf3a264e9ba",
+                      "size":  11808
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponShuriken.cs",
+                      "sha256":  "2f439a6f5833607ea39f846e3b3cd370766f95c05a299f3dc3f5d0ed685b2d9e",
+                      "size":  7593
+                  },
+                  {
+                      "path":  "Mods/War40k/scripts/weaponTools.cs",
+                      "sha256":  "bedfd5612bb0f27e2b9a59cb5e5f0802127041bac533e9cdc96cd04d0bd94507",
+                      "size":  20292
                   },
                   {
                       "path":  "Mods/War40k/sdaemon.dts",
@@ -70646,8 +72361,8 @@
                   },
                   {
                       "path":  "README - Modern Client.txt",
-                      "sha256":  "08d46efa9e00b38cd5ac47151040bf8e0ac61eb041694f29a6c84c83b18b05fc",
-                      "size":  10163
+                      "sha256":  "51bc8629b9dbaceb638f2eae262d4af28353480a9f025d274aa65ebda029e689",
+                      "size":  13890
                   },
                   {
                       "path":  "smackw32.dll",
