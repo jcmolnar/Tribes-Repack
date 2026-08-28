@@ -912,11 +912,11 @@ function ME::StartAutoSave()
    schedule("ME::AutoSave(" @ $ME::autoSaveGen @ ");", %mins * 60);
 }
 
-// NATIVE-EDITOR: F-row on the keyboard0 DEVICE for the whole editing session.
-// Device binds fire in editor AND play-test mode (the editor.sae action map
-// pops with the camera's focus), and they REPLACE extra-controls.cs's raw-key
-// relay binds for these keys (same device + key = rebind), killing the "this
-// server does not support the use of extra keybinds" spam in edit sessions.
+// NATIVE-EDITOR: F-row for the whole editing session, in its own PUSHED map
+// (ME::BindEditorKeys below). It outranks extra-controls.cs's raw-key relay
+// binds for these keys in editor AND play-test mode, killing the "this server
+// does not support the use of extra keybinds" spam in edit sessions -- without
+// the old approach's side effect of leaking them into the saved play map.
 function METoggleMode()
 {
    if($ME::inGameMode)
@@ -927,7 +927,19 @@ function METoggleMode()
 
 function ME::BindEditorKeys()
 {
-   echo("[MEDIAG] editor F-row device binds applied");
+   // NATIVE-EDITOR FIX 2026-08-27: these used to bindCommand with NO map selected, so they
+   // landed in whatever map happened to be selected -- playMap.sae, after the autoexec chain
+   // (autoexec.cs:94 / KronosShop.cs:1357 / KronosCM.cs:348) -- and GUI.CS:229's exit
+   // saveActionMap then baked them into config\config.cs permanently. F1-F5/F9 shadowed
+   // extra-controls.cs's raw-key server relay in every NORMAL game (playMap is pushed above
+   // actionMap, dlgPlay.cpp:695-696) and called ME* functions that only exist under -edit,
+   // i.e. they did nothing at all.
+   //
+   // Own map, pushed on top. It still wins in BOTH edit and play-test mode -- the reason
+   // these left editor.sae originally -- because push is push_front and matching runs from
+   // the front. And saveActionMap is only ever handed actionMap/playMap/pdaMap
+   // (GUI.CS:227-229, Presto\events.cs:487-489), so this map can never reach disk.
+   newActionMap("editorKeys.sae");
    bindCommand(keyboard0, make, "f1", TO, "MEHide();");
    bindCommand(keyboard0, make, "f2", TO, "MEShowInspector();");
    bindCommand(keyboard0, make, "f3", TO, "MEShowCreator();");
@@ -935,6 +947,8 @@ function ME::BindEditorKeys()
    bindCommand(keyboard0, make, "f5", TO, "METoggleMode();");
    bindCommand(keyboard0, make, "f9", TO, "METoggleHelp();");
    bindCommand(keyboard0, make, "f6", TO, "ME::ToggleSmooth();");
+   pushActionMap("editorKeys.sae");
+   echo("[MEDIAG] editor F-row bound in editorKeys.sae (pushed; never serialized)");
 }
 
 // The engine calls loadPlayGui on every PlayGuiMode entry. In an editing

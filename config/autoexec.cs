@@ -2,6 +2,15 @@
 //Keep in mind this file may be replaced in future Tribes Repack updates.
 // Native rebuild: corrected defaults (net send budget, AI nav + acquisition, server log buffer).
 // Kept in its own file so a repack update to autoexec.cs cannot silently drop the fixes.
+// NATIVE FIX 2026-08-27: one flag for "this boot is plain base, no -mod".
+// Same predicate console.cs:241 uses to pick saeModern.cs, and it is a word-count
+// test ON PURPOSE: a launcher that passes "-mod base" explicitly builds the list as
+// `%mod @ " " @ $modList` and leaves a TRAILING SPACE, so "base " != "base".
+// Read by the RPG-flavoured binds below and by presto's JobMenu in Install.cs.
+$KV::isBase = false;
+if(getWord($modList, 0) == "base" && getWord($modList, 1) == -1)
+	$KV::isBase = true;
+
 exec("nativeDefaults.cs");
 exec("SinConnect.cs");
 exec("presto\\install.cs");
@@ -105,7 +114,12 @@ bindCommand(mouse0, zaxis1, TO, "prevWeapon();"); //Wheel backward
 // saeBase and IDACTION_CROUCH in saeRPG/saeModern; both were being lost with no error.
 // j is bound nowhere in any play map (editorconfig.cs uses it, but that is the mission-editor
 // map under -edit only). Not l -- config.cs has it on LocalSkin::menu().
-bindCommand(keyboard0, make, "j", TO, "PrestoAutoAttackToggle();");
+// NATIVE FIX 2026-08-27: autofire is an RPG-grind convenience, not a base-game
+// control, and this file binds it AFTER every preset -- so in base it was taking a
+// key away from the stock set for a feature base players do not use. Mod boots keep
+// it exactly as before.
+if(!$KV::isBase)
+	bindCommandDefault(keyboard0, make, "j", TO, "PrestoAutoAttackToggle();");
 
 // CustomConfigs v2: when a 1.4 config overlay is active ($Config::Name set by the exe
 // before boot), the CONFIG owns the in-game HUD -- skip the whole KronosHUD suite so

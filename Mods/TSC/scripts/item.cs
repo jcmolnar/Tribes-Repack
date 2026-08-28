@@ -1870,6 +1870,9 @@ function set_luke(%player)
 	schedule("$force_delay[" @ %player @ "]=0;",5,%player);
 	%energy=GameBase::getEnergy(%player);
 	Player::setArmor(%player,larmor); 
+   	Player::setItemCount(%player,EnergyPack, 0);
+   	Player::setItemCount(%player,ShieldPack, 1);
+	Player::mountItem(%player, ShieldPack, 1);
 	GameBase::setEnergy(%player,%energy);
 	Player::trigger(%player,$WeaponSlot,false);
 }
@@ -1880,6 +1883,9 @@ function set_speedluke(%player)
 	schedule("$force_delay[" @ %player @ "]=0;",5,%player);
 	%energy=GameBase::getEnergy(%player);
 	Player::setArmor(%player,larmor2); 
+   	Player::setItemCount(%player,ShieldPack, 0);
+   	Player::setItemCount(%player,EnergyPack, 1);
+	Player::mountItem(%player, EnergyPack, 1);
 	GameBase::setEnergy(%player,%energy);
 	Player::trigger(%player,$WeaponSlot,false);
 }
@@ -1925,7 +1931,7 @@ function MotionSensorPackImage::onActivate(%player, %slot)
 		schedule("eCheck(" @ %player @ ");",2,%player);
 		$force_delay[%player]=50;
 	}
-	else if($force_delay[%player]<=0&&Player::getArmor(%player)==larmor3)
+	else if($force_delay[%player]<=0&&Player::getArmor(%player)==larmor2)
 	{
 		schedule("set_luke(" @ %player @ ");",1,%player);
 		Bottomprint(Player::getClient(%player), "Snowboard Deactivated");
@@ -1938,7 +1944,7 @@ function eCheck(%player)
 {
 	$force_delay[%player]-=10;
 	%energy=GameBase::getEnergy(%player);
-	if(Player::getArmor(%player)==larmor3&&%energy>1)//enough e
+	if(Player::getArmor(%player)==larmor2&&%energy>1)//enough e
 	{
 		GameBase::setEnergy(%player,%energy-1);
 		schedule("eCheck(" @ %player @ ");",1,%player);
@@ -1957,6 +1963,9 @@ function set_luke(%player)
 	schedule("$force_delay[" @ %player @ "]=0;",5,%player);
 	%energy=GameBase::getEnergy(%player);
 	Player::setArmor(%player,larmor); 
+   	Player::setItemCount(%player,EnergyPack, 0);
+   	Player::setItemCount(%player,ShieldPack, 1);
+	Player::mountItem(%player, ShieldPack, 1);
 	GameBase::setEnergy(%player,%energy);
 	Player::trigger(%player,$WeaponSlot,false);
 }
@@ -1966,7 +1975,10 @@ function set_speedluke(%player)
 	$force_delay[%player]=50;
 	schedule("$force_delay[" @ %player @ "]=0;",5,%player);
 	%energy=GameBase::getEnergy(%player);
-	Player::setArmor(%player,larmor3); 
+	Player::setArmor(%player,larmor2); 
+   	Player::setItemCount(%player,ShieldPack, 0);
+   	Player::setItemCount(%player,EnergyPack, 1);
+	Player::mountItem(%player, EnergyPack, 1);
 	GameBase::setEnergy(%player,%energy);
 	Player::trigger(%player,$WeaponSlot,false);
 }

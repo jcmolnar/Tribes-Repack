@@ -313,3 +313,22 @@ if($pref::gltfShapes == "") { $pref::gltfShapes = 1; }
 // Guarded: a player who turned it ON in Options -> Graphics keeps it.
 //====================================================================================
 if($pref::gpuLmapBake == "") { $pref::gpuLmapBake = 0; }
+
+//====================================================================================
+// PDA ZOOM KEYS (2026-08-27): restore the two pdaMap binds every preset declares
+// (saeModern.cs:193-194, saeBase.cs, saeRPG.cs, base/scripts/sae.cs:129-130) and that
+// NOBODY has actually had since forever. cowboy/CmdHUD.cs ran NewActionMap("pdaMap.sae")
+// from autoexec on EVERY boot, which CLEARS the map, then bound only its enter toggle --
+// so the presets' z zoom binds were wiped before the player ever saw them, and the
+// wiped state is what exit-save wrote back to config.cs. CmdHUD now uses EditActionMap,
+// but that alone does not help an EXISTING install: its config.cs still carries a pdaMap
+// block holding nothing but enter, and config.cs does its own NewActionMap on load.
+//
+// bindDefault is the right tool and the reason it exists (see repack-whitelist.txt:130):
+// it applies ONLY when the action is unbound AND the key is free, so this restores the
+// zoom for everyone who lost it, skips silently once it is present, and never touches a
+// player who deliberately put something else on z or moved zoom elsewhere.
+//====================================================================================
+editActionMap("pdaMap.sae");
+bindDefault(keyboard0, make, "z", TO, IDACTION_ZOOM_MODE_ON);
+bindDefault(keyboard0, break, "z", TO, IDACTION_ZOOM_MODE_OFF);

@@ -568,10 +568,19 @@ function JammerBolt::onAcquire(%this, %player, %target)
 
 function set_slow(%target)
 {
-	Player::setArmor(%target,larmor3);
+	if(Player::getArmor(%target)==larmor2)
+		$jam_wasboard[%target]=1;
+	else
+		$jam_wasboard[%target]=0;
+	Player::setArmor(%target,larmor);
 }
 
 function set_normal(%target)
 {
-	Player::setArmor(%target,larmor2);
+	if($jam_wasboard[%target]==1)
+	{
+		$jam_wasboard[%target]=0;
+		Player::setArmor(%target,larmor2);
+		schedule("eCheck(" @ %target @ ");",1,%target);
+	}
 }

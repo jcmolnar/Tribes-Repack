@@ -612,8 +612,17 @@ function remoteResetKeys(%server, %keys){
 	if(%keys == "newJumpOff"){
 		setRepackJump(False);
 	}
-	export("pref::*", "config\\ClientPrefs.cs", False);
-	saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
+	// NATIVE FIX 2026-08-27: the two DURABLE writes below are now commented out.
+	// remoteResetKeys is reachable by ANY connected server -- the only guard is the
+	// `if(%server != 2048) return;` at the top of this function, and 2048 is simply
+	// "the server you are joined to" -- so a server could permanently rewrite the
+	// player's saved keymap AND export every $pref::* over their ClientPrefs.cs.
+	// The gameplay feature is unchanged: every rebind above still applies for this
+	// session, it just no longer outlives it. A normal quit still saves the map
+	// (GUI.CS:229), so a player who WANTS a server's layout kept can just quit from
+	// that session.
+	//export("pref::*", "config\\ClientPrefs.cs", False);
+	//saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
 }
 
 function setRepackJump(%enable, %exiting)

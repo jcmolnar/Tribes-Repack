@@ -160,17 +160,27 @@ EditActionMap("ActionMap.sae");
 //bindCommand(keyboard0, make, "c", TO, "CmdHud::turnOn(Default, 0);");
 //The previous key bind causes a glitch if the server disabled the command screen.
 //This is the original "c" bind, placed here to force reset. --phantom
-bindCommand(keyboard0, make, "c", TO, "remoteEval(2048, ToggleCommandMode);");
+// NATIVE FIX 2026-08-27: REMOVED. saeModern.cs:70, saeBase.cs, saeRPG.cs and
+// Mods\RPG\scripts\sae.cs all bind "c" to this exact command already, so this
+// only ever re-stamped it -- destructively, over any key the player had rebound.
+//bindCommand(keyboard0, make, "c", TO, "remoteEval(2048, ToggleCommandMode);");
 
 // View Commander screen with Large Map, in Mouse Cursor mode 1
-bindCommand(keyboard0, make, "]", TO, "CmdHud::turnOn(Large, 1);");
+bindCommandDefault(keyboard0, make, "]", TO, "CmdHud::turnOn(Large, 1);");
 
 // View Commander screen with Small Map, in Free Look mode 2
-bindCommand(keyboard0, make, "[", TO, "CmdHud::turnOn(Small, 2);");
+bindCommandDefault(keyboard0, make, "[", TO, "CmdHud::turnOn(Small, 2);");
 
 // Key used to view Inventory Screen, "i" is the Tribes default. Here I open
 // it in Default mode (0)
-bindCommand(keyboard0, make, "i", TO, "InvHud::turnOn(0);");
+// NATIVE FIX 2026-08-27: REMOVED. Every preset binds "i" to
+// remoteEval(2048, ToggleInventoryMode) -- the stock path the native gui-mode code in
+// dlgPlay.cpp drives -- and this stomped all of them from autoexec.cs:10 on every boot.
+// main.cpp:1946-1950 records the fallout: CmdHUD's private guiMode is not synchronised
+// with a config-owned play GUI. The RPG server does not need the KEY: shopping.cs:41,87
+// reaches this screen with remoteEval(%clientId, InvHUD::turnOn, 3), which only needs the
+// function defined, and it still is.
+//bindCommand(keyboard0, make, "i", TO, "InvHud::turnOn(0);");
 
 // These are what *I* actually use for my command screen now...
 // "c" opens the Small map in Free Look mode, "alt-c" opens the Large map
@@ -187,11 +197,18 @@ bindCommand(keyboard0, make, "i", TO, "InvHud::turnOn(0);");
 // bindCommand(keyboard0, make, control, "i", TO, "InvHud::turnOn(2);");
 
 // I don't have an Objectives GUI, but this is important to define
-bindCommand(keyboard0, make, "o", TO, "CmdHud::ObjectiveOn();");
+// NATIVE FIX 2026-08-27: REMOVED, same reason as "i" above -- every preset binds "o" to
+// remoteEval(2048, ToggleObjectivesMode) and this overwrote it on every boot.
+//bindCommand(keyboard0, make, "o", TO, "CmdHud::ObjectiveOn();");
 
 // Key to toggle mouse cursor/movement modes
-NewActionMap("pdaMap.sae");
-bindCommand(keyboard0, make, "enter", TO, "$CmdHUD::State = CmdHUD::Cursor(!$CmdHUD::State);");
+// NATIVE FIX 2026-08-27: NewActionMap CLEARS the map. Running from autoexec.cs:10 on every
+// boot, it wiped the whole PDA map and left only the enter bind below -- which is why the
+// z zoom binds every preset puts there (saeModern.cs:193-194, sae.cs:129-130) have never
+// survived a single boot, and why the saved config.cs pdaMap block held nothing but enter.
+// EditActionMap appends instead.
+EditActionMap("pdaMap.sae");
+bindCommandDefault(keyboard0, make, "enter", TO, "$CmdHUD::State = CmdHUD::Cursor(!$CmdHUD::State);");
 
 //
 // Other settings...

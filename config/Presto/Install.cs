@@ -224,7 +224,14 @@ if (InstallStage(installed)) {
 		Include("presto\\Drop.cs");
 	
 	for (%i=0;%i<1000;%i++) {} //some people have been having problems that only a slight delay seems to fix :o\
-	if (Presto::EnableKey(JobMenu, play, "Job::Start();"))
+	// NATIVE FIX 2026-08-27: Job::Start() is the RPG/Kronos job system (presto\Chores.cs).
+	// Binding ctrl+G for it on a plain base boot claimed a key no base feature wants.
+	// Split out of the if() rather than &&-ed into it: this console is not guaranteed to
+	// short-circuit, and EnableKey binds as a side effect.
+	$KV::jobOk = false;
+	if(!$KV::isBase)
+		$KV::jobOk = Presto::EnableKey(JobMenu, play, "Job::Start();");
+	if ($KV::jobOk)
 		Include("presto\\Chores.cs");
 
 	for (%i=0;%i<1000;%i++) {} //some people have been having problems that only a slight delay seems to fix :o\
