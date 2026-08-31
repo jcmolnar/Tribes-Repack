@@ -1,11 +1,11 @@
 {
-    "version":  22,
-    "generated":  "2026-08-28T18:46:35Z",
-    "notes":  "v22: fixes the crash when hosting a game (from the menu or in-game), menu gradient corners, a startup stall while re-checking display modes, a false not-responding box on slow first launches, and rebuilt bot navigation for the five classic rotation maps",
-    "sourceCommit":  "74530c2359a7d62e33fa3b4da4103396d9ba92fb",
+    "version":  23,
+    "generated":  "2026-08-31T00:29:22Z",
+    "notes":  "v23: minimap restored, HUD positions save on quit, in-game team voice chat, shoutcaster tools, classic 1.40/1.41 server compatibility, CTF haze lock, menu hitch fix, mod hosting fixes",
+    "sourceCommit":  "151e0559802290b67a81fc2975d08e1e5577a96f",
     "sourceDirty":  "0",
-    "targetCommit":  "f9bedae50a8e5e43b6577cfe4ee344331833a123",
-    "baseUrl":  "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/f9bedae50a8e5e43b6577cfe4ee344331833a123/",
+    "targetCommit":  "01c2620f306d30cd1079ebe61e423095b31a20b8",
+    "baseUrl":  "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/01c2620f306d30cd1079ebe61e423095b31a20b8/",
     "files":  [
                   {
                       "path":  "base/@fx_blast.BMP",
@@ -14,8 +14,8 @@
                   },
                   {
                       "path":  "base/@fx_blast.png",
-                      "sha256":  "1e3beec72ca73ab7213869e1fd0c9e20993e2404c76836aca01dac15be26c3d8",
-                      "size":  112084
+                      "sha256":  "9a59451c362c1ed792b29478869881a5ef4a34eba7da787f848f0ce9fbe14bc3",
+                      "size":  112109
                   },
                   {
                       "path":  "base/@fx_blast1.BMP",
@@ -24,8 +24,8 @@
                   },
                   {
                       "path":  "base/@fx_blast1.png",
-                      "sha256":  "a85fdab5c1d0c45a6fd8809ce76ce31109e0de65ed3ff07beeacb4e56573f9cd",
-                      "size":  71816
+                      "sha256":  "446701188a1d6116e9bdb74c642c11fe62c53dbc181fbbc6ee38b5f3acc6806f",
+                      "size":  71841
                   },
                   {
                       "path":  "base/@fx_blast2.BMP",
@@ -34,8 +34,8 @@
                   },
                   {
                       "path":  "base/@fx_blast2.png",
-                      "sha256":  "8eccd7cfcc0f345caaab9154ad4a26f41a09a5f650410cfc4fceea9a2cbbfd41",
-                      "size":  116838
+                      "sha256":  "1cab797ef36fbb1c3db0aad4008c704584dd96d13810d1a5ba1bc738d08a612a",
+                      "size":  116863
                   },
                   {
                       "path":  "base/@fx_blk01.BMP",
@@ -44,8 +44,8 @@
                   },
                   {
                       "path":  "base/@fx_blk01.png",
-                      "sha256":  "ffa0a0ea105bbc06acfb382760920d59db0dee10113b7c84b52683ab5562096a",
-                      "size":  62340
+                      "sha256":  "4f59cb25b62dfd1aff26048ee51bff2a3148367cf68628d2b2fb36548d51751e",
+                      "size":  62365
                   },
                   {
                       "path":  "base/@fx_blk02.BMP",
@@ -54,8 +54,8 @@
                   },
                   {
                       "path":  "base/@fx_blk02.png",
-                      "sha256":  "2edf36316097c1ad50cc531e5d5acddc82e02f6da58fe820c11f2e8735cd7f84",
-                      "size":  62551
+                      "sha256":  "3946a0261bb31db7754c110afa28e890796a43bd4d3a751021d6a4510140ca76",
+                      "size":  62576
                   },
                   {
                       "path":  "base/@fx_blk03.BMP",
@@ -64,8 +64,8 @@
                   },
                   {
                       "path":  "base/@fx_blk03.png",
-                      "sha256":  "8b9dd0c90d3d1a9080cc44915a1fee438b1aeb470edf52fff8bf5de44b798fb1",
-                      "size":  56568
+                      "sha256":  "cfb09303da6485726289d6a78bc5606f07f95dc0dfccfcbb78f653b8abb68471",
+                      "size":  56593
                   },
                   {
                       "path":  "base/@fx_blk04.BMP",
@@ -74,8 +74,8 @@
                   },
                   {
                       "path":  "base/@fx_blk04.png",
-                      "sha256":  "e4a0494a28587dbd84425c470e52d1d3a9e8a80b4e88dbc61cc492162cadb5ab",
-                      "size":  62079
+                      "sha256":  "04711717994845bbdb7d17cb9ea021dbb97c7d8a8e9d4d34313fd6f6a88c1bf0",
+                      "size":  62104
                   },
                   {
                       "path":  "base/@fx_blk05.BMP",
@@ -84,8 +84,8 @@
                   },
                   {
                       "path":  "base/@fx_blk05.png",
-                      "sha256":  "8ec90b5aaf51dbd87951f0ad312c82e9ba9c09fe2b36e85d38a20147cd62c472",
-                      "size":  59120
+                      "sha256":  "731450f25e6a8ddb9a839065c16d9df48d70d3ecaa28ba6231d531bdde38ed92",
+                      "size":  59145
                   },
                   {
                       "path":  "base/@fx_bls01.bmp",
@@ -94,8 +94,8 @@
                   },
                   {
                       "path":  "base/@fx_bls01.png",
-                      "sha256":  "0c23fb82e96f2fd9ba722fce9c89fd5cd3593e7dc9d8036a2b709ba3f806d1b0",
-                      "size":  24532
+                      "sha256":  "de818003160bc4a506223d4ec122cb44df86f7d41a62edda9f58ee549959f0cf",
+                      "size":  24557
                   },
                   {
                       "path":  "base/@fx_bls02.bmp",
@@ -104,8 +104,8 @@
                   },
                   {
                       "path":  "base/@fx_bls02.png",
-                      "sha256":  "e06d68934d5f141f9faf511b3cea4d53355e378e0097e9252aeb9592f4004152",
-                      "size":  104415
+                      "sha256":  "18ef7ca9f6e761dcd07e97906093c6a0a814936ac3ac56ce8fe6f85cc0066a10",
+                      "size":  104440
                   },
                   {
                       "path":  "base/@fx_bls03.bmp",
@@ -114,8 +114,8 @@
                   },
                   {
                       "path":  "base/@fx_bls03.png",
-                      "sha256":  "20fe6a637cb2dda328fd43970dcd4a6496f9dab67c828ccc805a8c4c280c1b69",
-                      "size":  64496
+                      "sha256":  "1931b8e8444e628d0e6fe6d2b17007a2dd7d4e7982ce53161ffe0c7a0eae9357",
+                      "size":  64521
                   },
                   {
                       "path":  "base/@fx_bls04.bmp",
@@ -124,8 +124,8 @@
                   },
                   {
                       "path":  "base/@fx_bls04.png",
-                      "sha256":  "4642b05f82926c3301429f5062138af7cdafad682ab5f0c7784f6a0ef75b74fc",
-                      "size":  50352
+                      "sha256":  "7c6b6788680de7ebc91aab7fa798562ee3ea78c4fbb13dadbff35cd737c7870f",
+                      "size":  50377
                   },
                   {
                       "path":  "base/@fx_BlueExh.BMP",
@@ -134,8 +134,8 @@
                   },
                   {
                       "path":  "base/@fx_BlueExh.png",
-                      "sha256":  "c4710deeed2916673695f9d2bfa4b554121d564ebb74bdbe3702e9e7fd6377fe",
-                      "size":  73933
+                      "sha256":  "058efd0f6ea41417d0235b6fb22acf297610c12387cfa67336b70fdf1c99575a",
+                      "size":  73958
                   },
                   {
                       "path":  "base/@fx_bsmk01.bmp",
@@ -314,8 +314,8 @@
                   },
                   {
                       "path":  "base/@fx_clas.png",
-                      "sha256":  "7efc649594c020d99dd1450ac4336c2a4a4777901dcf7fd6ad4bba1f0a370292",
-                      "size":  55855
+                      "sha256":  "6225b374dacfa3a9fe8fb41f8f5e31f0f42680aadd6cbd8051e0001466bace61",
+                      "size":  55880
                   },
                   {
                       "path":  "base/@fx_dis01.bmp",
@@ -324,8 +324,8 @@
                   },
                   {
                       "path":  "base/@fx_dis01.png",
-                      "sha256":  "2d0f2af744c001ff18cd3d2a71b848a1bd5e412c9664d53e28fd92742fd50ee5",
-                      "size":  78834
+                      "sha256":  "54deb8c049307d1176b993ae384b4809d43de3f176e05d349bef1b0b90cec6fc",
+                      "size":  78859
                   },
                   {
                       "path":  "base/@fx_dis02.bmp",
@@ -334,8 +334,8 @@
                   },
                   {
                       "path":  "base/@fx_dis02.png",
-                      "sha256":  "9723b45a65e2dc7a2e4a9e0dac13350190355fe0713d61fc9fb93b92806428cc",
-                      "size":  77436
+                      "sha256":  "43e01c7e630184447d4293c559f21cb81e28be1a640ee918184614884343dcba",
+                      "size":  77461
                   },
                   {
                       "path":  "base/@fx_dis03.bmp",
@@ -344,8 +344,8 @@
                   },
                   {
                       "path":  "base/@fx_dis03.png",
-                      "sha256":  "e6f0ce8d6ce22a417133a64c528c042346495a171810a95d612b6bfa3f5678c1",
-                      "size":  80029
+                      "sha256":  "eee4614830b4a81adbcdd83badf0dc52294d3b02e9296c4f957619763efd0380",
+                      "size":  80054
                   },
                   {
                       "path":  "base/@fx_dis04.bmp",
@@ -354,8 +354,8 @@
                   },
                   {
                       "path":  "base/@fx_dis04.png",
-                      "sha256":  "05a9e5635e2b21d0c7136209dd7f5e34435b213c568515967a48401cc3b1805b",
-                      "size":  80727
+                      "sha256":  "5f743d6f4222219d96af06ccf580dfffa44daaaad2ef129950d7581a9d4ed011",
+                      "size":  80752
                   },
                   {
                       "path":  "base/@fx_dis05.bmp",
@@ -364,8 +364,8 @@
                   },
                   {
                       "path":  "base/@fx_dis05.png",
-                      "sha256":  "1a70ff810460bdb3a823288bdbe1fbdc99b1718bb8fe2a6f859d7c75a2e647f1",
-                      "size":  82349
+                      "sha256":  "14f268ad2187eac00f0861b03cbf24ba1194accf2b6875481fe3c74c882ec69a",
+                      "size":  82374
                   },
                   {
                       "path":  "base/@fx_drop00.bmp",
@@ -374,8 +374,8 @@
                   },
                   {
                       "path":  "base/@fx_drop00.png",
-                      "sha256":  "db02bf8e0f9d6c4ea7fbbbd01597945f0cccceeac50d38e26739478157aca1c0",
-                      "size":  247528
+                      "sha256":  "f110b523d6b6107e98c81f96303a7b0acd6014ab2a7ad2bc780d1143aa0d92dd",
+                      "size":  247553
                   },
                   {
                       "path":  "base/@fx_drop01.bmp",
@@ -384,8 +384,8 @@
                   },
                   {
                       "path":  "base/@fx_drop01.png",
-                      "sha256":  "884b204ea364bb815ad1665b1b5979702e83a544d9a0ce25f427e7977501747b",
-                      "size":  250202
+                      "sha256":  "c669d4fcb3d6f8db24f3c32f6e9a653a8fab81254afe5b7901eb80650243bb15",
+                      "size":  250227
                   },
                   {
                       "path":  "base/@fx_drop02.bmp",
@@ -394,8 +394,8 @@
                   },
                   {
                       "path":  "base/@fx_drop02.png",
-                      "sha256":  "c5c1c0cbb6a83edbdc8a3c8042a024d01ec810395e3bf0021de5701426071059",
-                      "size":  241445
+                      "sha256":  "88d97a7d8db995503713ed68a9c8960ff2e5413db89f95d5906a2252691f910f",
+                      "size":  241470
                   },
                   {
                       "path":  "base/@fx_drop03.bmp",
@@ -404,8 +404,8 @@
                   },
                   {
                       "path":  "base/@fx_drop03.png",
-                      "sha256":  "55446b1c7bd2feddf941dccfe46df9db7f394cf98572ddf8228d907be8b565c9",
-                      "size":  243944
+                      "sha256":  "8f51a3ee8fbdab2f46e5847945e74ba2e99f0904a78814bb601224d971eaa634",
+                      "size":  243969
                   },
                   {
                       "path":  "base/@fx_drop04.bmp",
@@ -414,8 +414,8 @@
                   },
                   {
                       "path":  "base/@fx_drop04.png",
-                      "sha256":  "0ab980aaddc412caca2d1ac40315eb92b38d4958d86e7a3055c5fdc0432dc122",
-                      "size":  245476
+                      "sha256":  "71568298b85ab2a3666d08d6d07071e41c749ae9689a1920342b974eb9a559cd",
+                      "size":  245501
                   },
                   {
                       "path":  "base/@fx_drop05.bmp",
@@ -424,8 +424,8 @@
                   },
                   {
                       "path":  "base/@fx_drop05.png",
-                      "sha256":  "d6404ff9f628457c66648032be7288d763c2fd0974bbdf55ba296f39ef5db388",
-                      "size":  247113
+                      "sha256":  "79d0f82eee304ae0591ea64e37d238955f381abbdf2ccb034cb2a52a2ca89cd0",
+                      "size":  247138
                   },
                   {
                       "path":  "base/@fx_drop06.bmp",
@@ -434,8 +434,8 @@
                   },
                   {
                       "path":  "base/@fx_drop06.png",
-                      "sha256":  "53bb38d0494909b4a8cf56c510258ab140f0c7a704d96c39456b75650152bdb8",
-                      "size":  248241
+                      "sha256":  "342750591cfd31ce82fc6c5693a2374a7e8a4956cb0864021e196b5adf142d89",
+                      "size":  248266
                   },
                   {
                       "path":  "base/@fx_drop07.bmp",
@@ -444,8 +444,8 @@
                   },
                   {
                       "path":  "base/@fx_drop07.png",
-                      "sha256":  "0c20ff86b9d7c8be3d563a04b7b94542e1e3b3cc6815941c6f876e8f2e3869f2",
-                      "size":  253397
+                      "sha256":  "efe89da2c3683c1c3a3d1b14368744a49ec75feda4d25caa19ec80ad6cd86d65",
+                      "size":  253422
                   },
                   {
                       "path":  "base/@fx_drop08.bmp",
@@ -454,8 +454,8 @@
                   },
                   {
                       "path":  "base/@fx_drop08.png",
-                      "sha256":  "aab9add77f5ca9a697369ec5354b404c4a3733c66ea810082af182c9d54be3d8",
-                      "size":  252814
+                      "sha256":  "d987c65052b3cc9ac1f77dffa94ace2d14da1149e24660536245f75655a05913",
+                      "size":  252839
                   },
                   {
                       "path":  "base/@fx_drop09.bmp",
@@ -464,8 +464,8 @@
                   },
                   {
                       "path":  "base/@fx_drop09.png",
-                      "sha256":  "947baa9ee7864466d62c0e5b1e11f86036f9a71e4145a2bf30d433cbfe8db9ef",
-                      "size":  245561
+                      "sha256":  "8f7d2f21bd929b64e91ac0b5febede92c2e19473179c5ff2cfdb9eec69409804",
+                      "size":  245586
                   },
                   {
                       "path":  "base/@fx_drop10.bmp",
@@ -474,8 +474,8 @@
                   },
                   {
                       "path":  "base/@fx_drop10.png",
-                      "sha256":  "a8b3c62c929ec60e04174ddaa46ccb5ac64907b77a7a8f6f4b36bda3ed468ea1",
-                      "size":  252196
+                      "sha256":  "f433c7c7610506f0c62169165cf0b0d0b27e8df8481d73a11b5dc130184adceb",
+                      "size":  252221
                   },
                   {
                       "path":  "base/@fx_eb00.bmp",
@@ -484,8 +484,8 @@
                   },
                   {
                       "path":  "base/@fx_eb00.png",
-                      "sha256":  "dbfd671fa9f6d5fc698d0c0a9af97fa5bc2abd9a23570c534b88bc2f7b0dae06",
-                      "size":  55143
+                      "sha256":  "a77d8f8ec016252da6d984d2387ecd59329d0bb1faca9a411cbf94ee3a07fa19",
+                      "size":  55168
                   },
                   {
                       "path":  "base/@fx_eb01.bmp",
@@ -494,8 +494,8 @@
                   },
                   {
                       "path":  "base/@fx_eb01.png",
-                      "sha256":  "2b752b8fd6414fa038759a3af0b1a742725e41254070dba27cb174879b4eaaab",
-                      "size":  54806
+                      "sha256":  "37de64205a83c158fe1851e12ddef83dae99d6e01be251da461b90ddab3c9e0b",
+                      "size":  54831
                   },
                   {
                       "path":  "base/@fx_eb02.bmp",
@@ -504,8 +504,8 @@
                   },
                   {
                       "path":  "base/@fx_eb02.png",
-                      "sha256":  "ebf9ed4a5304ac3f45c9f6d8bd1706625f800332d4f6367336d4f823450d8389",
-                      "size":  53563
+                      "sha256":  "9043ca365d5544dadda14cb9161bb31f8eead4fd170802235dfdf130d16d989e",
+                      "size":  53588
                   },
                   {
                       "path":  "base/@fx_eb03.bmp",
@@ -514,8 +514,8 @@
                   },
                   {
                       "path":  "base/@fx_eb03.png",
-                      "sha256":  "896d0a25964981e2c16ce7a8e0a14a59932e5adf3191eef54e559f33623ba441",
-                      "size":  53733
+                      "sha256":  "f21fcb9d0f92a040ff8143f2d66936b4216774e595ec5541fad76f935aee5fd3",
+                      "size":  53758
                   },
                   {
                       "path":  "base/@fx_eb04.bmp",
@@ -524,8 +524,8 @@
                   },
                   {
                       "path":  "base/@fx_eb04.png",
-                      "sha256":  "7402d0d3948f91e566986b5f4b1576a2197c97656c7e5ec899ff391827b8b31d",
-                      "size":  59488
+                      "sha256":  "7538166eaf8277eee5eab58ff9a4332b7f3d211619c9eab009ba0ca00e5ec236",
+                      "size":  59513
                   },
                   {
                       "path":  "base/@fx_elc01.bmp",
@@ -584,8 +584,8 @@
                   },
                   {
                       "path":  "base/@fx_elf.png",
-                      "sha256":  "e1bc22d16199c661f2dc695ccb6d8950ecde969cbb0e0e6d3b60b632cea2684d",
-                      "size":  111315
+                      "sha256":  "881abbee52e240fac8f8ee5cd7ef018a45ac4ea1705fd698fe006ee28cd3053e",
+                      "size":  111340
                   },
                   {
                       "path":  "base/@fx_emp01.BMP",
@@ -594,8 +594,8 @@
                   },
                   {
                       "path":  "base/@fx_emp01.png",
-                      "sha256":  "675111c87599854ee048cabdda56af62c73ec223bff573bb5a7a14cfdf18b7b8",
-                      "size":  61203
+                      "sha256":  "19f876dd821aafe4371e632c75eba61643a83a2e11557e320514ee1b20c5ee8a",
+                      "size":  61228
                   },
                   {
                       "path":  "base/@fx_emp02.BMP",
@@ -604,8 +604,8 @@
                   },
                   {
                       "path":  "base/@fx_emp02.png",
-                      "sha256":  "4daa21dd610f864e42945e04cc78fd1f141bc2df8f33cd20143533fd691626c7",
-                      "size":  66576
+                      "sha256":  "e0d83c6c935967bb458a651dc6983aa993ad6e2919bad0c6e99132dbd466c4a4",
+                      "size":  66601
                   },
                   {
                       "path":  "base/@fx_emp03.BMP",
@@ -614,8 +614,8 @@
                   },
                   {
                       "path":  "base/@fx_emp03.png",
-                      "sha256":  "a293b751bfe411e37ec3cf9f9b497d6df684d987b770b138cb7ca337fcca4413",
-                      "size":  71646
+                      "sha256":  "ce2bf8a1806bd102ce48f0a188e4ad9bb8533bec742e0b957552971e3d7f1ca5",
+                      "size":  71671
                   },
                   {
                       "path":  "base/@fx_emp04.BMP",
@@ -624,8 +624,8 @@
                   },
                   {
                       "path":  "base/@fx_emp04.png",
-                      "sha256":  "b0f71ea1431f2571e7b003e797d876cf117e41aade5f6f00d1ee80769cf29b9b",
-                      "size":  56867
+                      "sha256":  "7db3bf4831531a7945764a1a4eb5ff04be0b67e334e92f817e5584a1a3d5f036",
+                      "size":  56892
                   },
                   {
                       "path":  "base/@fx_exhaust.BMP",
@@ -634,8 +634,8 @@
                   },
                   {
                       "path":  "base/@fx_exhaust.png",
-                      "sha256":  "7542a303984ab3a0cb2bd9bd29eb4fee51ce9d08b127127eec3f0b78351448fc",
-                      "size":  89190
+                      "sha256":  "ad37b4077de2425acc53c5c91691b3d5e081629b67da1d2db670ce1a3250e5b3",
+                      "size":  89215
                   },
                   {
                       "path":  "base/@fx_exs00.bmp",
@@ -644,8 +644,8 @@
                   },
                   {
                       "path":  "base/@fx_exs00.png",
-                      "sha256":  "c5f936f82e0e0aa4f0210e7d69649f6e030f95b5c34fd752ae67a0a22746e403",
-                      "size":  40571
+                      "sha256":  "a21827b86ee8b819927e483ad6f71ff69e735227d4b0fda73aff47fb9c623824",
+                      "size":  40596
                   },
                   {
                       "path":  "base/@fx_exs01.bmp",
@@ -654,8 +654,8 @@
                   },
                   {
                       "path":  "base/@fx_exs01.png",
-                      "sha256":  "8c8e1858e56a8c02313933376d13812c5c345c5dfac210e41d61779b633e4452",
-                      "size":  41147
+                      "sha256":  "3a6c3f7f61c9d909f05a5abe93f55e577a9c72f964f4e44a1eca468cbb0f84de",
+                      "size":  41172
                   },
                   {
                       "path":  "base/@fx_exs02.bmp",
@@ -664,8 +664,8 @@
                   },
                   {
                       "path":  "base/@fx_exs02.png",
-                      "sha256":  "a0c3b6e65f91137d97cf0f42abe7842cbd3d5368654152154dc3a66a0bbafde2",
-                      "size":  47306
+                      "sha256":  "e989c8746cc0151ba347a159602de0c8f73f10d30de63008f257689457672edf",
+                      "size":  47331
                   },
                   {
                       "path":  "base/@fx_exs03.bmp",
@@ -674,8 +674,8 @@
                   },
                   {
                       "path":  "base/@fx_exs03.png",
-                      "sha256":  "eaa2a269f8d7f283f656e4b3e283c2fe6eba6e50772a758d8f695dcf98d225c4",
-                      "size":  47576
+                      "sha256":  "32454485d37c69602e300769d787662ab04a1b224aa283a66eaa257a7bbf9c77",
+                      "size":  47601
                   },
                   {
                       "path":  "base/@fx_exs04.bmp",
@@ -684,8 +684,8 @@
                   },
                   {
                       "path":  "base/@fx_exs04.png",
-                      "sha256":  "5a36c78c95a15e0b86e7f68fff9239756fcb1d6ba5edc4ec38ca28eacedbf197",
-                      "size":  51616
+                      "sha256":  "6f0e8068c32b3e1f6909815fc6637549f140286e10dd2d54bb2a6877f74b3d93",
+                      "size":  51641
                   },
                   {
                       "path":  "base/@fx_exs05.bmp",
@@ -694,8 +694,8 @@
                   },
                   {
                       "path":  "base/@fx_exs05.png",
-                      "sha256":  "ffb9e730fd8fba69d656461bb82f8cd8bac4941631dda6c35ca958bb45363dca",
-                      "size":  57226
+                      "sha256":  "fed972f06208693fcdc70441b9c82cde87a14f52c04501bbe9256c6a740ac72e",
+                      "size":  57251
                   },
                   {
                       "path":  "base/@fx_exs06.bmp",
@@ -704,8 +704,8 @@
                   },
                   {
                       "path":  "base/@fx_exs06.png",
-                      "sha256":  "419c81dde2e414fb6e8fbb642ac0c78007e6e5789a54953742725413e37f57bc",
-                      "size":  59182
+                      "sha256":  "bf31c22834130db0e305d8a8eb9664538e1ddcbb77d5be4653e0523fe816df25",
+                      "size":  59207
                   },
                   {
                       "path":  "base/@fx_exs07.bmp",
@@ -714,8 +714,8 @@
                   },
                   {
                       "path":  "base/@fx_exs07.png",
-                      "sha256":  "090ab8065b4b47681a5d13b4e3d64d70864e139b6ac774834bed2d55ee13252e",
-                      "size":  53451
+                      "sha256":  "26b3429f83a7f743e6e7642c4bc37d07bc3ac9ccfa14ac8bcaa45fa90f058bff",
+                      "size":  53476
                   },
                   {
                       "path":  "base/@fx_fl01.bmp",
@@ -824,8 +824,8 @@
                   },
                   {
                       "path":  "base/@fx_fl101.png",
-                      "sha256":  "c0aebf3288899139e43f6ec9070e2211d36772ec43f16324ea98fd12e041e2ea",
-                      "size":  74825
+                      "sha256":  "fe4f3accc74e8f3e672480bd034c6e90d15acab61f6e9f480dfa4e34f395c842",
+                      "size":  74850
                   },
                   {
                       "path":  "base/@fx_fl102.bmp",
@@ -834,8 +834,8 @@
                   },
                   {
                       "path":  "base/@fx_fl102.png",
-                      "sha256":  "f47e01a4d5d2e9b386e9d96de93f8ead8485bacc67d9022d0052c60ca846c2ed",
-                      "size":  73993
+                      "sha256":  "e6decd7783b5d74f626c9a8bd7ee10c3e94a570de432836d2ed0fc1bc6e0873e",
+                      "size":  74018
                   },
                   {
                       "path":  "base/@fx_fl103.bmp",
@@ -844,8 +844,8 @@
                   },
                   {
                       "path":  "base/@fx_fl103.png",
-                      "sha256":  "92eb042b71738eed1752b9a3540a95a6884ce758bfe1cbad85fe502a5464eaec",
-                      "size":  73251
+                      "sha256":  "326b19ab3a66a4b49ee1bc7559baa5010e740fc12138ad79458e8233dbb14c10",
+                      "size":  73276
                   },
                   {
                       "path":  "base/@fx_fl104.bmp",
@@ -854,8 +854,8 @@
                   },
                   {
                       "path":  "base/@fx_fl104.png",
-                      "sha256":  "9f130a7e913e30f9280bd87d80058e14aad7594384b21dca90cba1aa23335ae0",
-                      "size":  71850
+                      "sha256":  "f293befdd476c16d4c529a07ab86461c618fdb9a214f3263356d6aa138db5651",
+                      "size":  71875
                   },
                   {
                       "path":  "base/@fx_fl105.bmp",
@@ -864,8 +864,8 @@
                   },
                   {
                       "path":  "base/@fx_fl105.png",
-                      "sha256":  "370731103abd8157e6f62989a3653d61f3bab88566aa86ccdfa281a2e7a13aa8",
-                      "size":  73747
+                      "sha256":  "3efcd056d4e20629166682fd3ac96e29adafaecb700c770dae7ea7dbfea9cc55",
+                      "size":  73772
                   },
                   {
                       "path":  "base/@fx_fl11.bmp",
@@ -924,8 +924,8 @@
                   },
                   {
                       "path":  "base/@fx_flare.png",
-                      "sha256":  "66e329346b2d031b9014d1c2d394845169ff1c0460757d3744dbe4dea8ffe260",
-                      "size":  65250
+                      "sha256":  "c385f7fe478c49ca04999ad5548ed2267545180d73fa569ecae780973bf414e4",
+                      "size":  65275
                   },
                   {
                       "path":  "base/@fx_fog.bmp",
@@ -934,8 +934,8 @@
                   },
                   {
                       "path":  "base/@fx_fog.png",
-                      "sha256":  "2c44c2647a787c364ac8b6ce4f31c3aa546db3b2aba32ea8bd03a809042c385b",
-                      "size":  31567
+                      "sha256":  "f1f769e40d54345cdcbcfb9cc70e615eb39cad14b333b419b4584925ed0adfe7",
+                      "size":  31592
                   },
                   {
                       "path":  "base/@fx_gas01.bmp",
@@ -944,8 +944,8 @@
                   },
                   {
                       "path":  "base/@fx_gas01.png",
-                      "sha256":  "32491a0aa4f3f08fdfb450f5c51989ec2e78998b6835336072b5899464fd7a38",
-                      "size":  46233
+                      "sha256":  "695280bf3dae9b66cabbf2f2c38fd0eb3facbfd4ebe16256c667e9fa1c058b1d",
+                      "size":  46258
                   },
                   {
                       "path":  "base/@fx_gas02.bmp",
@@ -954,8 +954,8 @@
                   },
                   {
                       "path":  "base/@fx_gas02.png",
-                      "sha256":  "ddb7c1858d2c1a886be4977ed24ae2bc69584913317100dc47f7fc6dff24f540",
-                      "size":  65249
+                      "sha256":  "9b1c549bc5278241c1c8513200191ff3ba08889265d015db7f238a8f5f21c763",
+                      "size":  65274
                   },
                   {
                       "path":  "base/@fx_gas03.bmp",
@@ -964,8 +964,8 @@
                   },
                   {
                       "path":  "base/@fx_gas03.png",
-                      "sha256":  "041475044aac65893994e3ce4073badf1775b49c63b5cee25d60d668333f5f7c",
-                      "size":  73885
+                      "sha256":  "84e40e32c53d579f34721f38122880b540ca5ec4a5d038f5325c94c544f16fc3",
+                      "size":  73910
                   },
                   {
                       "path":  "base/@fx_gas04.bmp",
@@ -974,8 +974,8 @@
                   },
                   {
                       "path":  "base/@fx_gas04.png",
-                      "sha256":  "bcd2a44ad0ac9be44f208c52d97199bf0177e1734756a7ea489951e4d871db42",
-                      "size":  88041
+                      "sha256":  "3ccf7ec5e51d87f11c8b60c4463abbdd370f8213c4119e2d9e1765ba7e06013b",
+                      "size":  88066
                   },
                   {
                       "path":  "base/@fx_gas05.bmp",
@@ -984,8 +984,8 @@
                   },
                   {
                       "path":  "base/@fx_gas05.png",
-                      "sha256":  "47027f443a55c2b195527c93e72f95736073607377238235242d50dd816fb744",
-                      "size":  97914
+                      "sha256":  "d809915efbcf3c202310a0c73c53cb0fbf2f5f35901dcc798028f87ba627118b",
+                      "size":  97939
                   },
                   {
                       "path":  "base/@fx_gas06.bmp",
@@ -994,8 +994,8 @@
                   },
                   {
                       "path":  "base/@fx_gas06.png",
-                      "sha256":  "31bb13aa1a76ba8d6c40b8433f656262a52ed7d6d2d376c1e4d281fa4d498f74",
-                      "size":  102221
+                      "sha256":  "cb3851f080aecdee991529f7f57b6a1501ca8bba85b76e87f8b494169d469611",
+                      "size":  102246
                   },
                   {
                       "path":  "base/@fx_gas07.bmp",
@@ -1004,8 +1004,8 @@
                   },
                   {
                       "path":  "base/@fx_gas07.png",
-                      "sha256":  "9a00298d3c47c3ecf9ac3df45cc3e2fc733f3f49934e3f3c0802b91af64c0828",
-                      "size":  105684
+                      "sha256":  "3a91e4b0c2d0a7e1837621fecb5ea12ccb2d4396979136ea1873b3bd987ef4bc",
+                      "size":  105709
                   },
                   {
                       "path":  "base/@fx_gas08.bmp",
@@ -1014,8 +1014,8 @@
                   },
                   {
                       "path":  "base/@fx_gas08.png",
-                      "sha256":  "650fab3be040805d24ef06844af9a8cf83f33a161a43421ff6b4fd4d6ee9135d",
-                      "size":  106744
+                      "sha256":  "1e41f447e72dc75dd09f011fd34129bd3b4e3b7552bc3030ad3c6bd4cafbe0cb",
+                      "size":  106769
                   },
                   {
                       "path":  "base/@fx_gas09.bmp",
@@ -1024,8 +1024,8 @@
                   },
                   {
                       "path":  "base/@fx_gas09.png",
-                      "sha256":  "12a03d503502c43e5077030462be9964fff6677740447bcdbd0c52f3b713e725",
-                      "size":  107985
+                      "sha256":  "f5e0e6cd9b0d232cd0a738ed7d3469223d0c18048f6d18f737b9839e7a92a244",
+                      "size":  108010
                   },
                   {
                       "path":  "base/@fx_gas10.bmp",
@@ -1034,8 +1034,8 @@
                   },
                   {
                       "path":  "base/@fx_gas10.png",
-                      "sha256":  "9f526cbf3a87043bfa2126112e8a71f24616bdeef460ed6f16608ce285960134",
-                      "size":  108925
+                      "sha256":  "558c21f90ec31eac2f66a8e12739a4cb7d0a64da36f978bc2ac378cee79acff9",
+                      "size":  108950
                   },
                   {
                       "path":  "base/@fx_gas11.bmp",
@@ -1044,8 +1044,8 @@
                   },
                   {
                       "path":  "base/@fx_gas11.png",
-                      "sha256":  "2ca88578678c3a071cca2005e93f5bc50353a5e35c77ecf94c32eb6604df208f",
-                      "size":  105375
+                      "sha256":  "6408b6428e9f50a005767bafa4ddba5a0606907f3af730dccae29681db28ccbd",
+                      "size":  105400
                   },
                   {
                       "path":  "base/@fx_gas12.bmp",
@@ -1054,8 +1054,8 @@
                   },
                   {
                       "path":  "base/@fx_gas12.png",
-                      "sha256":  "cbd7186f618d693755147c92fcc685c576fbbfad7e72c415e123bc9215f8809f",
-                      "size":  105365
+                      "sha256":  "327beb2198d5a5c17d3a2a4b8dfa2a379e9c88aeb8ecdb356f25f9fdf4a52e9d",
+                      "size":  105390
                   },
                   {
                       "path":  "base/@fx_gas13.bmp",
@@ -1064,8 +1064,8 @@
                   },
                   {
                       "path":  "base/@fx_gas13.png",
-                      "sha256":  "1581224e4a07499725a9dcf80dcc28a156aad1351fefd9347cf9a83bb2146309",
-                      "size":  98518
+                      "sha256":  "d26825b6c32cdc5d92bf610e1fc54a2cb64ae03567b8b7ffb820678c66763855",
+                      "size":  98543
                   },
                   {
                       "path":  "base/@fx_gas14.bmp",
@@ -1074,8 +1074,8 @@
                   },
                   {
                       "path":  "base/@fx_gas14.png",
-                      "sha256":  "c8b2156694b12294a5f5abdb2c33007985d5d0a2362336395e30a427d25149eb",
-                      "size":  68982
+                      "sha256":  "98d6af868e8dff128e406b072c41d7dc6b7d9f1eaba0cffd2741674d3cea4fe4",
+                      "size":  69007
                   },
                   {
                       "path":  "base/@fx_gas15.bmp",
@@ -1084,8 +1084,8 @@
                   },
                   {
                       "path":  "base/@fx_gas15.png",
-                      "sha256":  "5593d77214d17493d4fa048c197a5de9afe45fb598f8d20049e9fdfbe5a8a2b7",
-                      "size":  66205
+                      "sha256":  "3739395dfdd2711395e5b3a7868350388c6170a02e6b7b3d33f0aa3968635856",
+                      "size":  66230
                   },
                   {
                       "path":  "base/@fx_gas16.bmp",
@@ -1094,8 +1094,8 @@
                   },
                   {
                       "path":  "base/@fx_gas16.png",
-                      "sha256":  "242732e4a55ccbafb006d5ee62941daec47855fafaacf8c90e08d6133ba77b7a",
-                      "size":  45981
+                      "sha256":  "4ec9ab673efc1c7cb37a974aa53b8f1d88c47f4d22f8597722d6863a5c18d01b",
+                      "size":  46006
                   },
                   {
                       "path":  "base/@fx_hlas.bmp",
@@ -1104,8 +1104,8 @@
                   },
                   {
                       "path":  "base/@fx_hlas.png",
-                      "sha256":  "8a4027a73add99b02ad987094433317b3a3f019c90ffbb3dfa7a921bc6310367",
-                      "size":  50221
+                      "sha256":  "e71989231f4e8f9f636cb822739c894f1b70989b68675e193698c0e6b3510e0f",
+                      "size":  50246
                   },
                   {
                       "path":  "base/@fx_las.bmp",
@@ -1114,8 +1114,8 @@
                   },
                   {
                       "path":  "base/@fx_las.png",
-                      "sha256":  "87b70ab5d42f5018cd0a6e7443d0e73e7a1f0b2ca0f660eee2fd0340ab7b5ca7",
-                      "size":  46780
+                      "sha256":  "9d82c32c2a864ada5e15633151b78c0d1d2253ab537ec7b548f52350b03002ab",
+                      "size":  46805
                   },
                   {
                       "path":  "base/@fx_Lase.BMP",
@@ -1124,8 +1124,8 @@
                   },
                   {
                       "path":  "base/@fx_Lase.png",
-                      "sha256":  "4f978f4d67a245a21aa2babeec9915962c7a392416d2f54382f600d08a87457a",
-                      "size":  91668
+                      "sha256":  "c811a372ad0d10f222b6c1a7a068e111d8369a47183b8147a3cd414b65ddd061",
+                      "size":  91693
                   },
                   {
                       "path":  "base/@fx_lxp00.bmp",
@@ -1134,8 +1134,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp00.png",
-                      "sha256":  "8bc6480e26e88eed8d1312f2d3eaf8d88352384fbb48c92bc7091df4b8591094",
-                      "size":  40843
+                      "sha256":  "c15bac12b42510d956e0565244f5ab74e32f7112a202c840f55e50fc91a78904",
+                      "size":  40868
                   },
                   {
                       "path":  "base/@fx_lxp01.bmp",
@@ -1144,8 +1144,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp01.png",
-                      "sha256":  "0c8e863f335711a031e0d059682799b2fe375b21f971222e365ddf7f25b567cf",
-                      "size":  100146
+                      "sha256":  "97c002470e920a6e5550626b6e9f2b40196dbd58fa8bd5f464f973ce284d5209",
+                      "size":  100171
                   },
                   {
                       "path":  "base/@fx_lxp02.bmp",
@@ -1154,8 +1154,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp02.png",
-                      "sha256":  "0c1ceda486f9c85175235296da79f4aa3058aa156b1b123a868032f7a0a173ca",
-                      "size":  58676
+                      "sha256":  "0b3c814b7ea557a10a432ca8699f09080dbdb0f3ee993655a2c22a03715060f6",
+                      "size":  58701
                   },
                   {
                       "path":  "base/@fx_lxp03.bmp",
@@ -1164,8 +1164,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp03.png",
-                      "sha256":  "df86611a28c58ce38c24bcf735b647080a3dbfb1d8be2073c2392a28a7553035",
-                      "size":  64523
+                      "sha256":  "fee6161a6efa026587f4882a6a0f78559eb44f479b0f383fe039fa16ff053651",
+                      "size":  64548
                   },
                   {
                       "path":  "base/@fx_lxp04.bmp",
@@ -1174,8 +1174,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp04.png",
-                      "sha256":  "660d51d9e85512f56d36fb69a5bbf54818751d2796d6934aa12c4c8b7135f42d",
-                      "size":  69446
+                      "sha256":  "66c450d7fc818308da75771d2422d9661e29db085f48e61082a79a7d90fbff00",
+                      "size":  69471
                   },
                   {
                       "path":  "base/@fx_lxp05.bmp",
@@ -1184,8 +1184,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp05.png",
-                      "sha256":  "1de4fe507fe032a27eb46a77e82b84e41cacf3e6670302b7835ea946bf6aefa9",
-                      "size":  82014
+                      "sha256":  "362a8b0cd2fcc34201c755def804d23eb7e203210d69327f3da08f9663d7a122",
+                      "size":  82039
                   },
                   {
                       "path":  "base/@fx_lxp06.bmp",
@@ -1194,8 +1194,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp06.png",
-                      "sha256":  "0b91097c9be2d80ae0b94abbbdd6ccd7d2c737932e1e463922675e93d7eba283",
-                      "size":  87771
+                      "sha256":  "47edb3392e620776f5fb2dfa9a3f5b5ff2b19e36c4f31f984c4807cebde37ee2",
+                      "size":  87796
                   },
                   {
                       "path":  "base/@fx_lxp07.bmp",
@@ -1204,8 +1204,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp07.png",
-                      "sha256":  "502aa0b11ffed8f974f661d1cf7658d06093ac3dc93417f5cd7049024de725d6",
-                      "size":  90599
+                      "sha256":  "278a530d3622a9989995c44197bded12f238641969249de2a95643a23b4528aa",
+                      "size":  90624
                   },
                   {
                       "path":  "base/@fx_lxp08.bmp",
@@ -1214,8 +1214,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp08.png",
-                      "sha256":  "8c932b8ad8695e1b48931b9592489d839a9a639a94bb17ae86459bb9cb14fd11",
-                      "size":  99024
+                      "sha256":  "206fd26b2a0dd88de6047f79e90bf99396da95ac5f3c0a4ca9008d59dc346a14",
+                      "size":  99049
                   },
                   {
                       "path":  "base/@fx_lxp09.bmp",
@@ -1224,8 +1224,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp09.png",
-                      "sha256":  "7fd29627eac63c0376b0fa1d2eb3be619b53949fe6330bc4be509855ff1ee3a7",
-                      "size":  97801
+                      "sha256":  "9187f150157969e5c1b0ebb2abf24879b4f1220eb8056539e1936a8eea89a587",
+                      "size":  97826
                   },
                   {
                       "path":  "base/@fx_lxp10.bmp",
@@ -1234,8 +1234,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp10.png",
-                      "sha256":  "7fbceadf5129c267a8a4ad9249e71dc04b409ec05aa5c15d12a53bf89189f8d0",
-                      "size":  98067
+                      "sha256":  "d6f62a66d3d9d98ae1020f7118b79868812ad07deec293e8d75a9d44c0543997",
+                      "size":  98092
                   },
                   {
                       "path":  "base/@fx_lxp11.bmp",
@@ -1244,8 +1244,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp11.png",
-                      "sha256":  "45eb0756c2379c001adb2d0e90ba337851deede3992abf6d79f3a228e73dd67b",
-                      "size":  94640
+                      "sha256":  "f9bb5fbd8e43e4a59b6c2dd3ab55da587c6cb7f93eb6929f314d4cb112815c8e",
+                      "size":  94665
                   },
                   {
                       "path":  "base/@fx_lxp12.bmp",
@@ -1254,8 +1254,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp12.png",
-                      "sha256":  "a8beb069ac08a6bbce60f548ae639182a404eed4471b5d43eec0f87c671c558d",
-                      "size":  86894
+                      "sha256":  "26d9e53c0307d0d27572c26bc3b49b3055b838a76eea96754f1af3db061a7fb8",
+                      "size":  86919
                   },
                   {
                       "path":  "base/@fx_lxp13.bmp",
@@ -1264,8 +1264,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp13.png",
-                      "sha256":  "e6b9b1dfe43024177a533ffb903118ce1297d7c81501163099e3721b28fa2ede",
-                      "size":  76785
+                      "sha256":  "05669f10afa82910d87751ca9468f84ef4f2e13b2261bfee3f60a06466067742",
+                      "size":  76810
                   },
                   {
                       "path":  "base/@fx_lxp14.bmp",
@@ -1274,8 +1274,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp14.png",
-                      "sha256":  "e4726fd0510ffeb081cdffedcee90a1797e7a0047a22553085384bccdd06655c",
-                      "size":  62793
+                      "sha256":  "cce3c23c4c7fd96a58f5bcee76d91738f1a261c4c691bd7909c339ac627ce61c",
+                      "size":  62818
                   },
                   {
                       "path":  "base/@fx_lxp15.bmp",
@@ -1284,8 +1284,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp15.png",
-                      "sha256":  "16107840896c2342b2481e9cc2a8bd50b2ed7c204e4da6bf9c3463c4dcdd023c",
-                      "size":  31384
+                      "sha256":  "e25b522fd561d6306ad9799e1944ee7bb3a09b091febf5fc74b954cc1cda0999",
+                      "size":  31409
                   },
                   {
                       "path":  "base/@fx_lxp16.bmp",
@@ -1294,8 +1294,8 @@
                   },
                   {
                       "path":  "base/@fx_lxp16.png",
-                      "sha256":  "d9db266470872bcf1b27131b57fdbbbed6198eec6e3ecf6dbd9ead8635280e1e",
-                      "size":  28226
+                      "sha256":  "0a4aae39ac151398336ebecb2f074d4777af6eeff7f60c217e49f30ad812bd1a",
+                      "size":  28251
                   },
                   {
                       "path":  "base/@fx_mfac.BMP",
@@ -1304,8 +1304,8 @@
                   },
                   {
                       "path":  "base/@fx_mfac.png",
-                      "sha256":  "6c8d463421db07fe9ca04d592934bf116c7740bac865cae041ed5ae2e2bb0acb",
-                      "size":  42887
+                      "sha256":  "b841cde34f47d33e25b6b9ffe4ee657c682446f3b574d788233658eccb7e7f35",
+                      "size":  42912
                   },
                   {
                       "path":  "base/@fx_muze.BMP",
@@ -1314,8 +1314,8 @@
                   },
                   {
                       "path":  "base/@fx_muze.png",
-                      "sha256":  "b08ea42e5611ef07474872bde4c68892cf6ffdbd5e23245b9fc0eabf108b4d37",
-                      "size":  87922
+                      "sha256":  "c2e5a38ca44ca68d63509b2881e19f2c2f8143b8740f3106ae2658ccfd9c919e",
+                      "size":  87947
                   },
                   {
                       "path":  "base/@fx_nanno.BMP",
@@ -1324,8 +1324,8 @@
                   },
                   {
                       "path":  "base/@fx_nanno.png",
-                      "sha256":  "005e03e174e0b4127c14bdffec770c253624b32232ad5a06e8338ff057bf06ea",
-                      "size":  65043
+                      "sha256":  "bed25635d167ed8a22023681b05d5ac9e891ee130e5ccd7ba727a239cf4b9801",
+                      "size":  65068
                   },
                   {
                       "path":  "base/@fx_ncan.bmp",
@@ -1334,8 +1334,8 @@
                   },
                   {
                       "path":  "base/@fx_ncan.png",
-                      "sha256":  "1fb6135fe36bb50ff148eac4ec418bc391c9e15cb187c06817b8f182afbbd0f3",
-                      "size":  123428
+                      "sha256":  "2c4d8ca00751accae15fb26d5985331959661bb5288385b10247d032118391bb",
+                      "size":  123453
                   },
                   {
                       "path":  "base/@fx_pbw.bmp",
@@ -1344,8 +1344,8 @@
                   },
                   {
                       "path":  "base/@fx_pbw.png",
-                      "sha256":  "80e26c348888efd2a4b5f6304eeadc62e369bb9ecee77b65913c53f2d4a9fbd9",
-                      "size":  95508
+                      "sha256":  "eefb199704d09c84a1fe7cf632b32d8ebcdb9a2713f80071fa0587bce1137923",
+                      "size":  95533
                   },
                   {
                       "path":  "base/@fx_plas.bmp",
@@ -1354,8 +1354,8 @@
                   },
                   {
                       "path":  "base/@fx_plas.png",
-                      "sha256":  "b2bf752690e269b1ad62c5ff26fa7b2c990dc13b484c69d9d110a35f3282864d",
-                      "size":  127806
+                      "sha256":  "ebd8623d26db406f17de393d54731f7ab3cb7062c1bcc92a85d3a92ab26bad86",
+                      "size":  127831
                   },
                   {
                       "path":  "base/@fx_pr101.bmp",
@@ -1364,8 +1364,8 @@
                   },
                   {
                       "path":  "base/@fx_pr101.png",
-                      "sha256":  "064ee57a08a323b1ea3ac3759065c743daaf076879db2f46bf679aa3bec766eb",
-                      "size":  81114
+                      "sha256":  "03ca50ad33c13c630507d9cb5abb88b153beaa454a9837843fa483e463b03e5d",
+                      "size":  81139
                   },
                   {
                       "path":  "base/@fx_pr102.bmp",
@@ -1374,8 +1374,8 @@
                   },
                   {
                       "path":  "base/@fx_pr102.png",
-                      "sha256":  "b1150a9d2397d28880851cf0a6cda00e935a39ead68e1b8cf5bdcd147cdad230",
-                      "size":  80577
+                      "sha256":  "b1faa347773b64a247c453594fa5b7b17297a85023cfad01734b6913eee7e2dc",
+                      "size":  80602
                   },
                   {
                       "path":  "base/@fx_pr103.bmp",
@@ -1384,8 +1384,8 @@
                   },
                   {
                       "path":  "base/@fx_pr103.png",
-                      "sha256":  "d7ef248750f1e69d16198bd130fc275fc1ce880393ceb1b1725abc78401a0494",
-                      "size":  77004
+                      "sha256":  "37f08368fa37bc9d0c8a0d1ff8149b0cc258ead88d11f91fa4736559f24036fb",
+                      "size":  77029
                   },
                   {
                       "path":  "base/@fx_pr104.bmp",
@@ -1394,8 +1394,8 @@
                   },
                   {
                       "path":  "base/@fx_pr104.png",
-                      "sha256":  "5d988c9d91f82b750c93666b28501d6d4a67552ba98c515962b567d526a217f6",
-                      "size":  79795
+                      "sha256":  "0b294a5b825743881ccb449c314ec8441c7b036dc100219346878bcd0a258688",
+                      "size":  79820
                   },
                   {
                       "path":  "base/@fx_pr105.bmp",
@@ -1404,8 +1404,8 @@
                   },
                   {
                       "path":  "base/@fx_pr105.png",
-                      "sha256":  "d2f9869eb8928303d249eda268b0e39ec41d360550e9224afd8d80a7ea202e96",
-                      "size":  77886
+                      "sha256":  "ecebc13750d741bddc14e870a84546cd73901f5ed219c9e4baf9532c242c743b",
+                      "size":  77911
                   },
                   {
                       "path":  "base/@fx_qgun.bmp",
@@ -1414,8 +1414,8 @@
                   },
                   {
                       "path":  "base/@fx_qgun.png",
-                      "sha256":  "903c379989af2e6a95dd9d8a77ef37d222d49734dc4183d509819a86a786489e",
-                      "size":  88876
+                      "sha256":  "66d723b36c9be82c6c3cf4f1a48acd624d94320520521ef68104d44f6708b3ee",
+                      "size":  88901
                   },
                   {
                       "path":  "base/@fx_rad.bmp",
@@ -1424,8 +1424,8 @@
                   },
                   {
                       "path":  "base/@fx_rad.png",
-                      "sha256":  "b9ca12d0766fca374fbc19f6c31946a8cf4f12b6990e0ac2de062704ad7d792e",
-                      "size":  99907
+                      "sha256":  "64975f2271b92e63be7fa5c93460c9747500f929c3ce33e49a837c537fb7e867",
+                      "size":  99932
                   },
                   {
                       "path":  "base/@fx_ral00.bmp",
@@ -1434,8 +1434,8 @@
                   },
                   {
                       "path":  "base/@fx_ral00.png",
-                      "sha256":  "4bdef0551a3b9580e749c62c397c2b5c0d7b18339c48966854156542960b8f5f",
-                      "size":  120190
+                      "sha256":  "8381461a98dd831e4a2a854f2f3a4647f7c8dda1832baaba1ff2481f4d85311c",
+                      "size":  120215
                   },
                   {
                       "path":  "base/@fx_ral01.bmp",
@@ -1444,8 +1444,8 @@
                   },
                   {
                       "path":  "base/@fx_ral01.png",
-                      "sha256":  "1fc530226a135c479c2ce98ab33029b1d77483a45cf8dd93c91c815b69fbae57",
-                      "size":  120375
+                      "sha256":  "d69ccea2582b664aa7be94911de615cbfd04fbf7a2c217b13fb5b02c4b25e0ec",
+                      "size":  120400
                   },
                   {
                       "path":  "base/@fx_ral02.bmp",
@@ -1454,8 +1454,8 @@
                   },
                   {
                       "path":  "base/@fx_ral02.png",
-                      "sha256":  "35e44248ddb688f188d30ca32aae6686c5fe5b6813b1f0f4add13980e477b2f8",
-                      "size":  119597
+                      "sha256":  "165af1cac02281e8e3098d688abedf1c5a955f4a1a29bc7df796f44dcf830bb3",
+                      "size":  119622
                   },
                   {
                       "path":  "base/@fx_ral03.bmp",
@@ -1464,8 +1464,8 @@
                   },
                   {
                       "path":  "base/@fx_ral03.png",
-                      "sha256":  "66305503ee18008e427c83dfb7f258f47dcc5d882d0f05d59d50a3ac6d584f6e",
-                      "size":  116926
+                      "sha256":  "0b81a3e546e9764983e5bd7f7c3f23f7b6cde0f7650d9dc875b29f21033b707b",
+                      "size":  116951
                   },
                   {
                       "path":  "base/@fx_ral04.bmp",
@@ -1474,8 +1474,8 @@
                   },
                   {
                       "path":  "base/@fx_ral04.png",
-                      "sha256":  "5279f3977061dad77f89626cf57efbbb0b7b2e82d784dbc0c79984b03d724231",
-                      "size":  116812
+                      "sha256":  "2b5ad6c045136a673caa71ed35b4948ba7b71c90619a653b68a29aaf455c28a3",
+                      "size":  116837
                   },
                   {
                       "path":  "base/@fx_ral05.bmp",
@@ -1484,8 +1484,8 @@
                   },
                   {
                       "path":  "base/@fx_ral05.png",
-                      "sha256":  "c2c70c5e1616e95e83a507832b7dbda3b97ffdf05614e5efc2228a1c441aa7dd",
-                      "size":  114736
+                      "sha256":  "692aaed48ab005a44dec8a8a0d56d2a3dfcd9a001eb7dd326594500a6ad6f687",
+                      "size":  114761
                   },
                   {
                       "path":  "base/@fx_ral06.bmp",
@@ -1494,8 +1494,8 @@
                   },
                   {
                       "path":  "base/@fx_ral06.png",
-                      "sha256":  "3feb0d52818e7505e6113a32efb4ef08f9980c17972e9daa6cf2ffa1028bf1fd",
-                      "size":  112210
+                      "sha256":  "f3b86d19cef20d65dba15f15c8642d1c18ee31bae66fc4835fc250bbf2cb660c",
+                      "size":  112235
                   },
                   {
                       "path":  "base/@fx_ral07.bmp",
@@ -1504,8 +1504,8 @@
                   },
                   {
                       "path":  "base/@fx_ral07.png",
-                      "sha256":  "06312c48d4fb99c21f15d8124aca2c8ca07c2c2efe31f6c91958cab394f1e508",
-                      "size":  113588
+                      "sha256":  "d96b3d76b3745999b55f43ee9d691b490a98d2b85c3eda04f91da2c91e6de907",
+                      "size":  113613
                   },
                   {
                       "path":  "base/@fx_ral08.bmp",
@@ -1514,8 +1514,8 @@
                   },
                   {
                       "path":  "base/@fx_ral08.png",
-                      "sha256":  "9b0ca480394971c50c00bd3e90e074bca9d91ce665f71354153dfb26363e0a6d",
-                      "size":  109846
+                      "sha256":  "f42547ed1cf167fd5c83430d2aff775cd6ebd164f78bb8abcd999415d3fae196",
+                      "size":  109871
                   },
                   {
                       "path":  "base/@fx_ral09.bmp",
@@ -1524,8 +1524,8 @@
                   },
                   {
                       "path":  "base/@fx_ral09.png",
-                      "sha256":  "eba588611222097fa34f943ab508ffe0f0cac917599698786c0b8bee64a0edfe",
-                      "size":  105066
+                      "sha256":  "2b9112764654c58791c5cd80c7d6a679745c7e2cdcf9665a329ec68371a49187",
+                      "size":  105091
                   },
                   {
                       "path":  "base/@fx_ral10.bmp",
@@ -1534,8 +1534,8 @@
                   },
                   {
                       "path":  "base/@fx_ral10.png",
-                      "sha256":  "a7d8bf53c5ddf825f113b1071a589fb61b72d8746317180b94f8859970b9b0eb",
-                      "size":  83776
+                      "sha256":  "8bcddac04debcd9a5438fbf4f55c1ce7ab9916529934891c1c7625ab4b83cce4",
+                      "size":  83801
                   },
                   {
                       "path":  "base/@fx_smk01.bmp",
@@ -1714,8 +1714,8 @@
                   },
                   {
                       "path":  "base/@fx_spk01.png",
-                      "sha256":  "94508a69f42a44705b31ba137dde847c8c0b3ff1d3e2ca1aadf5bdf7fed6f834",
-                      "size":  20579
+                      "sha256":  "ee513882105e6be66cc8513bb07d743dcc943fe19aeb559ed305151d99d7159e",
+                      "size":  20604
                   },
                   {
                       "path":  "base/@fx_spk02.bmp",
@@ -1724,8 +1724,8 @@
                   },
                   {
                       "path":  "base/@fx_spk02.png",
-                      "sha256":  "c95333c5e8a7d5173320ae9aa94bf8e000b01dc88157441f9337bc76a5cabe1c",
-                      "size":  44561
+                      "sha256":  "65990551609b211ca7584161bcd4674252652a52682caf7ab4d342172ecdeabb",
+                      "size":  44586
                   },
                   {
                       "path":  "base/@fx_spk03.bmp",
@@ -1734,8 +1734,8 @@
                   },
                   {
                       "path":  "base/@fx_spk03.png",
-                      "sha256":  "62aedee3097a97f9377323ff42e1626a63aa658ca07644c000760248fa06d9cc",
-                      "size":  41519
+                      "sha256":  "3a787fe75c9dde9f220528ed189b544642a3e3804d07d4870725bfbbf6f0c0f0",
+                      "size":  41544
                   },
                   {
                       "path":  "base/@fx_spk04.bmp",
@@ -1744,8 +1744,8 @@
                   },
                   {
                       "path":  "base/@fx_spk04.png",
-                      "sha256":  "eb50cabfca05b7198ad71c43f6b0dd405e1a5eb8569d9c8e006ef3dccc23c407",
-                      "size":  43264
+                      "sha256":  "0f4252ebd6870863adc0ae31613da5e578cb4e7745b2e15e284c899275fc0db6",
+                      "size":  43289
                   },
                   {
                       "path":  "base/@fx_spk05.bmp",
@@ -1754,8 +1754,8 @@
                   },
                   {
                       "path":  "base/@fx_spk05.png",
-                      "sha256":  "1dd06a0869df47ecbc66d66b4ee82386ad21242b170a1e69c22bc3cefcf56835",
-                      "size":  41821
+                      "sha256":  "e615b18221515bdc4314646a8989154f502a1a62a0f085ee6e2036e7f0603f5a",
+                      "size":  41846
                   },
                   {
                       "path":  "base/@fx_spk06.bmp",
@@ -1764,8 +1764,8 @@
                   },
                   {
                       "path":  "base/@fx_spk06.png",
-                      "sha256":  "f169860e00abe457f3adf913480fe952d1d803290e4a504f29093f199e497cca",
-                      "size":  45767
+                      "sha256":  "0f593ec513a2366086b81aa011fb66fc67868416e5fd63860a9eca47e783ffee",
+                      "size":  45792
                   },
                   {
                       "path":  "base/@fx_spk07.bmp",
@@ -1774,8 +1774,8 @@
                   },
                   {
                       "path":  "base/@fx_spk07.png",
-                      "sha256":  "1b9cc6e95e7a113f845e5d45e7591796f4ff8af6f7c50e4b0d2538dc5cfb781f",
-                      "size":  48581
+                      "sha256":  "cfa3ccadaaf86b163bcce1e8f098018d387afdb792089f06aa9dfad8f82d8694",
+                      "size":  48606
                   },
                   {
                       "path":  "base/@fx_spk08.bmp",
@@ -1784,8 +1784,8 @@
                   },
                   {
                       "path":  "base/@fx_spk08.png",
-                      "sha256":  "edde8f8387d402de055d93912a2fb91df83cbaf8f8608c7043efa674e739345e",
-                      "size":  50675
+                      "sha256":  "813bc47aa1cd4b62d5d0cb7aa3d6ebf1ede63c107c58368c48772be73b6b90a4",
+                      "size":  50700
                   },
                   {
                       "path":  "base/@fx_spk09.bmp",
@@ -1794,8 +1794,8 @@
                   },
                   {
                       "path":  "base/@fx_spk09.png",
-                      "sha256":  "66c633bc9f6e1c00dff2ba14d6a4bb312091189f279de12a21d2e4d8c7df8442",
-                      "size":  55532
+                      "sha256":  "c8dc317d38ad4c1f35661905db4b249ff99f0d1191e7e0cee99d4d42bc1e522b",
+                      "size":  55557
                   },
                   {
                       "path":  "base/@fx_spk10.bmp",
@@ -1804,8 +1804,8 @@
                   },
                   {
                       "path":  "base/@fx_spk10.png",
-                      "sha256":  "da43f47d263b4aae5940f00d48783c3d83de40393fdaca07c1432e8c900ebcc9",
-                      "size":  57080
+                      "sha256":  "7dd2157aa78fa62e936416aa19f889b49c288fe48e88bcc60d436b31c269f711",
+                      "size":  57105
                   },
                   {
                       "path":  "base/@fx_spk11.bmp",
@@ -1814,8 +1814,8 @@
                   },
                   {
                       "path":  "base/@fx_spk11.png",
-                      "sha256":  "54248198ef897b0aaaa54a033615787fd48767ce71e892a867c1414f2185b7cf",
-                      "size":  65948
+                      "sha256":  "dd09cbb36e059ac9017d3fbfe1ceb08a073b7d733a9d33336ff53713b90f1746",
+                      "size":  65973
                   },
                   {
                       "path":  "base/@fx_spk12.bmp",
@@ -1824,8 +1824,8 @@
                   },
                   {
                       "path":  "base/@fx_spk12.png",
-                      "sha256":  "133b78642465209722da52b122f445371d55460a9ae5573fa55be205908ce285",
-                      "size":  66916
+                      "sha256":  "84594de0aaa327f8fbbe5c5f6b6898011ef051475929f89ff5a5ba6232962c0c",
+                      "size":  66941
                   },
                   {
                       "path":  "base/@fx_spk13.bmp",
@@ -1834,8 +1834,8 @@
                   },
                   {
                       "path":  "base/@fx_spk13.png",
-                      "sha256":  "7eae343e283519b0db67f0c8f248f4f17d58cc1ef7f17ddb8126e62b61b7fa92",
-                      "size":  74612
+                      "sha256":  "42579b8c7fefc9e338f23c047122545941153f81707573da97d919842449a4cf",
+                      "size":  74637
                   },
                   {
                       "path":  "base/@fx_spk14.bmp",
@@ -1844,8 +1844,8 @@
                   },
                   {
                       "path":  "base/@fx_spk14.png",
-                      "sha256":  "d72027b40866b0aaab3920645e38b06d0ecc24694cf00da0a3abaca02b9ea4ba",
-                      "size":  74255
+                      "sha256":  "a63750f41f885bed2de193c4111a912838707c83d8c03477b4d48b66d3c3a7a5",
+                      "size":  74280
                   },
                   {
                       "path":  "base/@fx_tlas.bmp",
@@ -1854,8 +1854,8 @@
                   },
                   {
                       "path":  "base/@fx_tlas.png",
-                      "sha256":  "318e11fd7f975e2b7b1e0cb38b13dce50ebc824395e6547204067f4cd40bcbb9",
-                      "size":  45443
+                      "sha256":  "69c5227bbe47c6faf40590b2aa263e45159c8f04c0b3884c75a892f2e3df8ec2",
+                      "size":  45468
                   },
                   {
                       "path":  "base/@xdebris1.bmp",
@@ -2766,6 +2766,11 @@
                       "path":  "base/bones.zip",
                       "sha256":  "b7b0de09146713d8c60ca69ae84eddd57b2437a2d182f73f29aacf5afe62b7df",
                       "size":  2997435
+                  },
+                  {
+                      "path":  "base/bptslct.wav",
+                      "sha256":  "d6a23a7d356d0157e44357e771b26f6261ee5cec6fb7be101324018c651aa30e",
+                      "size":  14706
                   },
                   {
                       "path":  "base/bw-m16.DTS",
@@ -10549,8 +10554,8 @@
                   },
                   {
                       "path":  "base/fx_blast.png",
-                      "sha256":  "bb73ff34fa47de4cb95e0f9ca2e669807741b13958c2b677fe9e3c33eb90d6fa",
-                      "size":  40398
+                      "sha256":  "9e0e9d385f8f31a470a41d3aaa888651a32aa64ebc97a3b8b354d5ba882ee884",
+                      "size":  40424
                   },
                   {
                       "path":  "base/fx_clas.bmp",
@@ -10559,8 +10564,8 @@
                   },
                   {
                       "path":  "base/fx_clas.png",
-                      "sha256":  "5f8c5667dd0ddc7cd6a49b9dec88e35312e261ca5c54678c632ae9a11937a351",
-                      "size":  99947
+                      "sha256":  "18007a520384898deb9cef8fce99281a6f3fd63b013a1324cf420ed825080994",
+                      "size":  99972
                   },
                   {
                       "path":  "base/fx_elec.dts",
@@ -10574,8 +10579,8 @@
                   },
                   {
                       "path":  "base/fx_elf.png",
-                      "sha256":  "d642d51e7e849ffe0d5d2ee39efdc7ae404764410d3db0312c19a9227a9fc86e",
-                      "size":  113689
+                      "sha256":  "fa5c281269a86b81496184dec8e3c2d4407e15e465c8b194706112fa28d94a9a",
+                      "size":  113714
                   },
                   {
                       "path":  "base/fx_exp_lg.dts",
@@ -10619,8 +10624,8 @@
                   },
                   {
                       "path":  "base/fx_fog.png",
-                      "sha256":  "77fb96eb553ad84641697f493d2e2ad27a01965c862447a6fc689f6b05ab0389",
-                      "size":  47146
+                      "sha256":  "a3e013ad3e7ad29cae48576942427b5123a71c5f9ace1d90df8a65ac14e4ecc9",
+                      "size":  47171
                   },
                   {
                       "path":  "base/fx_hlas.bmp",
@@ -10629,8 +10634,8 @@
                   },
                   {
                       "path":  "base/fx_hlas.png",
-                      "sha256":  "868ccc859f6e3625a37cac6547fd17af43cb185f296c7f63b3ae9f5568a1f312",
-                      "size":  84003
+                      "sha256":  "0076168a11ae37600400ed756bec072abbdb33246e6329997f967d45ca6b6217",
+                      "size":  84028
                   },
                   {
                       "path":  "base/fx_imp_fb.dts",
@@ -10664,8 +10669,8 @@
                   },
                   {
                       "path":  "base/fx_las.png",
-                      "sha256":  "0552cd991df0d0aea6b210091cabae263ae12f952e0b89808ea91253ff8b6966",
-                      "size":  74193
+                      "sha256":  "f870d499a6b0e34e88418f5b2dd9d7246160ff5f0e3c798d3f0645dbd10578d0",
+                      "size":  74218
                   },
                   {
                       "path":  "base/fx_ncan.bmp",
@@ -10674,8 +10679,8 @@
                   },
                   {
                       "path":  "base/fx_ncan.png",
-                      "sha256":  "9b9075dbee2b059a93d8719c01225c1f03b5260734601337f39a42b801c9ba34",
-                      "size":  141721
+                      "sha256":  "8b36d1c58cf09f433b5d92554b71ff0d6f6f1a9d9fe43576bc8f0adb60a9c6b8",
+                      "size":  141746
                   },
                   {
                       "path":  "base/fx_pbw.bmp",
@@ -10684,8 +10689,8 @@
                   },
                   {
                       "path":  "base/fx_pbw.png",
-                      "sha256":  "0da59c2358d88994277cabcdc229a114bb068ac397c2d512c629b5630b5df21f",
-                      "size":  92477
+                      "sha256":  "3ec9cd439dccadcc99e017bffcfbc1743d969c87d5e30faf624cbdc698e6257e",
+                      "size":  92502
                   },
                   {
                       "path":  "base/fx_plas.bmp",
@@ -10694,8 +10699,8 @@
                   },
                   {
                       "path":  "base/fx_plas.png",
-                      "sha256":  "d3b8b724b6d8d48bd1e0e40a8443280752b0cfea9112a994bd1b71a02bc60fc0",
-                      "size":  142627
+                      "sha256":  "742c6a62dd407e34c88a8068377921698ea0b9f907210e3919b9c6871f18a86c",
+                      "size":  142652
                   },
                   {
                       "path":  "base/fx_qgun.bmp",
@@ -10704,8 +10709,8 @@
                   },
                   {
                       "path":  "base/fx_qgun.png",
-                      "sha256":  "cdace72417452468fdf3848b08a4dfbaf1089e765a05a0cfaef2df90f42c0f5d",
-                      "size":  122413
+                      "sha256":  "796f28bca53a0f840991f2285ddab85d31e1c3be196f8baff4b18f85479b599f",
+                      "size":  122438
                   },
                   {
                       "path":  "base/fx_rad.bmp",
@@ -10714,8 +10719,8 @@
                   },
                   {
                       "path":  "base/fx_rad.png",
-                      "sha256":  "2fb23c3adc402e9264934e571cf1f9e0c18bbd794c8b01355b11361d5c3df448",
-                      "size":  116417
+                      "sha256":  "68f32e1bbd83b8cb2996f52ecbfcf571522f59b21c0e9b7ed160a6c27cb34e34",
+                      "size":  116442
                   },
                   {
                       "path":  "base/fx_smoke_lg.dts",
@@ -10744,8 +10749,8 @@
                   },
                   {
                       "path":  "base/fx_tlas.png",
-                      "sha256":  "b865f7faf9082ff7795c506954714342fd0069fe3ca2a18d8ebb66fd2f9332b6",
-                      "size":  120028
+                      "sha256":  "8cd5ce2335292fd70d0e85cd7eac77c523cdd81a4bb441a312b6a668630cdce4",
+                      "size":  120053
                   },
                   {
                       "path":  "base/GOAD_cy.BMP",
@@ -19898,6 +19903,21 @@
                       "size":  51603
                   },
                   {
+                      "path":  "base/missions/CanyonRemixLT.dsc",
+                      "sha256":  "e057cb9853370c9e57b9d994f161a3ebaf47e19a54dfa6e3c0ccaa877cf35c60",
+                      "size":  1205
+                  },
+                  {
+                      "path":  "base/missions/CanyonRemixLT.mis",
+                      "sha256":  "2b4c7f69c7144bf0fce2078d5bfb70c6fe285ab58511c86505d53db972f6ecbf",
+                      "size":  26731
+                  },
+                  {
+                      "path":  "base/missions/CanyonRemixLT.ted",
+                      "sha256":  "beb38a156c91f170a6e8b0bb7c638b527582c1cb9f110850efa3b87b40b5d006",
+                      "size":  87963
+                  },
+                  {
                       "path":  "base/missions/Cave-Arena.dsc",
                       "sha256":  "25689d1f2fa5624de60a0df4de24ee1d7368e64f1d4c3306808e6ebf6baddc0a",
                       "size":  777
@@ -20028,6 +20048,21 @@
                       "size":  22
                   },
                   {
+                      "path":  "base/missions/CoasterRemixLT.dsc",
+                      "sha256":  "dba93b5813e3cc156ee10a206425e484f2c6bae0dc90c39f0cb92875e1a3c30a",
+                      "size":  871
+                  },
+                  {
+                      "path":  "base/missions/CoasterRemixLT.mis",
+                      "sha256":  "173c06707596a2a58bebb08e5ba2ff351beec1d8e6f0c299ecc85eb03c13f39a",
+                      "size":  14195
+                  },
+                  {
+                      "path":  "base/missions/CoasterRemixLT.ted",
+                      "sha256":  "168200bc42eab4fee9237778a7d2abb754dfc3b4f1b847a5599444d87410f2f5",
+                      "size":  307559
+                  },
+                  {
                       "path":  "base/missions/Control.dsc",
                       "sha256":  "bbe1843c6d7dbd3ba60497930464c94308ca1eb4db91612bab538ffbde1e86ab",
                       "size":  1250
@@ -20116,6 +20151,21 @@
                       "path":  "base/missions/CrissCross.zip",
                       "sha256":  "adf7e5341d8aadc59eb63fd1997b1036f01ed2030ee2a3f77a6aa860921d004f",
                       "size":  119934
+                  },
+                  {
+                      "path":  "base/missions/CrossingRemixLT.dsc",
+                      "sha256":  "f28c349f52d2f03f265862d9a3385925b597da21f67a66e49bfde0eb22295ac3",
+                      "size":  943
+                  },
+                  {
+                      "path":  "base/missions/CrossingRemixLT.mis",
+                      "sha256":  "676068b4cd5b33b4e15523b2a05fd9790f7c03088840e8f6cfbeb5410f8fe736",
+                      "size":  17244
+                  },
+                  {
+                      "path":  "base/missions/CrossingRemixLT.ted",
+                      "sha256":  "2343fcea1615287586501c6727c57de40e2e3e03f95dd46bab24816580bdbfb9",
+                      "size":  353322
                   },
                   {
                       "path":  "base/missions/Cyclone_Stadium.dsc",
@@ -21108,6 +21158,31 @@
                       "size":  8371
                   },
                   {
+                      "path":  "base/missions/ForerunnerLT.dsc",
+                      "sha256":  "98920a43ccfc765f0939d368d3dad35a0facafa0a5506c7fa5756ab77a47ee6f",
+                      "size":  929
+                  },
+                  {
+                      "path":  "base/missions/ForerunnerLT.MIS",
+                      "sha256":  "bbd2b37c5f6b159e661589e043839c62b212c68e17a2796eb13503ba792b6a64",
+                      "size":  18562
+                  },
+                  {
+                      "path":  "base/missions/ForerunnerRemixLT.dsc",
+                      "sha256":  "6d477967ce5ff45a201b4253bed375c8792cae2af97138fb0444d9674b564796",
+                      "size":  913
+                  },
+                  {
+                      "path":  "base/missions/ForerunnerRemixLT.mis",
+                      "sha256":  "b00edf0383b880f6663ef6bb34b61d8566e565e4f4f5a631f42dfb604ac3fe90",
+                      "size":  17909
+                  },
+                  {
+                      "path":  "base/missions/ForerunnerRemixLT.ted",
+                      "sha256":  "f1d598f47a2e94341fbc23a7b25ab665ee40e18e3aa2c7b3ac913eb1bd13faf5",
+                      "size":  334867
+                  },
+                  {
                       "path":  "base/missions/Forsaken.txt",
                       "sha256":  "5c71aa69abbd775bfd5a9cfdb768c5a6342486cc0842186278cc7aef272df48d",
                       "size":  722
@@ -21728,6 +21803,21 @@
                       "size":  274614
                   },
                   {
+                      "path":  "base/missions/HillKingRemixLT.dsc",
+                      "sha256":  "16adf3b34a07305ad570eb8153cb6ad6c6dd22f75589eea383bbf7bf8c917bed",
+                      "size":  1063
+                  },
+                  {
+                      "path":  "base/missions/HillKingRemixLT.mis",
+                      "sha256":  "13bab9d1185404ea119dc777525b91969e4cfe6fce92ef9bad264e4d81f007a6",
+                      "size":  17309
+                  },
+                  {
+                      "path":  "base/missions/HillKingRemixLT.ted",
+                      "sha256":  "2f3c4105f5c6e5bb3fd2bf7afdc02ada136dea6bd3d90024c902437323f13769",
+                      "size":  337194
+                  },
+                  {
                       "path":  "base/missions/HillPileLT.dsc",
                       "sha256":  "b3ef2a9e0d217a0c17254238555f935c5dbcfc126742ff0a6eaa1984075f6227",
                       "size":  1222
@@ -21736,6 +21826,31 @@
                       "path":  "base/missions/HillPileLT.mis",
                       "sha256":  "01ebdc8a3d36b5e4dfe7cc95116383eba853675eb9a1799e4dc392b8969ee0bb",
                       "size":  20443
+                  },
+                  {
+                      "path":  "base/missions/HillSideLT.dsc",
+                      "sha256":  "98920a43ccfc765f0939d368d3dad35a0facafa0a5506c7fa5756ab77a47ee6f",
+                      "size":  929
+                  },
+                  {
+                      "path":  "base/missions/HillSideLT.mis",
+                      "sha256":  "0a18ea7e24d6983426fbfb681e48d7b22a7f54cfc2ee5205810f38f231d79b42",
+                      "size":  16925
+                  },
+                  {
+                      "path":  "base/missions/HillSideRemixLT.dsc",
+                      "sha256":  "6d477967ce5ff45a201b4253bed375c8792cae2af97138fb0444d9674b564796",
+                      "size":  913
+                  },
+                  {
+                      "path":  "base/missions/HillSideRemixLT.mis",
+                      "sha256":  "36b0e238422ab705d16003df719b7e31df4450d3421cd2c470f3ef7935c43792",
+                      "size":  16355
+                  },
+                  {
+                      "path":  "base/missions/HillSideRemixLT.ted",
+                      "sha256":  "c846ec62671ceb998bb2e28b73b7d018bbac1a24ea17c775be5985da14238e96",
+                      "size":  334747
                   },
                   {
                       "path":  "base/missions/Hog-Mania.dsc",
@@ -23618,6 +23733,21 @@
                       "size":  212637
                   },
                   {
+                      "path":  "base/missions/RaindanceRemixLT.dsc",
+                      "sha256":  "4d26074b152b8d8d51e84ae0e86f5af7ed09def9673066489c7a46ac1e37cfb1",
+                      "size":  1205
+                  },
+                  {
+                      "path":  "base/missions/RaindanceRemixLT.mis",
+                      "sha256":  "58b642cc2feab261a4dc5aae73cc5385a03b69a7ccef3a8dbdbb35da00e96f37",
+                      "size":  20880
+                  },
+                  {
+                      "path":  "base/missions/RaindanceRemixLT.ted",
+                      "sha256":  "75d636c8f7e6d8e12614ab0bd7ee73321c4590939bc9a620f6e3d3df878c3327",
+                      "size":  325987
+                  },
+                  {
                       "path":  "base/missions/Ramp_Arena.dsc",
                       "sha256":  "852b4b5567873cdfd1c8250d7d3d85e5a5627d7aaf485ebf8baf13f43b7a769c",
                       "size":  277
@@ -24696,6 +24826,21 @@
                       "path":  "base/missions/StonehengeLT.zip",
                       "sha256":  "438572f685db0ed565ffe8e59990dde6dab109dbe35da4b492ff8378dcd57c7e",
                       "size":  102087
+                  },
+                  {
+                      "path":  "base/missions/StonehengeRemixLT.dsc",
+                      "sha256":  "bcb344c73665746c134ed7c64db2c6ae6e8eb3087c9fd5747a32ccc25497dbc6",
+                      "size":  892
+                  },
+                  {
+                      "path":  "base/missions/StonehengeRemixLT.mis",
+                      "sha256":  "ffaf1e016653046e56bd62c71d6c23113262cb1a658fec35426692733425c47d",
+                      "size":  17830
+                  },
+                  {
+                      "path":  "base/missions/StonehengeRemixLT.ted",
+                      "sha256":  "71cb1b89658bbc2c8e4a310338f6ca029b44d8c302bbbad5af879b3986da5fbe",
+                      "size":  311977
                   },
                   {
                       "path":  "base/missions/StopNThink.dsc",
@@ -26869,8 +27014,8 @@
                   },
                   {
                       "path":  "base/pr_prx.png",
-                      "sha256":  "d1b7880b155aa86db007b02dd42d763d0f76933a04a81c32a58f5aeef2c0cd84",
-                      "size":  94263
+                      "sha256":  "cbb992a05f324cff707fe692464148f4e97fc802ad3fb22eaed080b7590ef75a",
+                      "size":  94288
                   },
                   {
                       "path":  "base/pr_rail.dts",
@@ -27603,6 +27748,11 @@
                       "size":  682
                   },
                   {
+                      "path":  "base/scripts/caster.cs",
+                      "sha256":  "4410d78d1e71259bb0f52f2bb2460b92753bd8851b773927681721d3f08477d2",
+                      "size":  16108
+                  },
+                  {
                       "path":  "base/scripts/changeMission.cs",
                       "sha256":  "bce6cf505bb5899a671e1634d90fbb4c8c6cb95241553053235cfd1f4e7a1c2e",
                       "size":  82
@@ -27694,8 +27844,8 @@
                   },
                   {
                       "path":  "base/scripts/GUI.CS",
-                      "sha256":  "51a71b9555ac565a0fe196daf6f3352fc7dba576370fbe376ae3e9a4919f3f64",
-                      "size":  20530
+                      "sha256":  "a98d3a3929f46974095493d119e806ec2addaa22159a44c591491fe4377e6834",
+                      "size":  20434
                   },
                   {
                       "path":  "base/scripts/help.strings.cs",
@@ -27974,8 +28124,8 @@
                   },
                   {
                       "path":  "base/scripts/objectives.cs",
-                      "sha256":  "e10b7286cd44b164da89a1c31d87b01cb170d51e0fc87fc7df107fce432ab435",
-                      "size":  49861
+                      "sha256":  "fe77a77ba524ad04613440da83126c51560a3a1e5cb71e60fbaaa39567a12554",
+                      "size":  50064
                   },
                   {
                       "path":  "base/scripts/observer.cs",
@@ -28019,8 +28169,8 @@
                   },
                   {
                       "path":  "base/scripts/repack.cs",
-                      "sha256":  "401a7d5a211fdcf3d84700504f8078d15beb7c1edb58427b0ca760b9f3b20583",
-                      "size":  30844
+                      "sha256":  "60bcdfd129ec63828be43895c5dbe5c56ffaf6ce55d670caf2d5084689daf76c",
+                      "size":  30971
                   },
                   {
                       "path":  "base/scripts/repackmsghud.cs",
@@ -28039,13 +28189,13 @@
                   },
                   {
                       "path":  "base/scripts/server.cs",
-                      "sha256":  "60883323a01afcc77c12c8bc5729ca459028f0c7cd32f88c86808408e5758845",
-                      "size":  15252
+                      "sha256":  "119e6aea1791a0cea4853bcc7b61401d8908cf9dc60aa00ebf30bfd4c3a707c2",
+                      "size":  19091
                   },
                   {
                       "path":  "base/scripts/serverDefaults.cs",
-                      "sha256":  "ce00d2705db34d834ce6a2176b3163331ae6db3ab85e9b7df93d4d81046c7403",
-                      "size":  3575
+                      "sha256":  "b871a671acce8de2381838d11ff1fa3d97e76ddd8657a820f5e17c241a590bed",
+                      "size":  4463
                   },
                   {
                       "path":  "base/scripts/sfx.strings.cs",
@@ -28159,8 +28309,8 @@
                   },
                   {
                       "path":  "base/scripts/weather.cs",
-                      "sha256":  "9f3618cd67e225ea60459f9f418700544980d9db7a27a7d6cb1196bdaff5487f",
-                      "size":  7313
+                      "sha256":  "2f61520a668f16b9dc2e5d1ba0e20473bbe649025522fbd6e69d682eba3f6be1",
+                      "size":  8175
                   },
                   {
                       "path":  "base/scripts/worlds.cs",
@@ -33829,8 +33979,8 @@
                   },
                   {
                       "path":  "config/botbrain.cfg",
-                      "sha256":  "bbea2b1a45bbc1bd7e7effb341aa7e0b16a601e5dcdbf567a066b9034880c94f",
-                      "size":  11220
+                      "sha256":  "c796e1e4dc11ef9b5c64a2108865071088e92c22b45afd4ccc0e5d84804bebbf",
+                      "size":  13186
                   },
                   {
                       "path":  "config/botbrain_chat.cfg",
@@ -33849,8 +33999,8 @@
                   },
                   {
                       "path":  "config/cowboy/CmdHUD.cs",
-                      "sha256":  "6a1aba917f79fc2d4511a3a7f14d0e94e515ae04cef1edd53f34820db29792b7",
-                      "size":  30036
+                      "sha256":  "894b115b0532d37ab5d74b3e94546618a643f2688626dde6e0dcf291f666baa6",
+                      "size":  31001
                   },
                   {
                       "path":  "config/extra-controls.cs",
@@ -45954,8 +46104,8 @@
                   },
                   {
                       "path":  "config/ModernHUD/Packs/ascend/hud.cs",
-                      "sha256":  "9adc0ae003bd32ef2afffccf1fa6184555b480dd7eb37eab117f76c33a0bab74",
-                      "size":  67501
+                      "sha256":  "813ce2fc729ebab4846aa73903594be5f0ba8d20f0cb7e50ca68ce4ce114a4fd",
+                      "size":  68717
                   },
                   {
                       "path":  "config/ModernHUD/Packs/ascend/pack.json",
@@ -46011,6 +46161,16 @@
                       "path":  "config/ModernHUD/Packs/proconfig/pack.json",
                       "sha256":  "1d2fd851d7440b9cf9ba8560ca1129c7e46f54b863478f43145627b0cbd1e4db",
                       "size":  22666
+                  },
+                  {
+                      "path":  "config/ModernHUD/Packs/shoutcaster/hud.cs",
+                      "sha256":  "fcbb43b0cf76b2a6cc3a1bdd5a62b93706c2b31d04abcbfe9b3e904a69edb02a",
+                      "size":  11286
+                  },
+                  {
+                      "path":  "config/ModernHUD/Packs/shoutcaster/pack.json",
+                      "sha256":  "d02a18bec258d5fbeff7a1f415fdddaa833ebfebb3354b51bf10e16c18f642e0",
+                      "size":  1136
                   },
                   {
                       "path":  "config/ModernHUD/Packs/vantage/hud.cs",
@@ -46084,8 +46244,8 @@
                   },
                   {
                       "path":  "config/nativeDefaults.cs",
-                      "sha256":  "19a4450baea5e283fd51d02d6441858ba3b39e8e6831f75236ef8172f147e6cf",
-                      "size":  20970
+                      "sha256":  "6421c03a5f6aceaeb27b51ead021e07952282efa66c8d022d498d0346ba84d71",
+                      "size":  51567
                   },
                   {
                       "path":  "config/nav/(=SK=) Broadside.nav",
@@ -46498,6 +46658,11 @@
                       "size":  4144421
                   },
                   {
+                      "path":  "config/nav/CanyonRemixLT.nav",
+                      "sha256":  "a68d754223debf5e3bcfe39b8b6dec274d8d6ebb4a130ac368e013223b5ed589",
+                      "size":  203178
+                  },
+                  {
                       "path":  "config/nav/Caves of Steel.nav",
                       "sha256":  "170980de7a7775aa4c8581085acb9dc4c18a59008b264350bb852e81a708b8e5",
                       "size":  7116125
@@ -46558,6 +46723,11 @@
                       "size":  3317410
                   },
                   {
+                      "path":  "config/nav/CoasterRemixLT.nav",
+                      "sha256":  "12288f42b0f814909976660aaabcb6e571e6adbe4e053edd7c955c5d2ef61c7f",
+                      "size":  1740479
+                  },
+                  {
                       "path":  "config/nav/Colossus.nav",
                       "sha256":  "ef88d9e924383ec68c4af9056046166dd53b6a4d0481717f44e19bcd5989eac2",
                       "size":  1268505
@@ -46581,6 +46751,11 @@
                       "path":  "config/nav/CrissCross.nav",
                       "sha256":  "faafedde90cd61ac90b2bc8f51bc2ad12226af456971a6661b31c24bed7cc018",
                       "size":  214127
+                  },
+                  {
+                      "path":  "config/nav/CrossingRemixLT.nav",
+                      "sha256":  "c1725c80ac0e4e78305da425ae5212cbece50de988044abba7bdaf70944fdddd",
+                      "size":  1776642
                   },
                   {
                       "path":  "config/nav/D R O P Z O N E_2 0 0 5.nav",
@@ -46853,6 +47028,11 @@
                       "size":  2864344
                   },
                   {
+                      "path":  "config/nav/ForerunnerRemixLT.nav",
+                      "sha256":  "e7ee65a2ee2663f31f92fd7f3ca4510993339fa6773949ea3fbded4d742cac15",
+                      "size":  2099676
+                  },
+                  {
                       "path":  "config/nav/Fort_Randall.nav",
                       "sha256":  "5a9cd0a724d237700e79e5244228e0c812f209bc4bd0ab6e2fb18947d31a8305",
                       "size":  4708384
@@ -47083,9 +47263,19 @@
                       "size":  1586015
                   },
                   {
+                      "path":  "config/nav/HillKingRemixLT.nav",
+                      "sha256":  "9d939171e7e09d6222ef9662f9ec814135206fcb3b3a8e5bd19a7ab885c457b7",
+                      "size":  1457848
+                  },
+                  {
                       "path":  "config/nav/HillPileLT.nav",
                       "sha256":  "2db722650ccafac0a0975bbea588d76f106d859dd2ede1e491d258d143472714",
                       "size":  2448473
+                  },
+                  {
+                      "path":  "config/nav/HillSideRemixLT.nav",
+                      "sha256":  "98b6554acf8e32f0a6ac973688d7622fd288d5893fdd35e22c1e5f5dc37405f8",
+                      "size":  3980427
                   },
                   {
                       "path":  "config/nav/HouseOfTheHoly.nav",
@@ -47483,6 +47673,11 @@
                       "size":  2280141
                   },
                   {
+                      "path":  "config/nav/RaindanceRemixLT.nav",
+                      "sha256":  "093fe1cacfcfa545b01f8f796fa45331b7b9727d511507a9266dc7f06c7fb4da",
+                      "size":  2549267
+                  },
+                  {
                       "path":  "config/nav/Rancor-X.nav",
                       "sha256":  "e4b115812e0e809c423c57fcdfe918863cf090edc1a2359cfd0b09d4ebcd41e3",
                       "size":  3271728
@@ -47726,6 +47921,11 @@
                       "path":  "config/nav/StonehengeLT.nav",
                       "sha256":  "8a49e1042fb7a1b470b3885892fd38c58c57482f6c7444f8909218a18937a622",
                       "size":  1547755
+                  },
+                  {
+                      "path":  "config/nav/StonehengeRemixLT.nav",
+                      "sha256":  "e75511258534b8eba74c6cf3fc91438651757f506d69c81f3aeee68d3b182333",
+                      "size":  1445735
                   },
                   {
                       "path":  "config/nav/Str8_Shot.nav",
@@ -47979,7 +48179,7 @@
                   },
                   {
                       "path":  "config/play.gui",
-                      "sha256":  "5e357bb0cbd8b6db12d0ee3e2183f9aea34358de7bdb09a7b7af9dd12316ae75",
+                      "sha256":  "7de7fea59364265a58e6175bb4ec30866868de4fd94501750814a53bec35326e",
                       "size":  107426
                   },
                   {
@@ -48029,8 +48229,8 @@
                   },
                   {
                       "path":  "config/Presto/events.cs",
-                      "sha256":  "899352151366ed5af6370f70e8633efc2408d94b098cd9524f1c1d742942ef4a",
-                      "size":  28185
+                      "sha256":  "a874c761e0cced1c509692423ee53e36346062a0aff76c7235663febb550f12a",
+                      "size":  28061
                   },
                   {
                       "path":  "config/Presto/Favorites.cs",
@@ -48094,8 +48294,8 @@
                   },
                   {
                       "path":  "config/Presto/KronosMenu.cs",
-                      "sha256":  "c29ed998c68d71f5842f976e36b189da633bbe98608f4c4727cb60878f39db9d",
-                      "size":  59904
+                      "sha256":  "566b2ee42c986d35c232b90fb0cdb7903eb5bb75d74a91976582cce88dcbba35",
+                      "size":  62763
                   },
                   {
                       "path":  "config/Presto/KronosNPC.cs",
@@ -48104,8 +48304,8 @@
                   },
                   {
                       "path":  "config/Presto/KronosShop.cs",
-                      "sha256":  "72d2f1bc7bac3e179f5f3e40b2cd52be1aa340ec2b26331710f6b6b11cad55dc",
-                      "size":  48432
+                      "sha256":  "cd5a18833cc36b45864579f5c9ce02b50995c7db3fc28acb4afa7f6a984db61b",
+                      "size":  49156
                   },
                   {
                       "path":  "config/Presto/KronosStats.cs",
@@ -48284,8 +48484,8 @@
                   },
                   {
                       "path":  "config/ServerPrefs.cs",
-                      "sha256":  "7d0285e53e40c7c2b749f1d2a7e6be2c717c6145f71df03ac1e0a47e17514149",
-                      "size":  3675
+                      "sha256":  "bf2e6784c0f2b1aa42b178b3b4e7315e7a4a3513f675067344bf85c039022d6a",
+                      "size":  3643
                   },
                   {
                       "path":  "config/SinConnect.cs",
@@ -49049,8 +49249,8 @@
                   },
                   {
                       "path":  "console.cs",
-                      "sha256":  "565d1b5730071fc9bbb7c803cf92610088f5fb5801145b1b2cfd49adddd0a332",
-                      "size":  13436
+                      "sha256":  "cf1c855ad3fd94023d04b08a2763085b5395094f275ed0cbe2a7d1be3b566a44",
+                      "size":  13867
                   },
                   {
                       "path":  "gui/cmdinventory.gui",
@@ -49154,8 +49354,8 @@
                   },
                   {
                       "path":  "ModernTribes.exe",
-                      "sha256":  "912512ea116ba0c47aee340b3e70e90240eae77f583182d78a5b9de1fd01b4d3",
-                      "size":  5984768
+                      "sha256":  "b193426c79824cf5a2a616af63a7ba7e7aeb74bcd2dddee28ce7f31b56b90009",
+                      "size":  6437376
                   },
                   {
                       "path":  "modlist.txt",
@@ -49178,6 +49378,16 @@
                       "size":  22425
                   },
                   {
+                      "path":  "Mods/MechMayhem/missions/MechCaveWar.dsc",
+                      "sha256":  "45c20e4940e58e22ebeec62741fd4bbb4e0efa1c9e8f5e2c1574ebdf5f7b7fa8",
+                      "size":  490
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/missions/MechCaveWar.mis",
+                      "sha256":  "07bc7dd896e0606337c9fe44db324d581114d45d4865dab697f4fda75c197983",
+                      "size":  24200
+                  },
+                  {
                       "path":  "Mods/MechMayhem/missions/MechGroundwar1.dsc",
                       "sha256":  "e4e68e1fcef506fecab77eb0a75d3feb5f0db6c524e5e2453e1cab2e4ebdd5de",
                       "size":  498
@@ -49198,6 +49408,16 @@
                       "size":  22450
                   },
                   {
+                      "path":  "Mods/MechMayhem/missions/MechIndoorArena.dsc",
+                      "sha256":  "c91b56ecf5e554a083a6ed68bfa99db078a9c247ddddb5b71c4f6b8051efd094",
+                      "size":  396
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/missions/MechIndoorArena.mis",
+                      "sha256":  "d2471dbbc1e01212555eb52fdf83010e6048c0e2dbe9759745ae67b9ac2f6d91",
+                      "size":  27717
+                  },
+                  {
                       "path":  "Mods/MechMayhem/missions/MechMonsoon1.dsc",
                       "sha256":  "c54b46ede9a4fb1ca7308db7b00e4fa183617b3eed8095750530c3ddf0d917a5",
                       "size":  468
@@ -49208,14 +49428,34 @@
                       "size":  22426
                   },
                   {
+                      "path":  "Mods/MechMayhem/missions/MechNewVegas.dsc",
+                      "sha256":  "ecbd40045bf66104b785d938fdba27227bbf4fa79365fecda4407757ac93673c",
+                      "size":  370
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/missions/MechNewVegas.mis",
+                      "sha256":  "035f74f189a570c180dfc988eb1a9016295b861d83a3389fd39bdf85f8b77581",
+                      "size":  69277
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/missions/MechRaiders.dsc",
+                      "sha256":  "ae2a3b85d0ea51fc714d858b81c143fed98ea4c751d0bc1c79e919008d487341",
+                      "size":  427
+                  },
+                  {
+                      "path":  "Mods/MechMayhem/missions/MechRaiders.mis",
+                      "sha256":  "377521991d4e5a45ea6c3aada2379a3fd34edc60a4f1cdd49e3a204457098f5a",
+                      "size":  65546
+                  },
+                  {
                       "path":  "Mods/MechMayhem/README.txt",
                       "sha256":  "1787ea404c38488ea3a1e6d542cca5a628eaee33e138d7701fea7c87810fa75c",
                       "size":  7854
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechChassis.cs",
-                      "sha256":  "f187f3e86804a8b501549fb1b65ef7bea6ebca7ad04e5b073ba4c35f308d208f",
-                      "size":  149561
+                      "sha256":  "87049fb8c81120452499b5008cb1089afd1bdc425079d9d2130d560d084bbaf6",
+                      "size":  165917
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechDamage.cs",
@@ -49224,18 +49464,18 @@
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechEject.cs",
-                      "sha256":  "9848306de2a43cbdf878f670daf7120ee655ff30a24652afdcbb0b92e201f1b6",
-                      "size":  7782
+                      "sha256":  "977ab1cb30d38e17c094653a8b52d30060df2645df7d4d7de546b47d848a7a59",
+                      "size":  7980
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechGame.cs",
-                      "sha256":  "2653c7f08fc851bb133f44c437ca28c85c542e44656289c05f82011fdde480b8",
-                      "size":  35275
+                      "sha256":  "658a631a2c409ead3ab949ac264e4746ad946536e2336be1e960c10e9626ff3e",
+                      "size":  38304
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechHeat.cs",
-                      "sha256":  "266ebe1448106e4ab1221c77672a486253be5be757803cd04d001e11b525d5e0",
-                      "size":  4729
+                      "sha256":  "697c88a59ae2e7f36bda3e3bbba255d5a23fc21533725f26e559e1b582f2182b",
+                      "size":  6038
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechPilot.cs",
@@ -49259,8 +49499,8 @@
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechWeapons.cs",
-                      "sha256":  "dc4378915641400af13639be1215a3f7343addf5b46dcaf64ca0cc5d21cb21fb",
-                      "size":  89715
+                      "sha256":  "d99f7a67e22682cabb0ef6479a9a63374ff1422d4f600a7c0e79b5c9f1cf1b1a",
+                      "size":  107120
                   },
                   {
                       "path":  "Mods/MechMayhem/scripts/MechZones.cs",
@@ -59094,8 +59334,8 @@
                   },
                   {
                       "path":  "Mods/RPG/scripts/repack.cs",
-                      "sha256":  "50032eb7919cf277794f9f7a4a8cb0fad7dfbd36f3704d2f4a25ca53d171218f",
-                      "size":  30844
+                      "sha256":  "36edfac5ad77e482de0cd91b6cf13e325d7c086d9b47c4658772fe314886a088",
+                      "size":  30971
                   },
                   {
                       "path":  "Mods/RPG/scripts/repackmsghud.cs",
@@ -71486,8 +71726,8 @@
                   },
                   {
                       "path":  "README - Modern Client.txt",
-                      "sha256":  "51bc8629b9dbaceb638f2eae262d4af28353480a9f025d274aa65ebda029e689",
-                      "size":  13890
+                      "sha256":  "1724fb489db4448b0c5b3b639d70c92445b1c712d02f69a8c462129259573db2",
+                      "size":  18565
                   },
                   {
                       "path":  "smackw32.dll",
@@ -71496,8 +71736,8 @@
                   },
                   {
                       "path":  "TribesHost.exe",
-                      "sha256":  "248f1b770788fd198b379ee6f65d6f2863bd55a060ec9f5d6f172d936e52da55",
-                      "size":  217088
+                      "sha256":  "2343ece629249c77c6f08c57539f4b599307a48b7b3fa9631d5919c353c0a587",
+                      "size":  222720
                   },
                   {
                       "path":  "vccorlib140.dll",
