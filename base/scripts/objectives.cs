@@ -362,6 +362,9 @@ function Game::clientKilled(%playerId, %killerId)
    %set = nameToID("MissionCleanup/ObjectivesSet");
    for(%i = 0; (%obj = Group::getObject(%set, %i)) != -1; %i++)
       GameBase::virtual(%obj, "clientKilled", %playerId, %killerId);
+   // CASTER (2026-08-28): moment classification (MA/CK) -- caster.cs, exec'd
+   // unconditionally from Server::createServer so this is always defined.
+   Caster::clientKilled(%playerId, %killerId);
 }
 
 function Player::enterMissionArea(%this)

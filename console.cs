@@ -280,12 +280,14 @@ exec("clientDefaults.cs");
 exec("serverDefaults.cs");
 exec("clientPrefs.cs");
 exec("serverPrefs.cs");
-if(String::findSubStr($modList, "crurpg") != -1){
-	exec("crurpg_config.cs");
-	$crurpg_config = True;
-}
-else
-	exec("config.cs");
+// CRUCIBLE RPG REMOVED 2026-08-28: this used to branch to crurpg_config.cs for
+// -mod crurpg (Crucible RPG, rj / crurpg.org). Dead on every install we ship:
+// no Mods\crurpg, no config\crurpg_config.cs, no entry in the mod picker,
+// and zero matches in the v22 manifest or the store catalog. It could only fire
+// for a hand-installed mod folder, and while it existed every keymap SAVE site
+// had to carry a matching test -- two of which had already drifted apart
+// (GUI.CS tested $crurpg_config, Presto\events.cs tested $modList).
+exec("config.cs");
 exec("extra-controls.cs");
 exec("badwords.cs");
 exec("autoexec.cs");

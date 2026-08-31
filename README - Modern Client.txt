@@ -294,6 +294,118 @@ shown live at the bottom of TribesHost).
 
 
 -------------------------------------------------------------
+ SHOUTCASTING & FILMING
+-------------------------------------------------------------
+
+Tools for casting matches and cutting highlight videos.
+
+CASTER CAMERAS (needs a server running this update)
+
+A server admin grants you caster status while you observe:
+the admin logs in with the server's admin password, finds
+your client id on the player list, and types in the console:
+
+  CasterGrant(<your id>, 1);        (0 revokes it)
+
+Admins are casters automatically. Once granted, observe
+(Options > Change Teams/Observe) and drive the cameras from
+the NUMPAD:
+
+  1 / 2    follow team 0 / team 1's flag -- the camera locks
+           to the flag stand, then glues itself to whoever is
+           carrying the flag, and snaps back on drop, return
+           or cap
+  4 / 5    360 camera around team 0 / team 1's flag stand
+  + / -    orbit distance out / in (3-30 m)
+  0        detach
+  *        show this cheat sheet in-game
+
+The same commands exist in the console for keys or extra
+teams: CasterFollow(team); CasterFlagCam(team);
+CasterDist(meters); CasterStop(); CasterHelp();
+
+Caster cameras only work while observing and only for
+granted casters, so they cannot be used to scout for a
+playing team. Server admins: the grant lasts until revoked
+or the caster disconnects.
+
+AUTO-RECORDING WITH A HIGHLIGHT INDEX
+
+Type in your console (F10 or ~):
+
+  $pref::casterAutoRecord = 1;
+
+From your next connect, every match records itself to
+recordings\auto-<date-time>.rec, and a matching
+.events.cs text file lists your moments -- mid-air kills,
+carrier kills, grabs, caps and returns -- each stamped with
+how many seconds into the match it happened. Recording plus
+shot list in one folder, ready to hand to an editor.
+
+Set it to 0 to stop. It is off by default (recordings cost
+disk space) and never touches a manual recording setup
+while off. Playback: DEMOS on the main menu, as with any
+recording.
+
+FILM CAMERA + SKIP FOR RECORDINGS
+
+While a recording plays back, the NUMPAD becomes a film rig:
+
+  1        film camera on/off -- swaps the recorded first-
+           person view for a free orbit camera around the
+           recorded player (their body renders, and the
+           camera happily flies through walls for the shot)
+  4 / 6    orbit left / right        8 / 2   raise / lower
+  + / -    camera distance (up to 200 m)
+  9 / 3    skip ahead 10 s / 60 s
+  0        back to the recorded view
+  *        controls cheat sheet on screen
+
+demoSeek(seconds); in the console jumps to an exact time --
+pair it with the .events.cs shot list to land right on a
+mid-air. Skipping is forward-only (a recording is a one-way
+tape): to go back, restart the demo and skip forward. While
+skipping, the world visibly fast-forwards (that IS the
+replay, compressed; $pref::demoSeekScale sets the speed,
+default 8x). Camera angles are console variables too:
+$DemoCam::yaw / pitch / dist, re-read every frame.
+
+Recordings that span several matches keep playing past a
+match end now, instead of dumping you back to the menu.
+
+MASTER MATCH RECORDING (server operators)
+
+A normal recording only contains what that player's client
+was sent. To capture the WHOLE match, run a second client on
+the server box, put it in observer mode, set a recording
+name in its console:
+
+  $recorderFileName = "recordings\master.rec";
+
+(before connecting), then in the SERVER console flag it as
+the match recorder:
+
+  casterRecorder(<client id>, 1);      (0 turns it off)
+
+That connection now receives every object on the map
+regardless of distance, so its recording is the master tape
+-- play it back with the film camera above and every fight
+is in there. The command exists only on the server console
+(clients cannot request it), and it only applies while the
+flagged client observes. On very object-heavy maps watch
+the server console for [CASTER] ghost-cap warnings.
+
+CLEAN FOOTAGE
+
+For filming, pick the "Observer (filming)" config in
+Options > Configs: it hides every HUD element, nameplates
+and server text for a clean frame (each piece can be
+toggled back individually), and puts you straight into
+observer mode. SPACE toggles free-fly/orbit, holding RMB
+flies 3x faster.
+
+
+-------------------------------------------------------------
  UPDATES
 -------------------------------------------------------------
 

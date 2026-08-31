@@ -50,6 +50,19 @@ function Server::onClientDisconnect(%clientId)
 	   Player::kill(%player);
 	}
 
+   // BOOTSTRAP-MOD EVENTS (2026-08-29): a 1.1 Bootstrap mod (Annihilation) runs its
+   // per-player stats off Event::. Its own server.cs triggers this, but we keep OURS
+   // -- BotBrain, SpoonBot, caster, weather and the editor gates all live here -- so
+   // the four triggers its server.cs owns have to be raised from this copy instead.
+   // ★Placement is load-bearing: BEFORE leaveGame.★ Stats::onClientDisconnect calls
+   // Stats::ExportPlayer(%cl, Client::getTeam(%cl)), and after leaveGame the team is
+   // gone, so exporting there files every leaver's stats under the wrong team. This
+   // matches where Annihilation's own copy raises it (server/server.cs:53).
+   // Inert unless a mod sets $Mod::Events -- Event::Trigger is undefined on base, and
+   // an unguarded call would print "Unknown command" on every disconnect.
+   if($Mod::Events)
+      Event::Trigger(eventServerClientDisconnect, %clientId);
+
    Client::setControlObject(%clientId, -1);
    Client::leaveGame(%clientId);
    Game::CheckTourneyMatchStart();
@@ -71,6 +84,15 @@ function KickDaJackal(%clientId)
 
 function Server::onClientConnect(%clientId)
 {
+   // BOOTSTRAP-MOD EVENTS (2026-08-29): see Server::onClientDisconnect above.
+   // Annihilation's Stats::onClientConnect does Stats::ClearPlayer + adds the player
+   // to the stats "playerlist" -- without it a player is in no stats list at all, so
+   // Stats::ExportPlayers never emits them and stale figures from a previous holder
+   // of the same identifier are never cleared. Raised FIRST, as its own copy does
+   // (server/server.cs:74). Inert unless a mod sets $Mod::Events.
+   if($Mod::Events)
+      Event::Trigger(eventServerClientConnect, %clientId);
+
    if(!String::NCompare(Client::getTransportAddress(%clientId), "LOOPBACK", 8))
    {
       // force admin the loopback dude
@@ -131,6 +153,10 @@ function createServer(%mission, %dedicated)
       newObject(serverDelegate, FearCSDelegate, true, "IP", $Server::Port, "IPX", $Server::Port, "LOOPBACK", $Server::Port);
    
    exec(admin);
+   // CASTER (2026-08-28): shoutcaster observer tools -- role-gated (isAdmin, or
+   // isCaster granted by an admin) follow-the-carrier + flag-stand cameras.
+   // Define-only at exec time; see caster.cs header for the gate design.
+   exec(caster);
    exec(Marker);
    exec(Trigger);
    exec(NSound);
@@ -328,7 +354,17 @@ function Server::finishMissionLoad()
       // loop thru clients and setTeam to -1;
       messageAll(0, "New teamcount - resetting teams.");
       for(%cl = Client::getFirst(); %cl != -1; %cl = Client::getNext(%cl))
+      {
+         // BOOTSTRAP-MOD EVENTS (2026-08-29): Annihilation's own finishMissionLoad
+         // raises this here (server/server.cs:268) so Stats::onClientJoinTeam closes
+         // the outgoing team's teamtime accumulator before the team is cleared. The
+         // mod's other JoinTeam sites (playerspawn, observer, menus/changeteams) are
+         // in files we DO load; this map-change one is the only one that was missing.
+         // Must precede setTeam -- the handler reads the team it is leaving.
+         if($Mod::Events)
+            Event::Trigger(eventServerClientJoinTeam, %cl, -1);
          GameBase::setTeam(%cl, -1);
+      }
    }
 
    $ghosting = true;
@@ -375,6 +411,11 @@ function Server::finishMissionLoad()
    // spot survives a mission change (ConsoleScheduler is recreated by
    // Server::loadMission, discarding anything scheduled earlier).
    schedule("Storm::MissionStart();", 6);
+
+   // CASTER (2026-08-28): restart the follow-carrier poll for anyone still in
+   // follow mode -- same placement rationale as the hooks above, this is the
+   // only spot that survives the ConsoleScheduler recreation.
+   schedule("Caster::missionStart();", 4);
 
    return "True";
 }
@@ -456,7 +497,36 @@ function topprintall(%msg, %timeout)
 //This function is a placeholder+prevents possible console spam.
 //By phantom: beatme101.com, tribesrpg.org
 function remoteRawKey(%client, %key, %mod){
-	client::sendmessage(%client, 0, "This server does not support the use of extra keybinds.");
+	// CASTER (2026-08-28): numpad camera controls for granted casters while
+	// observing (caster.cs Caster::rawKey -- 1/2 follow, 4/5 flag cam, +/- dist,
+	// 0 detach, * help). Mods that own this relay (RPG remote.cs) redefine
+	// remoteRawKey later and win.
+	if((%client.isAdmin || %client.isCaster) && %mod == "")
+	{
+		if(Client::getTeam(%client) == -1)
+		{
+			if(Caster::rawKey(%client, %key))
+				return;
+		}
+		else if(Caster::isCasterKey(%key))
+		{
+			// A privileged client pressed a caster key while on a team: say WHY
+			// it did nothing. The old gate fell through to the stock keybind
+			// line here, which read as "the feature is broken" (Joe, 2026-08-29).
+			Client::sendMessage(%client, 0, "Caster cameras only work while observing. Join observers, then numpad * lists the controls.");
+			return;
+		}
+	}
+	// KEYBIND-SPAM FIX (2026-08-29): the stock placeholder answered EVERY relayed
+	// press (numpad, F1-F12, ctrl/alt digits, plain 0 -- ~92 client-bound events)
+	// with the line below, once per keypress. Say it once per connection, then
+	// stay quiet. Client fields persist across mission changes, so this is truly
+	// per-connection.
+	if(%client.rawKeyNotified == "")
+	{
+		%client.rawKeyNotified = 1;
+		client::sendmessage(%client, 0, "This server does not support the use of extra keybinds.");
+	}
 
 	//Under normal conditions, %key will be one of the following:
 	//Repack 4 and up:

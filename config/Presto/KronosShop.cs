@@ -1512,7 +1512,20 @@ function KronosShop::bankAmtSubmit()
 
 function ScriptGL::playGui::onPostDraw(%dimensions)
 {
+	// TELESTRATOR (caster stage 5, 2026-08-29): the on-screen marker renders from
+	// whoever owns this hook (last definition wins -- that is this file). Guarded:
+	// nativeDefaults.cs defines it, but a config without it must not error every frame.
+	if(isFunction("Telestrator::render"))
+		Telestrator::render(%dimensions);
+
 	%dim = KronosMenu::screenDim(%dimensions);
+
+	// SCOREBOARD-REFRESH (2026-08-29): this override replaced KronosMenu.cs's
+	// onPostDraw but never picked up the scoreTick() call added there for the
+	// "Scoremenu does not refresh" beta fix -- so the roster only ever got the
+	// one TAB-open push and froze again. Keep this call whenever this hook and
+	// KronosMenu.cs's diverge: whoever owns onPostDraw owns the tick.
+	KronosMenu::scoreTick();
 
 	KronosCM::pump();      // drain keys for the V quick-command menu (no-op unless open)
 	KronosNPC::pump();     // Esc/Tab close for the NPC dialogue (no-op unless open)

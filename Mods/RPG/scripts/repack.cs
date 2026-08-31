@@ -700,10 +700,9 @@ function revertDrawDistance(){
 	$serverControllingDD = False;
 }
 
-if(String::findSubStr($modList, "crurpg") != -1){
-	exec(rpggui);
-	exec(crucible_functions);
-}
+// CRUCIBLE RPG REMOVED 2026-08-28: exec(rpggui) + exec(crucible_functions) for
+// -mod crurpg. Neither file exists anywhere in the tree and no shipped path can
+// set that modList. See console.cs for the full reasoning.
 
 function remotesetWindowTitle(%server, %title){
 	if(%server != 2048)

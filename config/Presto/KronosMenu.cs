@@ -414,7 +414,15 @@ function KronosMenu::handleClick(%x, %y)
 	{
 		%row = floor((%y - $KML::plRowY0) / $KML::rowH);
 		if(%row < $KM::plCount && %row < $KM::MaxPRows)
-			KronosMenu::clickPlayer(%row);
+		{
+			// VOICE-CHAT: a click on the right-edge mute chip toggles that
+			// player's voice mute instead of selecting the row.
+			if($KM::muteUi && $KML::muteW > 0
+				&& %x >= $KML::px + $KML::wPlayers - $KML::pad - $KML::muteW)
+				KronosMenu::clickMute(%row);
+			else
+				KronosMenu::clickPlayer(%row);
+		}
 	}
 }
 
@@ -443,6 +451,25 @@ function KronosMenu::clickPlayer(%idx)
 	$KM::selId = %id;
 
 	remoteEval(2048, SelectClient, %id);
+}
+
+// VOICE-CHAT: toggle voice mute for the row's player. Mutes persist by player
+// name across sessions (voiceChatClient.cpp name-hash prefs); the chip in
+// render reads the live state back through VoiceChat::isMuted.
+function KronosMenu::clickMute(%idx)
+{
+	if(!$KM::active || !$KM::enabled)
+		return;
+	if($VoiceChat::api == "")
+		return;
+	if(%idx < 0 || %idx >= $KM::plCount)
+		return;
+	%id = $KM::plId[%idx];
+	if(%id == "" || %id == -1)
+		return;
+	if($KM::plName[%idx] == $PCFG::Name)
+		return;
+	VoiceChat::mute(%id);
 }
 
 // ============================================
@@ -596,7 +623,16 @@ function KronosMenu::render(%dimensions)
 	// of the previous one plus a fixed gap - no fraction slots, so long names
 	// can't overlap the next column and short ones don't leave a huge hole
 	%colGap = %pad * 2;
+	// VOICE-CHAT (mute chips): a right-edge mute button per player row, only
+	// when the running exe exports the voice API ($VoiceChat::api, set by
+	// VoiceChat_consoleInit) - under an older exe nothing is drawn or clickable.
+	$KM::muteUi = ($VoiceChat::api != "");
+	$KML::muteW = 0;
+	if($KM::muteUi)
+		$KML::muteW = floor(%rowH * 2.4);
 	%wp = %pad + $KM::plNameW + %colGap + $KM::plLvW + %colGap + $KM::plClW + %colGap + $KM::plZnW + %pad;
+	if($KM::muteUi)
+		%wp = %wp + %colGap + $KML::muteW;
 	if(%wp < %w)
 		%wp = %w;
 	%wpMax = floor(%sw * 0.60);
@@ -691,6 +727,25 @@ function KronosMenu::render(%dimensions)
 				glColor4ub(255, 255, 255, 9);
 				glRectangle($KML::px + 2, %iy, %wp - 4, %rowH);
 			}
+		}
+		// VOICE-CHAT: mute chip background. Red while muted; near-invisible
+		// until hovered so the board stays clean. Own row gets no chip.
+		if($KM::muteUi && $KM::plId[%i] != "" && $KM::plName[%i] != $PCFG::Name)
+		{
+			%mzX = $KML::px + %wp - %pad - $KML::muteW;
+			%overChip = (%hovPanel == "players" && %i == %hovRow && $KM::mouseX >= %mzX);
+			if(VoiceChat::isMuted($KM::plId[%i]))
+			{
+				if(%overChip)
+					glColor4ub(200, 60, 60, 140);
+				else
+					glColor4ub(200, 60, 60, 95);
+			}
+			else if(%overChip)
+				glColor4ub(255, 255, 255, 60);
+			else
+				glColor4ub(255, 255, 255, 18);
+			glRectangle(%mzX, %iy + 2, $KML::muteW - 2, %rowH - 4);
 		}
 		%iy += %rowH;
 	}
@@ -802,6 +857,38 @@ function KronosMenu::render(%dimensions)
 		glColor4ub(160, 210, 170, 210);
 		glDrawString(%znX, %ty, $KM::plZone[%i]);
 		%iy += %rowH;
+	}
+	// VOICE-CHAT: mute chip labels, own smaller font so the chips read as
+	// buttons rather than another data column.
+	if($KM::muteUi && $KM::plCount > 0)
+	{
+		%fontMute = floor(%fontItem * 0.78);
+		if(%fontMute < 9)
+			%fontMute = 9;
+		glSetFont("Verdana", %fontMute, $GLEX_SMOOTH, 0);
+		%mzX = $KML::px + %wp - %pad - $KML::muteW;
+		%muteTxW = getword(glGetStringDimensions("mute"), 0);
+		%mutedTxW = getword(glGetStringDimensions("muted"), 0);
+		%iy = $KML::plRowY0;
+		for(%i = 0; %i < $KM::plCount; %i++)
+		{
+			if($KM::plId[%i] != "" && $KM::plName[%i] != $PCFG::Name)
+			{
+				%ty = %iy + floor((%rowH - %fontMute) / 2) - 1;
+				if(VoiceChat::isMuted($KM::plId[%i]))
+				{
+					glColor4ub(255, 235, 235, 235);
+					glDrawString(%mzX + floor(($KML::muteW - %mutedTxW) / 2), %ty, "muted");
+				}
+				else
+				{
+					glColor4ub(210, 220, 235, 150);
+					glDrawString(%mzX + floor(($KML::muteW - %muteTxW) / 2), %ty, "mute");
+				}
+			}
+			%iy += %rowH;
+		}
+		glSetFont("Verdana", %fontItem, $GLEX_SMOOTH, 0);
 	}
 	if(%overflow)
 	{

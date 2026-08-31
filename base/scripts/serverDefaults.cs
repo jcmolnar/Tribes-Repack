@@ -49,7 +49,19 @@ $Server::SpoonBots = 0;
 $Server::SpoonBotsNativeNav = 0;
 $Server::TeamDamageScale = 0;
 
-$Server::Info = "Default TRIBES server setup\nAdmin: Unknown\nEmail: Unknown";
+// NATIVE-PORT (MOTD, Joe 2026-08-29): the server description a browser shows. This is the
+// SHIPPING default -- console.cs execs serverDefaults.cs before serverPrefs.cs, so this is what
+// a fresh install advertises until the player edits it, and it is what every mod without its
+// own serverDefaults.cs inherits (MechMayhem and Annihilation both do).
+//
+// It said "Default TRIBES server setup / Admin: Unknown / Email: Unknown" -- stock 1998 text.
+// Separately, every config pack's exported ServerPrefs.cs carried
+// "Running RPG Mod 6.9 - www.tribesrpg.org", one old RPG session fossilised into base,
+// MechMayhem and Annihilation alike (mods sweep their whole $Server::* namespace into
+// ServerPrefs.cs on exit -- see the leak documented at main.cpp:383). Those exports are fixed
+// in the play tree, but they are user state that rewrites on quit, so THIS line is the part
+// that actually ships correct on a fresh install.
+$Server::Info = "Modern Tribes";
 $Server::JoinMOTD = "<jc><f1>Message of the Day:\nWelcome to TRIBES!\n\nFire to spawn.";
 
 $Server::MasterAddressN0 = "kigen.ath.cx:28000 t1m1.tribesmasterserver.com:28000 skbmaster.ath.cx:28000 t1m1.pu.net:28000 t1m1.tribes0.com t1m1.masters.dynamix.com:28000 t1m2.masters.dynamix.com:28000 t1m3.masters.dynamix.com:28000";

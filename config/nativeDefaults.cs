@@ -46,6 +46,69 @@ if($pref::netKeepSaved != 1)
 }
 
 //------------------------------------------------------------------------------
+// 1b. THE OPTIONS VALIDATOR -- the SECOND owner of those same three prefs.
+//
+// Setting the floor above is only half the job: base/scripts/Options.cs defines
+// OptionsNetwork::validate(), which OptionsGui::onOpen runs through OptionsNetwork::init()
+// and onClose again through shutdown(). Its 1998 body clamps packetRate to 30, packetSize
+// to 500, and rewrites any packetFrame below 32 to 96. So merely OPENING Options undid the
+// floor above -- and the next boot put it back. A permanent 16 -> 96 -> 16 fight.
+//
+// MEASURED 2026-08-28: client booted on 60/800/16, opened Options, read 30/500/96.
+//
+// It is redefined HERE, and not in the C++ (configModules.cpp, where it used to live and
+// never once took effect), because a console function is late-bound and console.cs execs in
+// this order:
+//     :264  exec("Options.cs")     <- the 1998 definition
+//     :267  ExecModScripts()       <- each mod ships its own copy; 11 of them in this tree
+//     :291  exec("autoexec.cs")    <- execs THIS file
+// Last definition wins, and this file is last. That also means one definition covers every
+// mod, instead of patching eleven copies of Options.cs.
+//
+// Bounds mirror PacketStream::checkMaxRate (netPacketStream.cpp:344-358) exactly:
+// rate 1..100, size 100..1000, frame 16..128. A value outside the range is CLAMPED to the
+// nearest legal one -- never converted into some unrelated number, which is what the "< 32
+// then 96" line did.
+//------------------------------------------------------------------------------
+function OptionsNetwork::validate()
+{
+   if($pref::AutoRefresh == "") { $pref::AutoRefresh = TRUE; }
+   if($Server::HostPublicGame == "") { $Server::HostPublicGame = FALSE; }
+
+   if($pref::packetRate < 1)    { $pref::packetRate = 10; }
+   if($pref::packetRate > 100)  { $pref::packetRate = 100; }
+   Control::setValue(NetworkPacketRate, $pref::packetRate);
+
+   if($pref::packetSize < 100)  { $pref::packetSize = 200; }
+   if($pref::packetSize > 1000) { $pref::packetSize = 1000; }
+   Control::setValue(NetworkPacketSize, $pref::packetSize);
+
+   if($pref::packetFrame < 16)  { $pref::packetFrame = 16; }
+   if($pref::packetFrame > 128) { $pref::packetFrame = 128; }
+   OptionsNetwork::setPacketFrame();
+}
+
+// The legacy NetworkPacketFrame control is an INVERTED 0..1 fraction. Both halves of the
+// stock mapping hardcode the 32 ms modem bottom, and the get half is therefore a hard FLOOR
+// of 32 -- value 0 yields 32, so the engine's real minimum of 16 was unreachable through
+// that control no matter what validate() did. Re-mapped over 16..128, so 16 sits exactly at
+// value 1.0 (the "fastest" end) and the round trip is lossless.
+//
+// Modern Options does not use this control at all -- it binds pref::packetFrame directly --
+// but $pref::optionsModern = 0 still gets the authored 1998 screen, and it should work.
+function OptionsNetwork::setPacketFrame()
+{
+   %value = 1.0 - (($pref::packetFrame - 16) / (128 - 16));
+   Control::setValue(NetworkPacketFrame, %value);
+}
+
+function NetworkPacketFrame::onAction()
+{
+   %value = 1.0 - Control::getValue(NetworkPacketFrame);
+   $pref::packetFrame = 16 + (%value * (128 - 16));
+}
+
+//------------------------------------------------------------------------------
 // HOVER HELP (2026-08-14): pop-up descriptions on menu buttons and options rows.
 // Default ON. $pref::uiHoverHelp is the numeric toggle the modern Options
 // Interface tab binds to (FGHelpCtrl honours it alongside the legacy string
@@ -332,3 +395,712 @@ if($pref::gpuLmapBake == "") { $pref::gpuLmapBake = 0; }
 editActionMap("pdaMap.sae");
 bindDefault(keyboard0, make, "z", TO, IDACTION_ZOOM_MODE_ON);
 bindDefault(keyboard0, break, "z", TO, IDACTION_ZOOM_MODE_OFF);
+
+//====================================================================================
+// KEYMAP SAVER (2026-08-28). ONE definition of "write the keymap", called by the two
+// exit paths (base\scripts\GUI.CS, config\Presto\events.cs -- the latter overrides the
+// former by namespace collision) and by the native save-on-edit flush.
+//
+// It exists because those two sites had drifted: GUI.CS branched on $crurpg_config,
+// events.cs on String::findSubStr($modList, "crurpg"), and the two can disagree. The
+// Crucible RPG branch is gone entirely as of today (see console.cs), so there is now
+// exactly one destination and no test to get wrong.
+//
+// $Repack::keymapSaver is the readiness flag the native flush checks before evaluating
+// this -- a boot-time flush must not call a function that has not been defined yet.
+//====================================================================================
+function Repack::saveKeymap()
+{
+	saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
+}
+$Repack::keymapSaver = 1;
+
+//====================================================================================
+// CASTER TOOLS (2026-08-28) -- client-side console wrappers for the shoutcaster
+// observer cameras (base\scripts\caster.cs on the server). Thin by design: the
+// SERVER enforces the role gate (isAdmin, or isCaster granted by an admin) and
+// validates every argument, so these are just typing convenience for casters and
+// something to bind keys to. No default keybinds on purpose (config.cs is user
+// state; see the keybind-clobber history).
+//
+//   CasterFollow(0);    360 orbit cam glued to team 0's flag -- tracks the carrier
+//                       while carried, the flag itself at base / dropped
+//   CasterFlagCam(1);   360 orbit cam around team 1's flag stand
+//   CasterDist(20);     orbit distance in meters (server clamps to 3..30)
+//   CasterStop();       detach
+//   CasterGrant(id,1);  admin only: grant (1) / revoke (0) caster tools
+//====================================================================================
+function CasterFollow(%team)
+{
+	remoteEval(2048, "CasterFollow", %team);
+}
+function CasterFlagCam(%team)
+{
+	remoteEval(2048, "CasterFlagCam", %team);
+}
+function CasterDist(%meters)
+{
+	remoteEval(2048, "CasterDist", %meters);
+}
+function CasterStop()
+{
+	remoteEval(2048, "CasterStop");
+}
+function CasterGrant(%clientId, %on)
+{
+	remoteEval(2048, "CasterGrant", %clientId, %on);
+}
+function CasterHelp()
+{
+	remoteEval(2048, "CasterHelp");
+}
+
+//====================================================================================
+// AUTO-RECORD + MOMENT INDEX (2026-08-28) -- client side of caster stage 2.
+//
+// $pref::casterAutoRecord = 1 records EVERY match to recordings\auto-<datetime>.rec
+// and writes a sidecar index (recordings\auto-<datetime>.rec.events.cs) of the
+// moments the server attributes to you (MA, CK, GRAB, CAP, RETURN). Default OFF --
+// recording every match costs disk and is a player choice. Turn on from the console:
+//   $pref::casterAutoRecord = 1;   (takes effect from the NEXT connect)
+//
+// HOW THE NAME HANDOFF WORKS (order is the whole trick): the engine reads
+// $recorderFileName ONCE, at connect (netCSDelegate.cpp:339). So boot arms name #1;
+// when the server's caster.cs says hello (remoteCasterHello, shortly after connect)
+// we remember name #1 as THIS match's recording and immediately arm name #2 for the
+// next connect. No disconnect detection needed. On servers without caster.cs there
+// is no hello, so a second connect that session reuses (overwrites) the same file --
+// documented v1 caveat, updated servers do not have it.
+//
+// The index is rewritten whole on every moment (crash-safe, no append machinery) and
+// is exec()-able: $CasterRec::count, $CasterRec::rec, $CasterRec::moment[i] =
+// "type | detail | seconds-into-match | wall clock". seconds-into-match is
+// getSimTime() minus the hello stamp -- close enough to seek a playback.
+//
+// Manual recordings: leave the pref OFF and nothing here ever touches
+// $recorderFileName.
+//====================================================================================
+if($pref::casterAutoRecord == "")
+	$pref::casterAutoRecord = 0;
+
+function Caster::nextRecName()
+{
+	%ts = timestamp();
+	%name = "recordings\\auto-" @ String::getSubStr(%ts, 0, 10) @ "-" @ String::getSubStr(%ts, 11, 2) @ String::getSubStr(%ts, 14, 2) @ String::getSubStr(%ts, 17, 2) @ ".rec";
+	$recorderFileName = %name;
+	$Caster::pendingRec = %name;
+}
+
+if($pref::casterAutoRecord == 1)
+	Caster::nextRecName();
+
+function remoteCasterHello(%server)
+{
+	if($pref::casterAutoRecord != 1)
+		return;
+	$Caster::curRec = $Caster::pendingRec;
+	$Caster::momentCount = 0;
+	$Caster::connectSim = getSimTime();
+	Caster::nextRecName();
+	echo("[CASTER] auto-record: this match -> " @ $Caster::curRec);
+}
+
+function remoteCasterMoment(%server, %type, %detail, %mission)
+{
+	if($pref::casterAutoRecord != 1)
+		return;
+	if($Caster::curRec == "")
+		return;
+	%i = $Caster::momentCount;
+	$Caster::momentCount = %i + 1;
+	$CasterRec::count = $Caster::momentCount;
+	$CasterRec::rec = $Caster::curRec;
+	$CasterRec::mission = %mission;
+	$CasterRec::moment[%i] = %type @ " | " @ %detail @ " | " @ floor(getSimTime() - $Caster::connectSim) @ "s | " @ timestamp();
+	export("CasterRec::*", $Caster::curRec @ ".events.cs", False);
+	echo("[CASTER] moment " @ %type @ " -> " @ $Caster::curRec @ ".events.cs");
+}
+
+//====================================================================================
+// DEMO FREE-CAM + SEEK (2026-08-29) -- client side of caster stage 4.
+//
+// While a recording (.rec) plays back, the engine can swap the recorded first-person
+// view for a film camera orbiting the recorded player's eye point. $pref::demoFreeCam
+// gates it (default OFF = stock playback); $DemoCam::yaw/pitch (degrees, world
+// absolute) and $DemoCam::dist (meters, 1..200) aim it, re-read every frame by the
+// engine (simGuiTSCtrl.cpp). getDemoTime() / demoSeek(seconds) are engine commands
+// (netPlugin.cpp). Seek is FORWARD-only -- a .rec is a sequential packet log -- and
+// replays every skipped event instantly, so expect a short burst of sounds/effects
+// on a long jump. To go BACK, restart the demo and seek forward.
+//
+// CONTROLS: the numpad, through the same sendControl relay the live caster cameras
+// use. During playback that relay has no server to talk to, so this copy of
+// sendControl (nativeDefaults runs via autoexec.cs AFTER client.cs:809 exec'd
+// repack.cs, so it wins at boot) grows a playback-only branch; outside playback it
+// falls through to the stock repack body verbatim. Mods that redefine sendControl at
+// connect time (RPG remote.cs) still win live play; if you play a modded server and
+// THEN watch a demo in the same session, the mod's copy may eat the numpad -- restart
+// the game before filming. The .rec.events.cs sidecar index (auto-record, above)
+// gives the timestamps worth seeking to.
+//
+//   numpad1     free-cam ON/OFF          numpad0    free-cam OFF
+//   numpad4/6   orbit left/right (yaw)   numpad8/2  camera up/down (pitch)
+//   numpad+/-   distance +/- 5 m
+//   numpad9     seek +10 s               numpad3    seek +60 s
+//   numpad7     telestrator (draw on screen; see the TELESTRATOR section below)
+//   numpad*     help, on screen
+//
+// Steps are tunable: $DemoCam::yawStep/pitchStep/distStep/seekShort/seekLong.
+//====================================================================================
+if($DemoCam::yaw == "") $DemoCam::yaw = 0;
+if($DemoCam::pitch == "") $DemoCam::pitch = 20;
+if($DemoCam::dist == "") $DemoCam::dist = 12;
+if($DemoCam::yawStep == "") $DemoCam::yawStep = 15;
+if($DemoCam::pitchStep == "") $DemoCam::pitchStep = 10;
+if($DemoCam::distStep == "") $DemoCam::distStep = 5;
+if($DemoCam::seekShort == "") $DemoCam::seekShort = 10;
+if($DemoCam::seekLong == "") $DemoCam::seekLong = 60;
+
+function DemoCam::print(%msg)
+{
+	$centerPrintId++;
+	schedule("clearCenterPrint(" @ $centerPrintId @ ");", 3);
+	Client::centerPrint(%msg, 1);
+}
+
+function DemoCam::status()
+{
+	if($pref::demoFreeCam == 1)
+		%s = "ON";
+	else
+		%s = "off";
+	DemoCam::print("FreeCam " @ %s @ "   yaw " @ $DemoCam::yaw @ "   pitch " @ $DemoCam::pitch @ "   dist " @ $DemoCam::dist @ "m   t=" @ getDemoTime() @ "s");
+}
+
+function DemoCam::key(%key)
+{
+	if(String::ICompare(%key, "numpad1") == 0)
+	{
+		if($pref::demoFreeCam == 1)
+			$pref::demoFreeCam = 0;
+		else
+			$pref::demoFreeCam = 1;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad0") == 0)
+	{
+		$pref::demoFreeCam = 0;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad4") == 0)
+	{
+		%y = $DemoCam::yaw - $DemoCam::yawStep;
+		if(%y < 0)
+			%y = %y + 360;
+		$DemoCam::yaw = %y;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad6") == 0)
+	{
+		%y = $DemoCam::yaw + $DemoCam::yawStep;
+		if(%y >= 360)
+			%y = %y - 360;
+		$DemoCam::yaw = %y;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad8") == 0)
+	{
+		%p = $DemoCam::pitch + $DemoCam::pitchStep;
+		if(%p > 85)
+			%p = 85;
+		$DemoCam::pitch = %p;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad2") == 0)
+	{
+		%p = $DemoCam::pitch - $DemoCam::pitchStep;
+		if(%p < -85)
+			%p = -85;
+		$DemoCam::pitch = %p;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad+") == 0)
+	{
+		%d = $DemoCam::dist + $DemoCam::distStep;
+		if(%d > 200)
+			%d = 200;
+		$DemoCam::dist = %d;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad-") == 0)
+	{
+		%d = $DemoCam::dist - $DemoCam::distStep;
+		if(%d < 1)
+			%d = 1;
+		$DemoCam::dist = %d;
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad9") == 0)
+	{
+		demoSeek(getDemoTime() + $DemoCam::seekShort);
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad3") == 0)
+	{
+		demoSeek(getDemoTime() + $DemoCam::seekLong);
+		DemoCam::status();
+		return true;
+	}
+	if(String::ICompare(%key, "numpad*") == 0)
+	{
+		DemoCam::print("DEMO FREE-CAM\nnumpad1 on/off   numpad0 off\nnumpad4/6 orbit   numpad8/2 raise/lower   numpad+/- distance\nnumpad9 seek +10s   numpad3 seek +60s   numpad7 telestrator");
+		return true;
+	}
+	return false;
+}
+
+function sendControl(%val, %mod, %release)
+{
+	// DEMO FREE-CAM branch (caster stage 4): getDemoTime() is -1 unless a .rec is
+	// actually playing, so live play never enters here. Presses only -- releases
+	// fall through like stock (their remoteEval goes nowhere in playback, harmless).
+	if(%release == "" || %release == 0)
+	{
+		// TELESTRATOR (caster stage 5): numpad7 cycles the on-screen marker. Active
+		// during playback always; in LIVE play only when the caster opted in with
+		// $pref::casterDraw = 1 -- an unconditional grab would eat numpad7 from mods
+		// (RPG remote.cs binds numpad keys to real functions).
+		if(String::ICompare(%val, "numpad7") == 0 && (getDemoTime() != -1 || $pref::casterDraw == 1))
+		{
+			Telestrator::cycle();
+			return;
+		}
+		if(getDemoTime() != -1)
+		{
+			if(DemoCam::key(%val))
+				return;
+		}
+	}
+	// Stock repack.cs:63 body, verbatim, so live play is untouched.
+	if(string::getsubstr(%val, 0, 1) == "f"){//repack 36
+		if(urlhud::isenabled()){
+			if(%val == "f1")
+				open(-2);
+			else if(%val == "f2")
+				urlhud::reset();
+			return;
+		}
+	}
+	if(%release)
+		remoteEval(2048,ReleaseKey,%val, %mod);
+	else
+		remoteEval(2048,RawKey,%val, %mod);
+}
+
+//====================================================================================
+// CASTER MODIFIER (2026-08-29) -- reach the numpad caster controls on a keyboard that
+// has no numpad. Joe plays on a tenkeyless: every caster and film-camera control is a
+// numpad key (extra-controls.cs binds numpad0-9 + - * to sendControl), so on a TKL the
+// entire shoutcasting feature set is unreachable and Options offered nothing to rebind.
+//
+// This is ONE assignable hold bind ("Caster Modifier (hold)", fearGuiModernOptions
+// kBinds, ships unbound). While it is held, the TOP-ROW digits emit the SAME
+// sendControl("numpadN") strings the numpad does -- so the server relay
+// (Caster::rawKey), the demo film camera and the telestrator all keep working with no
+// change whatsoever on the receiving end.
+//
+// ★Why an action map and not bindCommand rebinding★: SimActionHandler::push is
+// push_front and input matches from the FRONT, so the LAST map pushed wins every key
+// collision, and any key it does NOT bind still falls through (dlgPlay.cpp:698 documents
+// this -- it was a real bug once). So pushing a map that binds ONLY the digits hijacks
+// exactly those for exactly as long as the key is held, and leaves movement, chat and
+// everything else alone. No saving/restoring of existing binds, nothing to clobber.
+//
+// ★TRAP -- NewActionMap CLEARS an existing map★ (simInputPlugin.cpp:757-772: it finds the
+// resource and calls ->clear() when it already exists). So NEVER call NewActionMap on
+// actionMap.sae or playMap.sae to "restore" the current-map pointer; that would erase
+// every stock binding. It also leaves ITS map as the target of later bindCommand calls,
+// which is why this builds ONCE, lazily, on the first press -- long after the boot chain
+// has finished binding -- instead of at exec time.
+$Caster::modHeld = 0;
+$Caster::modMapBuilt = 0;
+
+function Caster::buildModMap()
+{
+	if($Caster::modMapBuilt == 1)
+		return;
+	$Caster::modMapBuilt = 1;
+	NewActionMap("casterMap.sae");
+	bindCommand(keyboard0, make, "1", TO, "sendControl(\"numpad1\");");
+	bindCommand(keyboard0, make, "2", TO, "sendControl(\"numpad2\");");
+	bindCommand(keyboard0, make, "3", TO, "sendControl(\"numpad3\");");
+	bindCommand(keyboard0, make, "4", TO, "sendControl(\"numpad4\");");
+	bindCommand(keyboard0, make, "5", TO, "sendControl(\"numpad5\");");
+	bindCommand(keyboard0, make, "6", TO, "sendControl(\"numpad6\");");
+	bindCommand(keyboard0, make, "7", TO, "sendControl(\"numpad7\");");
+	bindCommand(keyboard0, make, "8", TO, "sendControl(\"numpad8\");");
+	bindCommand(keyboard0, make, "9", TO, "sendControl(\"numpad9\");");
+	bindCommand(keyboard0, make, "0", TO, "sendControl(\"numpad0\");");
+	bindCommand(keyboard0, make, "=", TO, "sendControl(\"numpad+\");");
+	bindCommand(keyboard0, make, "-", TO, "sendControl(\"numpad-\");");
+	bindCommand(keyboard0, make, "[", TO, "sendControl(\"numpad*\");");
+	echo("[CASTER] modifier map built (top-row digits -> numpad while held)");
+}
+
+function Caster::modOn()
+{
+	if($Caster::modHeld == 1)
+		return;
+	Caster::buildModMap();
+	$Caster::modHeld = 1;
+	pushActionMap("casterMap.sae");
+}
+
+function Caster::modOff()
+{
+	if($Caster::modHeld != 1)
+		return;
+	$Caster::modHeld = 0;
+	popActionMap("casterMap.sae");
+}
+
+// TELESTRATOR (caster stage 5, 2026-08-29) -- draw on the screen while casting.
+//
+// numpad7 cycles three states: OFF -> DRAW (a cursor appears; hold the left mouse
+// button and drag to mark the screen) -> SHOW (the marks stay up, the mouse goes
+// back to the game/camera) -> OFF (marks cleared). Works while watching a recording
+// (numpad7 is always live there) and in live play once the caster sets
+// $pref::casterDraw = 1; (deliberate opt-in: an unconditional numpad7 grab would
+// steal the key from mods that bind it). Drawing is LOCAL -- the caster's screen is
+// the stream, so the audience sees the marks through the cast.
+//
+// Strokes are stored in normalized 0..1 coordinates (resolution independent) and
+// rendered as thick quads from ScriptGL's onPostDraw hook. That hook is owned by
+// config\Presto\KronosShop.cs (LAST definition wins -- see its own comment), which
+// calls Telestrator::render(%dimensions) guarded by isFunction. Tunables:
+// $pref::telestratorWidth (px), $pref::telestratorColor ("r g b" bytes).
+//====================================================================================
+if($pref::telestratorWidth == "") $pref::telestratorWidth = 4;
+// WORLD-ANCHORED MARKS (2026-08-29). 0 = the original behaviour: marks are stored in screen
+// space and sit still while the camera moves -- right for circling something in a freeze
+// frame. 1 = each point is anchored to the WORLD where it was drawn, so a route traced over
+// terrain stays on that terrain as the camera moves, which is what a route callout needs.
+// Costs a projection per point per frame, so if a long stroke ever feels heavy this is the
+// knob to try first.
+if($pref::telestratorWorld == "") $pref::telestratorWorld = 1;
+// ONE-TIME migration, same idiom as the Font Set reset above. cef718d shipped this pref
+// defaulted to 0 because world mode was broken, and the exit export("pref::*") froze that 0
+// into every ClientPrefs.cs that ran it. A saved 0 outlives a default change, so flipping the
+// line above reaches nobody who took that build -- including the machine this was fixed on.
+// Re-seed exactly once; the marker survives the export sweep, so a deliberate 0 set AFTER the
+// migration is never touched again.
+if($pref::telestratorWorldFixV2 == "")
+{
+   $pref::telestratorWorld = 1;
+   $pref::telestratorWorldFixV2 = 1;
+   echo("[TELESTRATOR] one-time world-anchored default restored");
+}
+// A pixel aimed at open sky hits nothing to anchor to. Rather than drop the point and tear a
+// hole in the line, anchor it this far along the ray -- it then floats and drifts with
+// parallax, which is honest for a mark drawn on nothing.
+if($pref::telestratorSkyDist == "") $pref::telestratorSkyDist = 150;
+if($pref::telestratorColor == "") $pref::telestratorColor = "255 40 40";
+$Tele::mode = 0;
+$Tele::strokes = 0;
+$Tele::maxPts = 400;
+$Tele::totalPts = 0;
+
+function Telestrator::clear()
+{
+	$Tele::strokes = 0;
+	$Tele::totalPts = 0;
+	$Tele::penDown = 0;
+}
+
+function Telestrator::cycle()
+{
+	if($Tele::mode == 0)
+	{
+		$Tele::mode = 1;
+		Telestrator::clear();
+		cursorOn(MainWindow);
+		DemoCam::print("TELESTRATOR: draw with the left mouse button. numpad7 = keep marks, again = clear.");
+	}
+	else if($Tele::mode == 1)
+	{
+		$Tele::mode = 2;
+		$Tele::penDown = 0;
+		CursorOff(MainWindow);
+		DemoCam::print("TELESTRATOR: marks pinned. numpad7 clears them.");
+	}
+	else
+	{
+		$Tele::mode = 0;
+		Telestrator::clear();
+		DemoCam::print("TELESTRATOR off.");
+	}
+}
+
+// Called every frame from ScriptGL::playGui::onPostDraw (KronosShop.cs).
+//
+// ★TWO CALLERS, ONE PAINT.★ KronosShop.cs owns onPostDraw, but autoexec.cs only execs
+// it inside `if($Config::Name == "")` (:128-165) -- so under an active 1.4 custom
+// config this entry never fires and the telestrator silently did not render: keys
+// worked, strokes were stored, nothing appeared. The fix is the ModernHUD shoutcaster
+// pack, whose ModernHUDPack::draw is dispatched by FIXED NAME from the engine
+// (ScriptGL_renderHook -> ModernHUD::onDraw) and therefore runs under every config.
+// On a default config BOTH callers exist, and painting translucent strokes twice
+// darkens them, so this entry stands down while that pack owns the draw. The real
+// work lives in Telestrator::paint, which the pack calls directly.
+function Telestrator::render(%dims)
+{
+	if($ModernHUD::LoadComplete == "shoutcaster")
+		return;
+	Telestrator::paint(%dims);
+}
+
+function Telestrator::paint(%dims)
+{
+	if($Tele::mode == 0)
+		return;
+	%w = getWord(%dims, 0);
+	%h = getWord(%dims, 1);
+	if(%w == "" || %w == 0 || %h == "" || %h == 0)
+		return;
+
+	// Capture while drawing: sample the mouse, append points >2px apart.
+	if($Tele::mode == 1)
+	{
+		%mp = glMousePos();
+		%mx = getWord(%mp, 0);
+		%my = getWord(%mp, 1);
+		%lmb = getWord(%mp, 2);
+		if(%lmb == 1 && $Tele::totalPts < $Tele::maxPts)
+		{
+			if($Tele::penDown == 0)
+			{
+				%s = $Tele::strokes;
+				$Tele::strokes = %s + 1;
+				$Tele::pts[%s] = 0;
+				$Tele::penDown = 1;
+			}
+			%s = $Tele::strokes - 1;
+			%n = $Tele::pts[%s];
+			%add = 0;
+			if(%n == 0)
+				%add = 1;
+			else
+			{
+				if($pref::telestratorWorld == 1)
+				{
+					// In world mode the stored point is world XYZ, so the screen-space spacing
+					// test has to project it back first -- comparing a world coord against a
+					// pixel would append a point every single frame.
+					%prev = glWorldToScreen($Tele::px[%s, %n - 1], $Tele::py[%s, %n - 1], $Tele::pz[%s, %n - 1]);
+					if(%prev == "")
+						%add = 1;
+					else
+					{
+						%dx = %mx - getWord(%prev, 0);
+						%dy = %my - getWord(%prev, 1);
+						if(%dx > 2 || %dx < -2 || %dy > 2 || %dy < -2)
+							%add = 1;
+					}
+				}
+				else
+				{
+					%dx = %mx - $Tele::px[%s, %n - 1] * %w;
+					%dy = %my - $Tele::py[%s, %n - 1] * %h;
+					if(%dx > 2 || %dx < -2 || %dy > 2 || %dy < -2)
+						%add = 1;
+				}
+			}
+			if(%add)
+			{
+				if($pref::telestratorWorld == 1)
+				{
+					// Anchor this pixel to the world ONCE, here. glScreenToWorldRay inverts the
+					// same projection the engine draws with; GetLosInfo then finds what the ray
+					// actually hit (mask 3 = terrain + interiors + statics -- the things a route
+					// is drawn ON). $los::position is the hit point.
+					%ray = glScreenToWorldRay(%mx, %my);
+					if(%ray != "")
+					{
+						%ro = getWord(%ray, 0) @ " " @ getWord(%ray, 1) @ " " @ getWord(%ray, 2);
+						%re = getWord(%ray, 3) @ " " @ getWord(%ray, 4) @ " " @ getWord(%ray, 5);
+						if(GetLosInfo(%ro, %re, 3) == "True")
+							%wp = $los::position;
+						else
+						{
+							// Sky: no anchor exists, so place it a fixed distance down the ray.
+							%d = $pref::telestratorSkyDist;
+							%wp = (getWord(%ray,0) + (getWord(%ray,3) - getWord(%ray,0)) * %d / 2000)
+							  @ " " @ (getWord(%ray,1) + (getWord(%ray,4) - getWord(%ray,1)) * %d / 2000)
+							  @ " " @ (getWord(%ray,2) + (getWord(%ray,5) - getWord(%ray,2)) * %d / 2000);
+						}
+						$Tele::px[%s, %n] = getWord(%wp, 0);
+						$Tele::py[%s, %n] = getWord(%wp, 1);
+						$Tele::pz[%s, %n] = getWord(%wp, 2);
+						$Tele::pts[%s] = %n + 1;
+						$Tele::totalPts++;
+					}
+				}
+				else
+				{
+					$Tele::px[%s, %n] = %mx / %w;
+					$Tele::py[%s, %n] = %my / %h;
+					$Tele::pts[%s] = %n + 1;
+					$Tele::totalPts++;
+				}
+			}
+		}
+		else if(%lmb != 1)
+			$Tele::penDown = 0;
+	}
+
+	// Draw all strokes as thick segments.
+	%hw = $pref::telestratorWidth / 2;
+	if(%hw < 1) %hw = 1;
+	glColor(getWord($pref::telestratorColor, 0), getWord($pref::telestratorColor, 1), getWord($pref::telestratorColor, 2), 230);
+	for(%s = 0; %s < $Tele::strokes; %s++)
+	{
+		%n = $Tele::pts[%s];
+		if(%n == 1)
+		{
+			// lone click: a small dot
+			if($pref::telestratorWorld == 1)
+			{
+				%sp = glWorldToScreen($Tele::px[%s, 0], $Tele::py[%s, 0], $Tele::pz[%s, 0]);
+				if(%sp != "")
+				{
+					%x = getWord(%sp, 0);
+					%y = getWord(%sp, 1);
+					glRectangle(%x - %hw, %y - %hw, %hw * 2, %hw * 2);
+				}
+			}
+			else
+			{
+				%x = $Tele::px[%s, 0] * %w;
+				%y = $Tele::py[%s, 0] * %h;
+				glRectangle(%x - %hw, %y - %hw, %hw * 2, %hw * 2);
+			}
+		}
+		// Seed the carried projection for the world-mode loop below.
+		if($pref::telestratorWorld == 1 && %n > 1)
+			%a = glWorldToScreen($Tele::px[%s, 0], $Tele::py[%s, 0], $Tele::pz[%s, 0]);
+		for(%i = 1; %i < %n; %i++)
+		{
+			%skip = 0;
+			if($pref::telestratorWorld == 1)
+			{
+				// Re-project against the LIVE camera. glWorldToScreen returns "" for a point
+				// behind the eye, and a segment with one end behind the camera cannot be drawn
+				// from two screen points -- it would snap across the view. Dropping just that
+				// segment leaves the rest of the stroke intact, which reads as the line running
+				// off the edge rather than as a glitch.
+				//
+				// Only the FAR end is projected here: consecutive segments share a point, so
+				// carrying the previous %b forward halves the projections per frame (400 points
+				// = 400 calls, not 800). %a is seeded before the loop.
+				%b = glWorldToScreen($Tele::px[%s, %i], $Tele::py[%s, %i], $Tele::pz[%s, %i]);
+				if(%a == "" || %b == "")
+					%skip = 1;
+				else
+				{
+					%x1 = getWord(%a, 0);
+					%y1 = getWord(%a, 1);
+					%x2 = getWord(%b, 0);
+					%y2 = getWord(%b, 1);
+				}
+				%a = %b;
+			}
+			else
+			{
+				%x1 = $Tele::px[%s, %i - 1] * %w;
+				%y1 = $Tele::py[%s, %i - 1] * %h;
+				%x2 = $Tele::px[%s, %i] * %w;
+				%y2 = $Tele::py[%s, %i] * %h;
+			}
+			if(%skip == 1)
+				continue;
+			%dx = %x2 - %x1;
+			%dy = %y2 - %y1;
+			%len = Vector::getDistance(%x1 @ " " @ %y1 @ " 0", %x2 @ " " @ %y2 @ " 0");
+			if(%len < 1) %len = 1;
+			%nx = 0 - (%dy / %len) * %hw;
+			%ny = (%dx / %len) * %hw;
+			// Vertex order matters: screen-CCW quads are GL back faces here and get
+			// silently culled (the glAngledPolygon winding trap). This order survives.
+			glAngledPolygon(%x1 - %nx, %y1 - %ny, %x2 - %nx, %y2 - %ny, %x2 + %nx, %y2 + %ny, %x1 + %nx, %y1 + %ny);
+		}
+	}
+}
+
+// PLAYBACK ACROSS MATCH ENDS (caster stage 4). Stock ELM() (client.cs:791) kills
+// demo playback the moment the RECORDED match ends: the recorded EnterLobbyMode
+// replays, sees $playingDemo, and disconnects -- so a recording that spans a match
+// end (auto-record is per-CONNECT, not per-match) could never be watched past match
+// one, and demoSeek targets beyond the boundary silently ended the demo. This copy
+// (loaded after client.cs) keeps rolling while a demo is genuinely playing:
+// getDemoTime() is -1 the instant playback is over, so the stock disconnect branch
+// still runs when the recording itself ends.
+function ELM()
+{
+	if($playingDemo && getDemoTime() != -1)
+		return;
+	if($playingDemo)
+	{
+		setCursor(MainWindow, "Cur_Arrow.bmp");
+		disconnect();
+		startMainMenuScreen();
+		GuiLoadContentCtrl(MainWindow, "gui\\Recordings.gui");
+		return;
+	}
+	$InLobbyMode = true;
+	GuiLoadContentCtrl(MainWindow, "gui\\Lobby.gui");
+	CursorOn(MainWindow);
+}
+
+//------------------------------------------------------------------------------
+// Mech Mayhem turn-rate cap -- CLIENT channel.
+//
+// Player::integrateMoveRotation clamps a herc's yaw to its hercRot() pair. The
+// datablock fields carrying those numbers are UNPACKED (v16 wire compatibility),
+// so a client never gets them with the ghost -- the server pushes them here
+// instead, via MechMayhem::pushTurnCap on every loadout grant.
+//
+// This lives in nativeDefaults rather than in the mechcockpit HUD pack ON PURPOSE.
+// The client MUST clamp with the same numbers as the server: it predicts its own
+// view, and if it did not clamp, the player would aim somewhere the server does not
+// agree with -- an aim desync, not a cosmetic one. Putting the handler in a HUD pack
+// would make correct aim depend on having that pack enabled.
+//
+// Inert everywhere else: a non-mech server never calls it, and the engine treats a
+// zero cap as uncapped.
+// UNTRUSTED INPUT BY CONSTRUCTION: this handler is reachable from every server the
+// player ever joins, so treat the arguments as malformed until proven otherwise. The
+// interesting case is not a hostile server (one already owns your movement authority
+// and can do worse) but a BUGGY or older mech server sending "" or a non-numeric --
+// a bad clamp on the client's own view prediction reads to the player as "my mouse is
+// broken", and nothing in that experience points back at the server.
+//
+// +0 coerces a non-numeric to 0, and the engine reads any cap below 1 deg/s as absent,
+// so every malformed value fails OPEN to the uncapped behaviour that shipped before.
+function remoteMMTurn(%server, %slow, %fast)
+{
+   %slow = %slow + 0;
+   %fast = %fast + 0;
+   if (%slow < 0) %slow = 0;
+   if (%fast < 0) %fast = 0;
+   $MMC::turnSlow = %slow;
+   $MMC::turnFast = %fast;
+}

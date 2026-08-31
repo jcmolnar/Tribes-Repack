@@ -483,10 +483,8 @@ function onExit()
 		}
 	}
 	setRepackJump(False);
-	if(String::findSubStr($modList, "crurpg") != -1)
-		saveActionMap("config\\crurpg_config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
-	else
-		saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
+	// CRUCIBLE RPG REMOVED / SAVER FACTORED 2026-08-28: one saver, nativeDefaults.cs.
+	Repack::saveKeymap();
 
 	$pref::VideoFullScreen = isFullScreenMode(MainWindow);
 	if(!$pref::VideoFullScreen)

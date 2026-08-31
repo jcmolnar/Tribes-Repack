@@ -111,6 +111,9 @@ function MechEject::fire(%mech, %cl, %shooterCl, %type)
       Client::setOwnedObject(%cl, %pilot);
       Client::setControlObject(%cl, %pilot);
       %cl.mmOnFoot = 1;
+      // Out of the hull: drop the herc turn-rate cap or the pilot walks around
+      // turning like a 90-ton Executioner (the engine treats 0 as uncapped).
+      MechMayhem::pushTurnCap(%cl, "");
    }
    MechEject::grantKit(%pilot, %cl, %human);
    Player::applyImpulse(%pilot, "0 0 " @ (9.0 * $MM::EjectVel));

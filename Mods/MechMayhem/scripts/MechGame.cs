@@ -55,15 +55,87 @@ function MechMayhem::pickChassis()
 // tools/mech_weapon_gen.py from the authentic Starsiege hardpoint racks and
 // the full mined arsenal -- one size-matched weapon per hardpoint, rotated
 // across the roster so the whole arsenal appears across the mech pool.
+//--- rack selection ----------------------------------------------------------
+// TribesScript cannot compose a global's NAME at runtime, so the chosen rack is
+// resolved into one active table ($MM::Rack) and grantLoadout only ever reads
+// that. Rebuilds when $MM::Authentic changes, so the flag can be flipped between
+// missions without a host restart.
+//
+//   $MM::Authentic = 1 -> Starsiege's own defaultWeapons(...) rack
+//   $MM::Authentic = 0 -> the rotate-the-arsenal rack the mod shipped before
+//
+// Bots are unaffected by the choice: botbrain.cfg carries the UNION of both racks
+// (its gear lines grant inventory directly), so a bot always owns whatever the
+// active rack hands it.
+function MechMayhem::selectRack(%chassis)
+{
+   %want = $MM::Authentic;
+   if (%want != 1)
+      %want = 0;
+   if ($MM::RackBuilt[%chassis] == 1 && $MM::RackMode[%chassis] == %want)
+      return;
+   if (%want == 1) {
+      %n = $MM::LoadoutCount[%chassis];
+      for (%i = 0; %i < %n; %i++)
+         $MM::Rack[%chassis, %i] = $MM::Loadout[%chassis, %i];
+   }
+   else {
+      %n = $MM::LoadoutRemixCount[%chassis];
+      for (%i = 0; %i < %n; %i++)
+         $MM::Rack[%chassis, %i] = $MM::LoadoutRemix[%chassis, %i];
+   }
+   if (%n == "")
+      %n = 0;
+   $MM::RackCount[%chassis] = %n;
+   $MM::RackBuilt[%chassis] = 1;
+   $MM::RackMode[%chassis] = %want;
+   echo("[MECH] rack: " @ %chassis @ " -> " @ %n @ " weapons (authentic=" @ %want @ ")");
+}
+
+//--- turn-rate cap channel ---------------------------------------------------
+// maxTurnRate/maxTurnRateFast are UNPACKED datablock fields (v16 wire
+// compatibility), so a client never receives them with the ghost. It predicts its
+// own view, though, so it MUST clamp with the same numbers or the server's
+// absolute rot.z correction fights the player's mouse every tick.
+// Player::integrateMoveRotation reads $MMC::turnSlow / $MMC::turnFast on the
+// client; this is what puts them there, straight off the same datablock the
+// server clamps with.
+//
+// Pass "" as the chassis to CLEAR the cap -- an ejected pilot is on foot and must
+// turn like a trooper again.
+function MechMayhem::pushTurnCap(%cl, %chassis)
+{
+   if (%cl <= 0)
+      return;
+   %slow = 0;
+   %fast = 0;
+   if (%chassis != "") {
+      %slow = %chassis.maxTurnRate;
+      %fast = %chassis.maxTurnRateFast;
+      if (%slow == "") %slow = 0;
+      if (%fast == "") %fast = 0;
+   }
+   remoteEval(%cl, "MMTurn", %slow, %fast);
+}
+
 function MechMayhem::grantLoadout(%pl, %clientId, %chassis)
 {
-   %n = $MM::LoadoutCount[%chassis];
+   MechMayhem::selectRack(%chassis);
+   %n = $MM::RackCount[%chassis];
    %first = "";
    if (%n != "" && %n > 0) {
       for (%i = 0; %i < %n; %i++) {
-         %w = $MM::Loadout[%chassis, %i];
+         %w = $MM::Rack[%chassis, %i];
          if (%w != "") {
             Player::setItemCount(%clientId, %w, 1);
+            // Authentic feed: hand out the magazine too. $MM::AmmoShots is only
+            // populated for weapons Starsiege runs off ammo, so an empty lookup IS
+            // the test for reactor-fed -- those keep draining the pool as before.
+            if ($MM::Authentic == 1) {
+               %shots = $MM::AmmoShots[%w];
+               if (%shots != "")
+                  Player::setItemCount(%clientId, %w @ "Ammo", %shots);
+            }
             if (%first == "") %first = %w;
          }
       }
@@ -79,7 +151,7 @@ function MechMayhem::grantLoadout(%pl, %clientId, %chassis)
    %slot = 3;
    if (%n != "" && %n > 0) {
       for (%i = 0; %i < %n && %slot <= 7; %i++) {
-         %w = $MM::Loadout[%chassis, %i];
+         %w = $MM::Rack[%chassis, %i];
          if (%w != "" && %w != %first) {
             Player::mountItem(%clientId, %w, %slot);
             %slot++;
@@ -91,13 +163,14 @@ function MechMayhem::grantLoadout(%pl, %clientId, %chassis)
    // the conscription sweep passes the player OBJECT for bots)
    %realCl = Player::getClient(%pl);
    if (%realCl > 0) {
+      MechMayhem::pushTurnCap(%realCl, %chassis);
       remoteEval(%realCl, "MMRack", %n,
-                 $MM::WeapName[$MM::Loadout[%chassis, 0]],
-                 $MM::WeapName[$MM::Loadout[%chassis, 1]],
-                 $MM::WeapName[$MM::Loadout[%chassis, 2]],
-                 $MM::WeapName[$MM::Loadout[%chassis, 3]],
-                 $MM::WeapName[$MM::Loadout[%chassis, 4]],
-                 $MM::WeapName[$MM::Loadout[%chassis, 5]]);
+                 $MM::WeapName[$MM::Rack[%chassis, 0]],
+                 $MM::WeapName[$MM::Rack[%chassis, 1]],
+                 $MM::WeapName[$MM::Rack[%chassis, 2]],
+                 $MM::WeapName[$MM::Rack[%chassis, 3]],
+                 $MM::WeapName[$MM::Rack[%chassis, 4]],
+                 $MM::WeapName[$MM::Rack[%chassis, 5]]);
    }
 }
 

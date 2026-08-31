@@ -327,6 +327,21 @@ function CmdHUD::GuiOpen(%gui) {
 	if (%gui == playGui && ($CmdHUD::guiMode == 2 || $CmdHUD::guiMode == 4 || $CmdHUD::guiMode == 5))
 		CmdHUD::SetGui(1);
 
+	// NATIVE FIX 2026-08-28 (beta report): the CommandPanelToggle button in command.gui
+	// runs a one-way "$CmdHUD::State = CmdHUD::Cursor(false);" -- it hides the
+	// CommandPanel and drops to free-look, and the only way back is the Enter bind in
+	// pdaMap.sae (which nobody can discover). Re-opening the command screen with "c"
+	// (the stock ToggleCommandMode path, which never runs CmdHUD::turnOn) then came up
+	// as a bare map with no panel. When the screen opens WITHOUT turnOn having set
+	// guiMode=2 first, restore the stock full-UI state: cursor on, panel visible.
+	// CmdHUD::Cursor(true) alone skips the panel on BigMap+TeeniCam, so set it
+	// explicitly too. The turnOn ('['/']') free-look paths set guiMode=2 before the
+	// server round-trip, so they skip this and keep their chosen mode.
+	if ($CmdHUD::guiOpen == 2 && $CmdHUD::guiMode != 2) {
+		$CmdHUD::State = CmdHUD::Cursor(true);
+		Control::SetVisible("CommandPanel", true);
+		}
+
 	// NATIVE-PORT (beta, verified manually): full-screen command map on every
 	// command-screen open -- sizes the map frames to the live screen and re-fits
 	// the map natively (cmdMapResync; no world rebuild). $pref::cmdMapFull = 0

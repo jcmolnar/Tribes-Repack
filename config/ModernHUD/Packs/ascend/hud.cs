@@ -1162,6 +1162,9 @@ function Ascend::apply()
       $Ascend::Sav::ChatX        = $pref::ChatDisplayX;
       $Ascend::Sav::ChatY        = $pref::ChatDisplayY;
       $Ascend::Sav::ChatWidth    = $pref::ChatDisplayWidth;
+
+      $Ascend::Sav::ChatInModY   = $pref::ChatInputModMethodY;
+      $Ascend::Sav::ChatInY      = $pref::ChatInputY;
    }
 
    // -- the engine-wide colour theme -----------------------------------------
@@ -1208,6 +1211,22 @@ function Ascend::apply()
    // parked in the sky with nothing in it -- the box draws its bed whether or
    // not there is chat. The hider is what makes it appear only when someone
    // speaks, which is also what the reference HUD does.
+   // -- lift the TALK BOX clear of the weapon tray ---------------------------
+   // The chat log above and the chat INPUT are different controls, and only the
+   // log was moved. Stock places the input centred at
+   //    y = parent->extent.y - 40 - lineCount * msgFont->getHeight()
+   // (FearGuiChat.cpp:265-266), so it occupies roughly 35..56 px above the
+   // bottom. This pack's weapon tray is part(..., "bottom-center", 0, 18, 576,
+   // 78, ...) -- the band 18..96 px above the bottom. The input sits entirely
+   // inside the tray, and the tray draws over it: typing was invisible.
+   //
+   // ModMethodY 1 is "stock MINUS Y" (y -= ChatInputY, FearGuiChat.cpp:268), not
+   // an absolute -- so this stays correct at every resolution, where an absolute
+   // y would drift. 72 puts the input's bottom edge ~112 px above the screen
+   // bottom, clearing the tray's 96 px top with a 16 px gap.
+   $pref::ChatInputModMethodY = "1";
+   $pref::ChatInputY          = "72";
+
    $xChat::HiderEnabled  = "True";
    $xChat::HiderTimeout  = "12";
    $xChat::ScrollTimeout = "5";
@@ -1267,6 +1286,9 @@ function Ascend::restore()
    $pref::ChatDisplayX          = $Ascend::Sav::ChatX;
    $pref::ChatDisplayY          = $Ascend::Sav::ChatY;
    $pref::ChatDisplayWidth      = $Ascend::Sav::ChatWidth;
+
+   $pref::ChatInputModMethodY   = $Ascend::Sav::ChatInModY;
+   $pref::ChatInputY            = $Ascend::Sav::ChatInY;
 
    deleteVariables("$Ascend::Sav::*");
    $Ascend::Saved = "";

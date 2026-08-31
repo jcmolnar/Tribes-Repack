@@ -37,7 +37,23 @@ ExplosionData StormFlash
    // lightRange 1200 lit the whole map. enex is the stock energy-weapon burst
    // (blue-white sparks -- the most lightning-like 1998 asset), range 350 lights
    // the strike area only.
-   shapeName  = "stormbolt.glb";   // A/B: audible explosion + bolt mesh in ONE object
+   //
+   // STOCK-CLIENT COMPAT (2026-08-28): this datablock is ghosted to EVERY
+   // client -- server.cs exec's weather.cs unconditionally -- and a stock
+   // 1.11/1.40 client can neither find nor parse a .glb, so shapeName
+   // "stormbolt.glb" here bounced every stock client off every 1.50 server
+   // at connect ("Unable to load ExplosionData shape"). Live-repro'd by Joe
+   // 2026-08-28.
+   //
+   // The CASING below is a wire marker -- do not "fix" it. Every Tribes
+   // engine resolves resource names case-insensitively, so a stock client
+   // loads the stock enex.dts energy burst (the most lightning-like 1998
+   // asset); a 1.50 client recognizes the exact string "enEX.dts"
+   // (explosion.cpp stormBoltShapeSwap) and renders stormbolt.glb, the
+   // 150-unit crossed-ribbon bolt, instead. Lowercasing it turns the bolt
+   // back into the small burst for everyone; naming a .glb here bounces
+   // stock clients again.
+   shapeName  = "enEX.dts";
    soundId    = StormThunder;
    faceCamera = true;
    randomSpin = false;
@@ -57,9 +73,9 @@ ExplosionData StormFlash
 // instant. No soundId -- one thunder per strike, not four.
 ExplosionData StormFlashAir
 {
-   // stormbolt.glb: generated 150-unit crossed-ribbon bolt (tools; the stock
-   // zap.dts bolt is Starsiege prop scale -- a couple of units -- Joe: "tiny").
-   shapeName  = "stormbolt.glb";
+   // Same wire marker as StormFlash above: stock clients load enex.dts,
+   // 1.50 clients swap in stormbolt.glb client-side. Do not lowercase.
+   shapeName  = "enEX.dts";
    faceCamera = false;
    randomSpin = false;
    hasLight   = false;

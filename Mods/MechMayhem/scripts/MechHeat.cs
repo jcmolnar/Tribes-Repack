@@ -16,6 +16,8 @@ $MM::HeatTickSecs = 0.4;      // fast poll: engine recharge (~12/s) refills a
 $MM::ShutdownSecs = 6.0;      // transient zero before a slow tick can see it
 $MM::ShutdownAt = 6;          // pool floor that trips the overheat
 $MM::RestartEnergyPct = 0.30;
+$MM::LowPowerPct = 0.15;      // authentic mode: below this fraction of the
+                              // reactor pool, shield regen stops (no statue)
 
 function MechHeat::isMech(%data)
 {
@@ -65,6 +67,34 @@ function MechHeat::visit(%obj)
       if (%e < 0) %e = 0;
       if (%e > %base.maxEnergy) %e = %base.maxEnergy;
       GameBase::setEnergy(%obj, %e);
+   }
+
+   // LOW POWER vs SHUTDOWN ($MM::Authentic).
+   //
+   // Authentic: a Starsiege herc running low on reactor power does not become a
+   // statue -- it keeps walking and shooting, but shield regeneration stops. That
+   // is punishing without removing the player from the fight, and it is what the
+   // other games in the family actually do. No armor swap, no six-second freeze.
+   //
+   // Remix (0): the original overheat -> <Chassis>Down statue, kept intact so the
+   // twins stay meaningful and the old feel is still reachable.
+   %base = MechHeat::baseChassis(%data);
+   if ($MM::Authentic == 1) {
+      %floor = %base.maxEnergy * $MM::LowPowerPct;
+      if (GameBase::getEnergy(%obj) > %floor) {
+         MechShield::regen(%obj);
+         %obj.mmLowPower = 0;
+      }
+      else {
+         // one line per entry into brownout, not one per 0.4 s tick
+         if (%obj.mmLowPower != 1) {
+            %obj.mmLowPower = 1;
+            %cl = Player::getClient(%obj);
+            if (%cl > 0)
+               Client::sendMessage(%cl, 1, "REACTOR LOW -- shield regeneration offline");
+         }
+      }
+      return;
    }
 
    MechShield::regen(%obj);

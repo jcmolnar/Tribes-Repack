@@ -223,10 +223,8 @@ function onExit()
 		storeObject(playGui, "config\\play.gui");
 	}
 	setRepackJump(False, True);
-	if($crurpg_config)
-		saveActionMap("config\\crurpg_config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
-	else
-		saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
+	// CRUCIBLE RPG REMOVED / SAVER FACTORED 2026-08-28: one saver, nativeDefaults.cs.
+	Repack::saveKeymap();
 
 	//update the video mode - since it can be changed with alt-enter
 	$pref::VideoFullScreen = isFullScreenMode(MainWindow);

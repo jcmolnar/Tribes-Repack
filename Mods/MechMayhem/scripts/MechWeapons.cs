@@ -330,6 +330,12 @@ SoundData MechSfx_FIRE
    profile = Profile3dMediumLoop;
 };
 
+SoundData MechSfx_BEEP
+{
+   wavFileName = "bptslct.wav";
+   profile = Profile2d;
+};
+
 ExplosionData MechImpSm
 {
    shapeName = "fx_imp_sm.dts";
@@ -778,7 +784,7 @@ LaserData MechLaserShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.3, 0.3 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 LaserData MechHeavyLaserShot
@@ -791,7 +797,7 @@ LaserData MechHeavyLaserShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.3, 0.3 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 LaserData MechCompressionLaserShot
@@ -804,7 +810,7 @@ LaserData MechCompressionLaserShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.3, 0.3 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 LaserData MechTwinLaserShot
@@ -817,7 +823,7 @@ LaserData MechTwinLaserShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.3, 0.3 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechElectroMagneticPulseCannonShot
@@ -848,7 +854,7 @@ LaserData MechElectronFluxWhipShot
    lightRange        = 3.0;
    lightColor        = { 0.7, 0.3, 1.0 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechBlasterShot
@@ -897,7 +903,7 @@ LaserData MechParticleBeamWeaponShot
    lightRange        = 3.0;
    lightColor        = { 0.25, 0.9, 1.0 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 LaserData MechPlasmaShot
@@ -910,7 +916,7 @@ LaserData MechPlasmaShot
    lightRange        = 3.0;
    lightColor        = { 0.7, 0.3, 1.0 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechBlinkGunShot
@@ -940,7 +946,7 @@ LaserData MechQuantumGunShot
    lightRange        = 3.0;
    lightColor        = { 0.25, 0.9, 1.0 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechMagnetoFusionAssaultCannonShot
@@ -989,7 +995,7 @@ LaserData MechNanniteCannonShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.4, 0.4 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechAutocannonShot
@@ -1162,7 +1168,6 @@ SeekingMissileData MechPitViperMissilePack8Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechPitViperMissilePack12Shot
@@ -1186,7 +1191,6 @@ SeekingMissileData MechPitViperMissilePack12Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechSparrowMissilePack6Shot
@@ -1210,7 +1214,6 @@ SeekingMissileData MechSparrowMissilePack6Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechSparrowMissilePack10Shot
@@ -1234,7 +1237,6 @@ SeekingMissileData MechSparrowMissilePack10Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechSwarmMisslePack6Shot
@@ -1258,7 +1260,6 @@ SeekingMissileData MechSwarmMisslePack6Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechMinionMisslePack10Shot
@@ -1282,7 +1283,6 @@ SeekingMissileData MechMinionMisslePack10Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechShrikeMisslePack8Shot
@@ -1306,7 +1306,6 @@ SeekingMissileData MechShrikeMisslePack8Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 SeekingMissileData MechAphidAaMissileSystemPack10Shot
@@ -1330,7 +1329,6 @@ SeekingMissileData MechAphidAaMissileSystemPack10Shot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 GrenadeData MechArachnitron4PackShot
@@ -1504,7 +1502,6 @@ SeekingMissileData MechArtilleryMissleLauncherShot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 LaserData MechRadiationGunShot
@@ -1517,7 +1514,7 @@ LaserData MechRadiationGunShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.4, 0.4 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechDisrupterShot
@@ -1547,7 +1544,7 @@ LaserData MechSeismicProbeShot
    lightRange        = 3.0;
    lightColor        = { 1.0, 0.4, 0.4 };
    detachFromShooter = true;
-   hitSoundId        = SoundLaserHit;
+   hitSoundId        = MechSfx_HITVEHICLE;
 };
 
 BulletData MechArtilleryBatteryShot
@@ -1589,7 +1586,6 @@ SeekingMissileData MechScattergunShot
    lightRange       = 4.0;
    lightColor       = { 1.0, 0.75, 0.2 };
    inheritedVelocityScale = 0.5;
-   soundId = SoundJetHeavy;
 };
 
 //--- weapon images + items --------------------------------------------------
@@ -1608,7 +1604,7 @@ ItemImageData MechLaserImage
    accuFire   = true;
    sfxFire    = MechSfx_LAS;
    muzzleFlash = MechMz_mz_las;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechLaser
@@ -1638,7 +1634,7 @@ ItemImageData MechHeavyLaserImage
    accuFire   = true;
    sfxFire    = MechSfx_HLAS;
    muzzleFlash = MechMz_mz_las;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechHeavyLaser
@@ -1668,7 +1664,7 @@ ItemImageData MechCompressionLaserImage
    accuFire   = true;
    sfxFire    = MechSfx_CLAS;
    muzzleFlash = MechMz_mz_clas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechCompressionLaser
@@ -1698,7 +1694,7 @@ ItemImageData MechTwinLaserImage
    accuFire   = true;
    sfxFire    = MechSfx_TLAS;
    muzzleFlash = MechMz_mz_tlas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechTwinLaser
@@ -1728,7 +1724,7 @@ ItemImageData MechElectroMagneticPulseCannonImage
    accuFire   = true;
    sfxFire    = MechSfx_EMP;
    muzzleFlash = MechMz_mz_emp;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechElectroMagneticPulseCannon
@@ -1758,7 +1754,7 @@ ItemImageData MechElectronFluxWhipImage
    accuFire   = true;
    sfxFire    = MechSfx_ELF;
    muzzleFlash = MechMz_mz_elf;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechElectronFluxWhip
@@ -1788,7 +1784,7 @@ ItemImageData MechBlasterImage
    accuFire   = true;
    sfxFire    = MechSfx_BLAS;
    muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechBlaster
@@ -1818,7 +1814,7 @@ ItemImageData MechHeavyBlasterImage
    accuFire   = true;
    sfxFire    = MechSfx_HBLA;
    muzzleFlash = MechMz_mz_hbla;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechHeavyBlaster
@@ -1848,7 +1844,7 @@ ItemImageData MechParticleBeamWeaponImage
    accuFire   = true;
    sfxFire    = MechSfx_PBW;
    muzzleFlash = MechMz_mz_pbw;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechParticleBeamWeapon
@@ -1878,7 +1874,7 @@ ItemImageData MechPlasmaImage
    accuFire   = true;
    sfxFire    = MechSfx_PLAS;
    muzzleFlash = MechMz_mz_plas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechPlasma
@@ -1908,7 +1904,7 @@ ItemImageData MechBlinkGunImage
    accuFire   = true;
    sfxFire    = MechSfx_BLNK;
    muzzleFlash = MechMz_mz_blnk;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechBlinkGun
@@ -1938,7 +1934,7 @@ ItemImageData MechQuantumGunImage
    accuFire   = true;
    sfxFire    = MechSfx_QGUN;
    muzzleFlash = MechMz_mz_las;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechQuantumGun
@@ -1968,7 +1964,7 @@ ItemImageData MechMagnetoFusionAssaultCannonImage
    accuFire   = true;
    sfxFire    = MechSfx_MFAC;
    muzzleFlash = MechMz_mz_mfac;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechMagnetoFusionAssaultCannon
@@ -1998,7 +1994,7 @@ ItemImageData MechNannoInfuserImage
    accuFire   = true;
    sfxFire    = MechSfx_NANO;
    muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechNannoInfuser
@@ -2028,7 +2024,7 @@ ItemImageData MechNanniteCannonImage
    accuFire   = true;
    sfxFire    = MechSfx_NCAN;
    muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechNanniteCannon
@@ -2058,7 +2054,7 @@ ItemImageData MechAutocannonImage
    accuFire   = true;
    sfxFire    = MechSfx_ATC;
    muzzleFlash = MechMz_mz_atc;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechAutocannon
@@ -2088,7 +2084,7 @@ ItemImageData MechHeavyAutocannonImage
    accuFire   = true;
    sfxFire    = MechSfx_HATC;
    muzzleFlash = MechMz_mz_hatc;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechHeavyAutocannon
@@ -2118,7 +2114,7 @@ ItemImageData MechElectroMagAutocannonImage
    accuFire   = true;
    sfxFire    = MechSfx_EMC;
    muzzleFlash = MechMz_mz_plas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechElectroMagAutocannon
@@ -2148,7 +2144,7 @@ ItemImageData MechBlastCannonImage
    accuFire   = true;
    sfxFire    = MechSfx_BC;
    muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechBlastCannon
@@ -2178,7 +2174,7 @@ ItemImageData MechHeavyBlastCannonImage
    accuFire   = true;
    sfxFire    = MechSfx_HBC;
    muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechHeavyBlastCannon
@@ -2208,7 +2204,7 @@ ItemImageData MechRailGunImage
    accuFire   = true;
    sfxFire    = MechSfx_RAIL;
    muzzleFlash = MechMz_mz_plas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechRailGun
@@ -2237,7 +2233,7 @@ ItemImageData MechLaserGuidedBombImage
    projectileType = MechLaserGuidedBombShot;
    accuFire   = true;
    sfxFire    = MechSfx_LGB;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechLaserGuidedBomb
@@ -2266,7 +2262,7 @@ ItemImageData MechHadesImage
    projectileType = MechHadesShot;
    accuFire   = true;
    sfxFire    = MechSfx_HAD;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechHades
@@ -2296,7 +2292,7 @@ ItemImageData MechPitViperMissilePack8Image
    accuFire   = true;
    sfxFire    = MechSfx_VIP8;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechPitViperMissilePack8
@@ -2326,7 +2322,7 @@ ItemImageData MechPitViperMissilePack12Image
    accuFire   = true;
    sfxFire    = MechSfx_VIP12;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechPitViperMissilePack12
@@ -2356,7 +2352,7 @@ ItemImageData MechSparrowMissilePack6Image
    accuFire   = true;
    sfxFire    = MechSfx_SPR6;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechSparrowMissilePack6
@@ -2386,7 +2382,7 @@ ItemImageData MechSparrowMissilePack10Image
    accuFire   = true;
    sfxFire    = MechSfx_SPR10;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechSparrowMissilePack10
@@ -2416,7 +2412,7 @@ ItemImageData MechSwarmMisslePack6Image
    accuFire   = true;
    sfxFire    = MechSfx_SWRM;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechSwarmMisslePack6
@@ -2446,7 +2442,7 @@ ItemImageData MechMinionMisslePack10Image
    accuFire   = true;
    sfxFire    = MechSfx_MIN;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechMinionMisslePack10
@@ -2476,7 +2472,7 @@ ItemImageData MechShrikeMisslePack8Image
    accuFire   = true;
    sfxFire    = MechSfx_SHRK;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechShrikeMisslePack8
@@ -2506,7 +2502,7 @@ ItemImageData MechAphidAaMissileSystemPack10Image
    accuFire   = true;
    sfxFire    = MechSfx_APH;
    muzzleFlash = MechMz_mz_smok;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechAphidAaMissileSystemPack10
@@ -2535,7 +2531,7 @@ ItemImageData MechArachnitron4PackImage
    projectileType = MechArachnitron4PackShot;
    accuFire   = true;
    sfxFire    = MechSfx_ARA4;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechArachnitron4Pack
@@ -2564,7 +2560,7 @@ ItemImageData MechArachnitron8PackImage
    projectileType = MechArachnitron8PackShot;
    accuFire   = true;
    sfxFire    = MechSfx_ARA8;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechArachnitron8Pack
@@ -2593,7 +2589,7 @@ ItemImageData MechArachnitron12PackImage
    projectileType = MechArachnitron12PackShot;
    accuFire   = true;
    sfxFire    = MechSfx_ARA12;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechArachnitron12Pack
@@ -2622,7 +2618,7 @@ ItemImageData MechProximity6PackImage
    projectileType = MechProximity6PackShot;
    accuFire   = true;
    sfxFire    = MechSfx_PRX6;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechProximity6Pack
@@ -2651,7 +2647,7 @@ ItemImageData MechProximity10PackImage
    projectileType = MechProximity10PackShot;
    accuFire   = true;
    sfxFire    = MechSfx_PRX10;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechProximity10Pack
@@ -2680,7 +2676,7 @@ ItemImageData MechProximity15PackImage
    projectileType = MechProximity15PackShot;
    accuFire   = true;
    sfxFire    = MechSfx_PRX15;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechProximity15Pack
@@ -2710,7 +2706,7 @@ ItemImageData MechNikeSiegeGunImage
    accuFire   = true;
    sfxFire    = MechSfx_NIKE;
    muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechNikeSiegeGun
@@ -2739,7 +2735,7 @@ ItemImageData MechArtilleryMissleLauncherImage
    projectileType = MechArtilleryMissleLauncherShot;
    accuFire   = true;
    sfxFire    = MechSfx_AML;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechArtilleryMissleLauncher
@@ -2769,7 +2765,7 @@ ItemImageData MechRadiationGunImage
    accuFire   = true;
    sfxFire    = MechSfx_RAD;
    muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechRadiationGun
@@ -2799,7 +2795,7 @@ ItemImageData MechDisrupterImage
    accuFire   = true;
    sfxFire    = MechSfx_DIS;
    muzzleFlash = MechMz_mz_dis;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechDisrupter
@@ -2828,7 +2824,7 @@ ItemImageData MechSeismicProbeImage
    projectileType = MechSeismicProbeShot;
    accuFire   = true;
    sfxFire    = MechSfx_PROB;
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechSeismicProbe
@@ -2858,7 +2854,7 @@ ItemImageData MechArtilleryBatteryImage
    accuFire   = true;
    sfxFire    = MechSfx_NIKE;
    muzzleFlash = MechMz_mz_rail;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechArtilleryBattery
@@ -2888,7 +2884,7 @@ ItemImageData MechScattergunImage
    accuFire   = true;
    sfxFire    = MechSfx_SGUN;
    muzzleFlash = MechMz_mz_blas;   // Starsiege weaponMuzzle
-   sfxActivate = SoundPickUpWeapon;
+   sfxActivate = MechSfx_BEEP;
 };
 
 ItemData MechScattergun
@@ -2903,6 +2899,341 @@ ItemData MechScattergun
    price = 625;
    showWeaponBar = true;
 };
+
+//--- ammo items (Starsiege weaponAmmo) --------------------------------------
+// Declared unconditionally; only WIRED UP when $MM::Authentic is on.
+
+ItemData MechNannoInfuserAmmo
+{
+   description = "Nanno Infuser ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechNanniteCannonAmmo
+{
+   description = "Nannite Cannon ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechAutocannonAmmo
+{
+   description = "Autocannon ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechHeavyAutocannonAmmo
+{
+   description = "Heavy Autocannon ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechElectroMagAutocannonAmmo
+{
+   description = "Electro-Mag Autocannon ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechBlastCannonAmmo
+{
+   description = "Blast Cannon ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechHeavyBlastCannonAmmo
+{
+   description = "Heavy Blast Cannon ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechRailGunAmmo
+{
+   description = "Rail Gun ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechLaserGuidedBombAmmo
+{
+   description = "Laser Guided Bomb ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechHadesAmmo
+{
+   description = "Hades ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechPitViperMissilePack8Ammo
+{
+   description = "Pit Viper Missile Pack 8 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechPitViperMissilePack12Ammo
+{
+   description = "Pit Viper Missile Pack 12 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechSparrowMissilePack6Ammo
+{
+   description = "Sparrow Missile Pack 6 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechSparrowMissilePack10Ammo
+{
+   description = "Sparrow Missile Pack 10 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechSwarmMisslePack6Ammo
+{
+   description = "SWARM Missle Pack 6 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechMinionMisslePack10Ammo
+{
+   description = "Minion Missle Pack 10 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechShrikeMisslePack8Ammo
+{
+   description = "Shrike Missle Pack 8 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechAphidAaMissileSystemPack10Ammo
+{
+   description = "Aphid AA Missile System Pack 10 ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechArachnitron4PackAmmo
+{
+   description = "Arachnitron 4 pack ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechArachnitron8PackAmmo
+{
+   description = "Arachnitron 8 pack ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechArachnitron12PackAmmo
+{
+   description = "Arachnitron 12 pack ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechProximity6PackAmmo
+{
+   description = "Proximity 6 pack ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechProximity10PackAmmo
+{
+   description = "Proximity 10 pack ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechProximity15PackAmmo
+{
+   description = "Proximity 15 pack ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechNikeSiegeGunAmmo
+{
+   description = "Nike Siege Gun ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechArtilleryMissleLauncherAmmo
+{
+   description = "Artillery Missle Launcher ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+ItemData MechArtilleryBatteryAmmo
+{
+   description = "Artillery Battery ammo";
+   className = "Ammo";
+   shapeFile = "ammo1";
+   heading = "xAmmunition";
+   shadowDetailMask = 4;
+   price = 1;
+};
+
+//--- authentic feed: magazine instead of reactor ----------------------------
+if ($MM::Authentic == 1) {
+   MechNannoInfuserImage.ammoType = MechNannoInfuserAmmo;
+   MechNanniteCannonImage.ammoType = MechNanniteCannonAmmo;
+   MechAutocannonImage.ammoType = MechAutocannonAmmo;
+   MechHeavyAutocannonImage.ammoType = MechHeavyAutocannonAmmo;
+   MechElectroMagAutocannonImage.ammoType = MechElectroMagAutocannonAmmo;
+   MechBlastCannonImage.ammoType = MechBlastCannonAmmo;
+   MechHeavyBlastCannonImage.ammoType = MechHeavyBlastCannonAmmo;
+   MechRailGunImage.ammoType = MechRailGunAmmo;
+   MechLaserGuidedBombImage.ammoType = MechLaserGuidedBombAmmo;
+   MechHadesImage.ammoType = MechHadesAmmo;
+   MechPitViperMissilePack8Image.ammoType = MechPitViperMissilePack8Ammo;
+   MechPitViperMissilePack12Image.ammoType = MechPitViperMissilePack12Ammo;
+   MechSparrowMissilePack6Image.ammoType = MechSparrowMissilePack6Ammo;
+   MechSparrowMissilePack10Image.ammoType = MechSparrowMissilePack10Ammo;
+   MechSwarmMisslePack6Image.ammoType = MechSwarmMisslePack6Ammo;
+   MechMinionMisslePack10Image.ammoType = MechMinionMisslePack10Ammo;
+   MechShrikeMisslePack8Image.ammoType = MechShrikeMisslePack8Ammo;
+   MechAphidAaMissileSystemPack10Image.ammoType = MechAphidAaMissileSystemPack10Ammo;
+   MechArachnitron4PackImage.ammoType = MechArachnitron4PackAmmo;
+   MechArachnitron8PackImage.ammoType = MechArachnitron8PackAmmo;
+   MechArachnitron12PackImage.ammoType = MechArachnitron12PackAmmo;
+   MechProximity6PackImage.ammoType = MechProximity6PackAmmo;
+   MechProximity10PackImage.ammoType = MechProximity10PackAmmo;
+   MechProximity15PackImage.ammoType = MechProximity15PackAmmo;
+   MechNikeSiegeGunImage.ammoType = MechNikeSiegeGunAmmo;
+   MechArtilleryMissleLauncherImage.ammoType = MechArtilleryMissleLauncherAmmo;
+   MechArtilleryBatteryImage.ammoType = MechArtilleryBatteryAmmo;
+   echo("[MECH] authentic feed: 27 weapons run on ammo.");
+}
+
+// Shots per full load, for grantLoadout. Present for ammo-fed weapons only,
+// so a lookup that comes back empty IS the test for reactor-fed.
+$MM::AmmoShots[MechNannoInfuser] = 30;
+$MM::AmmoShots[MechNanniteCannon] = 25;
+$MM::AmmoShots[MechAutocannon] = 290;
+$MM::AmmoShots[MechHeavyAutocannon] = 190;
+$MM::AmmoShots[MechElectroMagAutocannon] = 238;
+$MM::AmmoShots[MechBlastCannon] = 25;
+$MM::AmmoShots[MechHeavyBlastCannon] = 15;
+$MM::AmmoShots[MechRailGun] = 40;
+$MM::AmmoShots[MechLaserGuidedBomb] = 5;
+$MM::AmmoShots[MechHades] = 5;
+$MM::AmmoShots[MechPitViperMissilePack8] = 8;
+$MM::AmmoShots[MechPitViperMissilePack12] = 12;
+$MM::AmmoShots[MechSparrowMissilePack6] = 6;
+$MM::AmmoShots[MechSparrowMissilePack10] = 10;
+$MM::AmmoShots[MechSwarmMisslePack6] = 6;
+$MM::AmmoShots[MechMinionMisslePack10] = 10;
+$MM::AmmoShots[MechShrikeMisslePack8] = 8;
+$MM::AmmoShots[MechAphidAaMissileSystemPack10] = 10;
+$MM::AmmoShots[MechArachnitron4Pack] = 6;
+$MM::AmmoShots[MechArachnitron8Pack] = 10;
+$MM::AmmoShots[MechArachnitron12Pack] = 14;
+$MM::AmmoShots[MechProximity6Pack] = 6;
+$MM::AmmoShots[MechProximity10Pack] = 8;
+$MM::AmmoShots[MechProximity15Pack] = 10;
+$MM::AmmoShots[MechNikeSiegeGun] = 30;
+$MM::AmmoShots[MechArtilleryMissleLauncher] = 10;
+$MM::AmmoShots[MechArtilleryBattery] = 30;
 
 //--- pretty names (cockpit rack display) ------------------------------------
 $MM::WeapName[MechLaser] = "Laser";
@@ -3040,195 +3371,383 @@ $PrevWeapon[MechArtilleryMissleLauncher] = "MechNikeSiegeGun";
 $NextWeapon[MechArtilleryBattery] = "MechLaser";
 $PrevWeapon[MechArtilleryBattery] = "MechArtilleryMissleLauncher";
 
-//--- per-chassis authentic default loadouts --------------------------------
-// One weapon per hardpoint, size-matched; roster rotates per chassis so the
-// full arsenal shows up across the mech pool. grantLoadout (MechGame.cs)
-// walks $MM::Loadout[chassis, i].
+//--- per-chassis loadouts ---------------------------------------------------
+// TWO racks. grantLoadout (MechGame.cs) reads $MM::Authentic and walks
+// either $MM::Loadout[chassis, i] or $MM::LoadoutRemix[chassis, i].
+//
+//   Authentic: hercBase's own defaultWeapons(...) -- symmetric pairs, fits
+//              the chassis MaxMass budget on every chassis.
+//   Remix:     the arsenal rotated across the roster so every gun appears
+//              somewhere. Breaks MaxMass on 12 of 31; kept for variety.
 
-$MM::Loadout[HercCabasl, 0] = "MechProximity10Pack";
-$MM::Loadout[HercCabasl, 1] = "MechArachnitron8Pack";
-$MM::Loadout[HercCabasl, 2] = "MechNikeSiegeGun";
-$MM::Loadout[HercCabasl, 3] = "MechArtilleryMissleLauncher";
+$MM::Loadout[HercCabasl, 0] = "MechCompressionLaser";
+$MM::Loadout[HercCabasl, 1] = "MechCompressionLaser";
+$MM::Loadout[HercCabasl, 2] = "MechHeavyAutocannon";
+$MM::Loadout[HercCabasl, 3] = "MechHeavyAutocannon";
 $MM::LoadoutCount[HercCabasl] = 4;
 
-$MM::Loadout[HercCinapoc, 0] = "MechArtilleryMissleLauncher";
-$MM::Loadout[HercCinapoc, 1] = "MechArtilleryBattery";
-$MM::Loadout[HercCinapoc, 2] = "MechArachnitron8Pack";
-$MM::Loadout[HercCinapoc, 3] = "MechLaserGuidedBomb";
-$MM::Loadout[HercCinapoc, 4] = "MechHades";
-$MM::Loadout[HercCinapoc, 5] = "MechSparrowMissilePack10";
-$MM::LoadoutCount[HercCinapoc] = 6;
+$MM::Loadout[HercCinapoc, 0] = "MechMagnetoFusionAssaultCannon";
+$MM::Loadout[HercCinapoc, 1] = "MechBlaster";
+$MM::Loadout[HercCinapoc, 2] = "MechHeavyAutocannon";
+$MM::Loadout[HercCinapoc, 3] = "MechHeavyAutocannon";
+$MM::LoadoutCount[HercCinapoc] = 4;
 
-$MM::Loadout[HercCinbasl, 0] = "MechArachnitron4Pack";
-$MM::Loadout[HercCinbasl, 1] = "MechLaser";
-$MM::Loadout[HercCinbasl, 2] = "MechArtilleryBattery";
-$MM::Loadout[HercCinbasl, 3] = "MechHeavyBlastCannon";
+$MM::Loadout[HercCinbasl, 0] = "MechCompressionLaser";
+$MM::Loadout[HercCinbasl, 1] = "MechCompressionLaser";
+$MM::Loadout[HercCinbasl, 2] = "MechHeavyAutocannon";
+$MM::Loadout[HercCinbasl, 3] = "MechHeavyAutocannon";
 $MM::LoadoutCount[HercCinbasl] = 4;
 
-$MM::Loadout[HercCyexec, 0] = "MechHeavyBlastCannon";
-$MM::Loadout[HercCyexec, 1] = "MechQuantumGun";
+$MM::Loadout[HercCyexec, 0] = "MechShrikeMisslePack8";
+$MM::Loadout[HercCyexec, 1] = "MechShrikeMisslePack8";
 $MM::Loadout[HercCyexec, 2] = "MechParticleBeamWeapon";
-$MM::Loadout[HercCyexec, 3] = "MechBlastCannon";
+$MM::Loadout[HercCyexec, 3] = "MechParticleBeamWeapon";
 $MM::LoadoutCount[HercCyexec] = 4;
 
-$MM::Loadout[HercCygoad, 0] = "MechSparrowMissilePack10";
-$MM::Loadout[HercCygoad, 1] = "MechDisrupter";
+$MM::Loadout[HercCygoad, 0] = "MechHeavyLaser";
+$MM::Loadout[HercCygoad, 1] = "MechHeavyLaser";
 $MM::LoadoutCount[HercCygoad] = 2;
 
-$MM::Loadout[HercCyjudg, 0] = "MechDisrupter";
-$MM::Loadout[HercCyjudg, 1] = "MechHeavyAutocannon";
-$MM::Loadout[HercCyjudg, 2] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercCyjudg, 3] = "MechNikeSiegeGun";
+$MM::Loadout[HercCyjudg, 0] = "MechTwinLaser";
+$MM::Loadout[HercCyjudg, 1] = "MechRadiationGun";
+$MM::Loadout[HercCyjudg, 2] = "MechRailGun";
+$MM::Loadout[HercCyjudg, 3] = "MechRailGun";
 $MM::LoadoutCount[HercCyjudg] = 4;
 
-$MM::Loadout[HercCyprom, 0] = "MechNikeSiegeGun";
-$MM::Loadout[HercCyprom, 1] = "MechArtilleryMissleLauncher";
-$MM::Loadout[HercCyprom, 2] = "MechArtilleryBattery";
-$MM::Loadout[HercCyprom, 3] = "MechHeavyBlastCannon";
-$MM::Loadout[HercCyprom, 4] = "MechQuantumGun";
-$MM::Loadout[HercCyprom, 5] = "MechMagnetoFusionAssaultCannon";
+$MM::Loadout[HercCyprom, 0] = "MechRadiationGun";
+$MM::Loadout[HercCyprom, 1] = "MechTwinLaser";
+$MM::Loadout[HercCyprom, 2] = "MechArachnitron12Pack";
+$MM::Loadout[HercCyprom, 3] = "MechRailGun";
+$MM::Loadout[HercCyprom, 4] = "MechBlinkGun";
+$MM::Loadout[HercCyprom, 5] = "MechElectroMagAutocannon";
 $MM::LoadoutCount[HercCyprom] = 6;
 
-$MM::Loadout[HercCyseek, 0] = "MechScattergun";
-$MM::Loadout[HercCyseek, 1] = "MechSwarmMisslePack6";
+$MM::Loadout[HercCyseek, 0] = "MechHeavyAutocannon";
+$MM::Loadout[HercCyseek, 1] = "MechHeavyAutocannon";
 $MM::LoadoutCount[HercCyseek] = 2;
 
-$MM::Loadout[HercCyshep, 0] = "MechSwarmMisslePack6";
-$MM::Loadout[HercCyshep, 1] = "MechNanniteCannon";
-$MM::Loadout[HercCyshep, 2] = "MechHeavyLaser";
-$MM::Loadout[HercCyshep, 3] = "MechPitViperMissilePack12";
+$MM::Loadout[HercCyshep, 0] = "MechElectroMagAutocannon";
+$MM::Loadout[HercCyshep, 1] = "MechElectroMagAutocannon";
+$MM::Loadout[HercCyshep, 2] = "MechTwinLaser";
+$MM::Loadout[HercCyshep, 3] = "MechTwinLaser";
 $MM::LoadoutCount[HercCyshep] = 4;
 
-$MM::Loadout[HercHaapoc, 0] = "MechHeavyBlastCannon";
-$MM::Loadout[HercHaapoc, 1] = "MechQuantumGun";
+$MM::Loadout[HercHaapoc, 0] = "MechHeavyAutocannon";
+$MM::Loadout[HercHaapoc, 1] = "MechHeavyAutocannon";
 $MM::Loadout[HercHaapoc, 2] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercHaapoc, 3] = "MechNikeSiegeGun";
-$MM::Loadout[HercHaapoc, 4] = "MechNannoInfuser";
-$MM::Loadout[HercHaapoc, 5] = "MechPitViperMissilePack8";
+$MM::Loadout[HercHaapoc, 3] = "MechBlaster";
+$MM::Loadout[HercHaapoc, 4] = "MechSparrowMissilePack6";
+$MM::Loadout[HercHaapoc, 5] = "MechSparrowMissilePack6";
 $MM::LoadoutCount[HercHaapoc] = 6;
 
 $MM::Loadout[HercKnapoc, 0] = "MechHeavyLaser";
-$MM::Loadout[HercKnapoc, 1] = "MechPitViperMissilePack12";
-$MM::Loadout[HercKnapoc, 2] = "MechQuantumGun";
-$MM::Loadout[HercKnapoc, 3] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercKnapoc, 4] = "MechPitViperMissilePack8";
-$MM::Loadout[HercKnapoc, 5] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercKnapoc, 1] = "MechHeavyLaser";
+$MM::Loadout[HercKnapoc, 2] = "MechHeavyAutocannon";
+$MM::Loadout[HercKnapoc, 3] = "MechHeavyAutocannon";
+$MM::Loadout[HercKnapoc, 4] = "MechSparrowMissilePack6";
+$MM::Loadout[HercKnapoc, 5] = "MechSparrowMissilePack6";
 $MM::LoadoutCount[HercKnapoc] = 6;
 
-$MM::Loadout[HercKnbasl, 0] = "MechPitViperMissilePack12";
-$MM::Loadout[HercKnbasl, 1] = "MechBlaster";
-$MM::Loadout[HercKnbasl, 2] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercKnbasl, 3] = "MechNikeSiegeGun";
+$MM::Loadout[HercKnbasl, 0] = "MechPitViperMissilePack8";
+$MM::Loadout[HercKnbasl, 1] = "MechPitViperMissilePack8";
+$MM::Loadout[HercKnbasl, 2] = "MechSparrowMissilePack10";
+$MM::Loadout[HercKnbasl, 3] = "MechSparrowMissilePack10";
 $MM::LoadoutCount[HercKnbasl] = 4;
 
-$MM::Loadout[HercKngorg, 0] = "MechNikeSiegeGun";
-$MM::Loadout[HercKngorg, 1] = "MechArtilleryMissleLauncher";
-$MM::Loadout[HercKngorg, 2] = "MechRailGun";
-$MM::Loadout[HercKngorg, 3] = "MechPlasma";
+$MM::Loadout[HercKngorg, 0] = "MechHeavyLaser";
+$MM::Loadout[HercKngorg, 1] = "MechHeavyLaser";
+$MM::Loadout[HercKngorg, 2] = "MechMinionMisslePack10";
+$MM::Loadout[HercKngorg, 3] = "MechMinionMisslePack10";
 $MM::LoadoutCount[HercKngorg] = 4;
 
-$MM::Loadout[HercKnmino, 0] = "MechProximity6Pack";
-$MM::Loadout[HercKnmino, 1] = "MechArachnitron4Pack";
-$MM::Loadout[HercKnmino, 2] = "MechRadiationGun";
-$MM::Loadout[HercKnmino, 3] = "MechBlinkGun";
+$MM::Loadout[HercKnmino, 0] = "MechCompressionLaser";
+$MM::Loadout[HercKnmino, 1] = "MechCompressionLaser";
+$MM::Loadout[HercKnmino, 2] = "MechCompressionLaser";
+$MM::Loadout[HercKnmino, 3] = "MechCompressionLaser";
 $MM::LoadoutCount[HercKnmino] = 4;
 
-$MM::Loadout[HercKntalon, 0] = "MechBlinkGun";
-$MM::Loadout[HercKntalon, 1] = "MechShrikeMisslePack8";
-$MM::Loadout[HercKntalon, 2] = "MechProximity15Pack";
-$MM::Loadout[HercKntalon, 3] = "MechArachnitron12Pack";
-$MM::LoadoutCount[HercKntalon] = 4;
+$MM::Loadout[HercKntalon, 0] = "MechCompressionLaser";
+$MM::Loadout[HercKntalon, 1] = "MechCompressionLaser";
+$MM::LoadoutCount[HercKntalon] = 2;
 
-$MM::Loadout[HercMgexec, 0] = "MechHeavyBlastCannon";
-$MM::Loadout[HercMgexec, 1] = "MechQuantumGun";
-$MM::Loadout[HercMgexec, 2] = "MechArachnitron12Pack";
-$MM::Loadout[HercMgexec, 3] = "MechHeavyBlaster";
+$MM::Loadout[HercMgexec, 0] = "MechShrikeMisslePack8";
+$MM::Loadout[HercMgexec, 1] = "MechShrikeMisslePack8";
+$MM::Loadout[HercMgexec, 2] = "MechParticleBeamWeapon";
+$MM::Loadout[HercMgexec, 3] = "MechParticleBeamWeapon";
 $MM::LoadoutCount[HercMgexec] = 4;
 
-$MM::Loadout[HercMggoad, 0] = "MechElectronFluxWhip";
-$MM::Loadout[HercMggoad, 1] = "MechMinionMisslePack10";
+$MM::Loadout[HercMggoad, 0] = "MechShrikeMisslePack8";
+$MM::Loadout[HercMggoad, 1] = "MechShrikeMisslePack8";
 $MM::LoadoutCount[HercMggoad] = 2;
 
-$MM::Loadout[HercMgjudg, 0] = "MechMinionMisslePack10";
-$MM::Loadout[HercMgjudg, 1] = "MechSeismicProbe";
-$MM::Loadout[HercMgjudg, 2] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercMgjudg, 3] = "MechNikeSiegeGun";
+$MM::Loadout[HercMgjudg, 0] = "MechTwinLaser";
+$MM::Loadout[HercMgjudg, 1] = "MechRadiationGun";
+$MM::Loadout[HercMgjudg, 2] = "MechRailGun";
+$MM::Loadout[HercMgjudg, 3] = "MechRailGun";
 $MM::LoadoutCount[HercMgjudg] = 4;
 
-$MM::Loadout[HercMgseek, 0] = "MechSeismicProbe";
-$MM::Loadout[HercMgseek, 1] = "MechProximity10Pack";
+$MM::Loadout[HercMgseek, 0] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercMgseek, 1] = "MechNannoInfuser";
 $MM::LoadoutCount[HercMgseek] = 2;
 
-$MM::Loadout[HercMgshep, 0] = "MechProximity10Pack";
-$MM::Loadout[HercMgshep, 1] = "MechArachnitron8Pack";
-$MM::Loadout[HercMgshep, 2] = "MechLaserGuidedBomb";
-$MM::Loadout[HercMgshep, 3] = "MechHades";
+$MM::Loadout[HercMgshep, 0] = "MechBlinkGun";
+$MM::Loadout[HercMgshep, 1] = "MechBlinkGun";
+$MM::Loadout[HercMgshep, 2] = "MechElectroMagAutocannon";
+$MM::Loadout[HercMgshep, 3] = "MechElectroMagAutocannon";
 $MM::LoadoutCount[HercMgshep] = 4;
 
-$MM::Loadout[HercPiapoc, 0] = "MechArachnitron8Pack";
-$MM::Loadout[HercPiapoc, 1] = "MechLaserGuidedBomb";
-$MM::Loadout[HercPiapoc, 2] = "MechArtilleryBattery";
-$MM::Loadout[HercPiapoc, 3] = "MechHeavyBlastCannon";
-$MM::Loadout[HercPiapoc, 4] = "MechAphidAaMissileSystemPack10";
-$MM::Loadout[HercPiapoc, 5] = "MechNannoInfuser";
+$MM::Loadout[HercPiapoc, 0] = "MechHeavyAutocannon";
+$MM::Loadout[HercPiapoc, 1] = "MechHeavyAutocannon";
+$MM::Loadout[HercPiapoc, 2] = "MechHeavyAutocannon";
+$MM::Loadout[HercPiapoc, 3] = "MechHeavyAutocannon";
+$MM::Loadout[HercPiapoc, 4] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercPiapoc, 5] = "MechElectroMagneticPulseCannon";
 $MM::LoadoutCount[HercPiapoc] = 6;
 
-$MM::Loadout[HercPieman, 0] = "MechHeavyBlastCannon";
-$MM::Loadout[HercPieman, 1] = "MechLaserGuidedBomb";
+$MM::Loadout[HercPieman, 0] = "MechBlaster";
+$MM::Loadout[HercPieman, 1] = "MechBlaster";
 $MM::LoadoutCount[HercPieman] = 2;
 
-$MM::Loadout[HercPlexec, 0] = "MechQuantumGun";
-$MM::Loadout[HercPlexec, 1] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercPlexec, 2] = "MechArachnitron12Pack";
-$MM::Loadout[HercPlexec, 3] = "MechHeavyBlaster";
+$MM::Loadout[HercPlexec, 0] = "MechRailGun";
+$MM::Loadout[HercPlexec, 1] = "MechRailGun";
+$MM::Loadout[HercPlexec, 2] = "MechParticleBeamWeapon";
+$MM::Loadout[HercPlexec, 3] = "MechParticleBeamWeapon";
 $MM::LoadoutCount[HercPlexec] = 4;
 
-$MM::Loadout[HercPljudg, 0] = "MechSparrowMissilePack10";
-$MM::Loadout[HercPljudg, 1] = "MechDisrupter";
-$MM::Loadout[HercPljudg, 2] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercPljudg, 3] = "MechNikeSiegeGun";
+$MM::Loadout[HercPljudg, 0] = "MechNannoInfuser";
+$MM::Loadout[HercPljudg, 1] = "MechNannoInfuser";
+$MM::Loadout[HercPljudg, 2] = "MechRailGun";
+$MM::Loadout[HercPljudg, 3] = "MechRailGun";
 $MM::LoadoutCount[HercPljudg] = 4;
 
-$MM::Loadout[HercRbeman, 0] = "MechNikeSiegeGun";
-$MM::Loadout[HercRbeman, 1] = "MechDisrupter";
+$MM::Loadout[HercRbeman, 0] = "MechBlaster";
+$MM::Loadout[HercRbeman, 1] = "MechBlaster";
 $MM::LoadoutCount[HercRbeman] = 2;
 
-$MM::Loadout[HercRboly, 0] = "MechArtilleryMissleLauncher";
-$MM::Loadout[HercRboly, 1] = "MechArtilleryBattery";
-$MM::Loadout[HercRboly, 2] = "MechBlastCannon";
-$MM::Loadout[HercRboly, 3] = "MechRailGun";
-$MM::Loadout[HercRboly, 4] = "MechProximity6Pack";
-$MM::Loadout[HercRboly, 5] = "MechArachnitron4Pack";
+$MM::Loadout[HercRboly, 0] = "MechBlaster";
+$MM::Loadout[HercRboly, 1] = "MechBlaster";
+$MM::Loadout[HercRboly, 2] = "MechNanniteCannon";
+$MM::Loadout[HercRboly, 3] = "MechNanniteCannon";
+$MM::Loadout[HercRboly, 4] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercRboly, 5] = "MechElectroMagneticPulseCannon";
 $MM::LoadoutCount[HercRboly] = 6;
 
-$MM::Loadout[HercTrapoc, 0] = "MechScattergun";
-$MM::Loadout[HercTrapoc, 1] = "MechSwarmMisslePack6";
-$MM::Loadout[HercTrapoc, 2] = "MechArtilleryBattery";
-$MM::Loadout[HercTrapoc, 3] = "MechHeavyBlastCannon";
-$MM::Loadout[HercTrapoc, 4] = "MechArachnitron4Pack";
-$MM::Loadout[HercTrapoc, 5] = "MechLaser";
+$MM::Loadout[HercTrapoc, 0] = "MechHeavyAutocannon";
+$MM::Loadout[HercTrapoc, 1] = "MechHeavyAutocannon";
+$MM::Loadout[HercTrapoc, 2] = "MechHeavyAutocannon";
+$MM::Loadout[HercTrapoc, 3] = "MechHeavyAutocannon";
+$MM::Loadout[HercTrapoc, 4] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercTrapoc, 5] = "MechElectroMagneticPulseCannon";
 $MM::LoadoutCount[HercTrapoc] = 6;
 
-$MM::Loadout[HercTrbasl, 0] = "MechSwarmMisslePack6";
-$MM::Loadout[HercTrbasl, 1] = "MechNanniteCannon";
-$MM::Loadout[HercTrbasl, 2] = "MechHeavyBlastCannon";
-$MM::Loadout[HercTrbasl, 3] = "MechQuantumGun";
+$MM::Loadout[HercTrbasl, 0] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercTrbasl, 1] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercTrbasl, 2] = "MechPitViperMissilePack12";
+$MM::Loadout[HercTrbasl, 3] = "MechPitViperMissilePack12";
 $MM::LoadoutCount[HercTrbasl] = 4;
 
-$MM::Loadout[HercTrgorg, 0] = "MechQuantumGun";
-$MM::Loadout[HercTrgorg, 1] = "MechMagnetoFusionAssaultCannon";
-$MM::Loadout[HercTrgorg, 2] = "MechProximity15Pack";
-$MM::Loadout[HercTrgorg, 3] = "MechArachnitron12Pack";
+$MM::Loadout[HercTrgorg, 0] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercTrgorg, 1] = "MechElectroMagneticPulseCannon";
+$MM::Loadout[HercTrgorg, 2] = "MechBlastCannon";
+$MM::Loadout[HercTrgorg, 3] = "MechBlastCannon";
 $MM::LoadoutCount[HercTrgorg] = 4;
 
-$MM::Loadout[HercTrmino, 0] = "MechTwinLaser";
-$MM::Loadout[HercTrmino, 1] = "MechElectroMagAutocannon";
+$MM::Loadout[HercTrmino, 0] = "MechLaser";
+$MM::Loadout[HercTrmino, 1] = "MechLaser";
 $MM::Loadout[HercTrmino, 2] = "MechHeavyLaser";
-$MM::Loadout[HercTrmino, 3] = "MechPitViperMissilePack12";
+$MM::Loadout[HercTrmino, 3] = "MechHeavyLaser";
 $MM::LoadoutCount[HercTrmino] = 4;
 
-$MM::Loadout[HercTrtalon, 0] = "MechPitViperMissilePack12";
-$MM::Loadout[HercTrtalon, 1] = "MechBlaster";
+$MM::Loadout[HercTrtalon, 0] = "MechLaser";
+$MM::Loadout[HercTrtalon, 1] = "MechLaser";
 $MM::LoadoutCount[HercTrtalon] = 2;
+
+$MM::LoadoutRemix[HercCabasl, 0] = "MechProximity10Pack";
+$MM::LoadoutRemix[HercCabasl, 1] = "MechArachnitron8Pack";
+$MM::LoadoutRemix[HercCabasl, 2] = "MechNikeSiegeGun";
+$MM::LoadoutRemix[HercCabasl, 3] = "MechArtilleryMissleLauncher";
+$MM::LoadoutRemixCount[HercCabasl] = 4;
+
+$MM::LoadoutRemix[HercCinapoc, 0] = "MechArtilleryMissleLauncher";
+$MM::LoadoutRemix[HercCinapoc, 1] = "MechArtilleryBattery";
+$MM::LoadoutRemix[HercCinapoc, 2] = "MechArachnitron8Pack";
+$MM::LoadoutRemix[HercCinapoc, 3] = "MechLaserGuidedBomb";
+$MM::LoadoutRemix[HercCinapoc, 4] = "MechHades";
+$MM::LoadoutRemix[HercCinapoc, 5] = "MechSparrowMissilePack10";
+$MM::LoadoutRemixCount[HercCinapoc] = 6;
+
+$MM::LoadoutRemix[HercCinbasl, 0] = "MechArachnitron4Pack";
+$MM::LoadoutRemix[HercCinbasl, 1] = "MechLaser";
+$MM::LoadoutRemix[HercCinbasl, 2] = "MechArtilleryBattery";
+$MM::LoadoutRemix[HercCinbasl, 3] = "MechHeavyBlastCannon";
+$MM::LoadoutRemixCount[HercCinbasl] = 4;
+
+$MM::LoadoutRemix[HercCyexec, 0] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercCyexec, 1] = "MechQuantumGun";
+$MM::LoadoutRemix[HercCyexec, 2] = "MechParticleBeamWeapon";
+$MM::LoadoutRemix[HercCyexec, 3] = "MechBlastCannon";
+$MM::LoadoutRemixCount[HercCyexec] = 4;
+
+$MM::LoadoutRemix[HercCygoad, 0] = "MechSparrowMissilePack10";
+$MM::LoadoutRemix[HercCygoad, 1] = "MechDisrupter";
+$MM::LoadoutRemixCount[HercCygoad] = 2;
+
+$MM::LoadoutRemix[HercCyjudg, 0] = "MechDisrupter";
+$MM::LoadoutRemix[HercCyjudg, 1] = "MechHeavyAutocannon";
+$MM::LoadoutRemix[HercCyjudg, 2] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercCyjudg, 3] = "MechNikeSiegeGun";
+$MM::LoadoutRemixCount[HercCyjudg] = 4;
+
+$MM::LoadoutRemix[HercCyprom, 0] = "MechNikeSiegeGun";
+$MM::LoadoutRemix[HercCyprom, 1] = "MechArtilleryMissleLauncher";
+$MM::LoadoutRemix[HercCyprom, 2] = "MechArtilleryBattery";
+$MM::LoadoutRemix[HercCyprom, 3] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercCyprom, 4] = "MechQuantumGun";
+$MM::LoadoutRemix[HercCyprom, 5] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemixCount[HercCyprom] = 6;
+
+$MM::LoadoutRemix[HercCyseek, 0] = "MechScattergun";
+$MM::LoadoutRemix[HercCyseek, 1] = "MechSwarmMisslePack6";
+$MM::LoadoutRemixCount[HercCyseek] = 2;
+
+$MM::LoadoutRemix[HercCyshep, 0] = "MechSwarmMisslePack6";
+$MM::LoadoutRemix[HercCyshep, 1] = "MechNanniteCannon";
+$MM::LoadoutRemix[HercCyshep, 2] = "MechHeavyLaser";
+$MM::LoadoutRemix[HercCyshep, 3] = "MechPitViperMissilePack12";
+$MM::LoadoutRemixCount[HercCyshep] = 4;
+
+$MM::LoadoutRemix[HercHaapoc, 0] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercHaapoc, 1] = "MechQuantumGun";
+$MM::LoadoutRemix[HercHaapoc, 2] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercHaapoc, 3] = "MechNikeSiegeGun";
+$MM::LoadoutRemix[HercHaapoc, 4] = "MechNannoInfuser";
+$MM::LoadoutRemix[HercHaapoc, 5] = "MechPitViperMissilePack8";
+$MM::LoadoutRemixCount[HercHaapoc] = 6;
+
+$MM::LoadoutRemix[HercKnapoc, 0] = "MechHeavyLaser";
+$MM::LoadoutRemix[HercKnapoc, 1] = "MechPitViperMissilePack12";
+$MM::LoadoutRemix[HercKnapoc, 2] = "MechQuantumGun";
+$MM::LoadoutRemix[HercKnapoc, 3] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercKnapoc, 4] = "MechPitViperMissilePack8";
+$MM::LoadoutRemix[HercKnapoc, 5] = "MechElectroMagneticPulseCannon";
+$MM::LoadoutRemixCount[HercKnapoc] = 6;
+
+$MM::LoadoutRemix[HercKnbasl, 0] = "MechPitViperMissilePack12";
+$MM::LoadoutRemix[HercKnbasl, 1] = "MechBlaster";
+$MM::LoadoutRemix[HercKnbasl, 2] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercKnbasl, 3] = "MechNikeSiegeGun";
+$MM::LoadoutRemixCount[HercKnbasl] = 4;
+
+$MM::LoadoutRemix[HercKngorg, 0] = "MechNikeSiegeGun";
+$MM::LoadoutRemix[HercKngorg, 1] = "MechArtilleryMissleLauncher";
+$MM::LoadoutRemix[HercKngorg, 2] = "MechRailGun";
+$MM::LoadoutRemix[HercKngorg, 3] = "MechPlasma";
+$MM::LoadoutRemixCount[HercKngorg] = 4;
+
+$MM::LoadoutRemix[HercKnmino, 0] = "MechProximity6Pack";
+$MM::LoadoutRemix[HercKnmino, 1] = "MechArachnitron4Pack";
+$MM::LoadoutRemix[HercKnmino, 2] = "MechRadiationGun";
+$MM::LoadoutRemix[HercKnmino, 3] = "MechBlinkGun";
+$MM::LoadoutRemixCount[HercKnmino] = 4;
+
+$MM::LoadoutRemix[HercKntalon, 0] = "MechBlinkGun";
+$MM::LoadoutRemix[HercKntalon, 1] = "MechShrikeMisslePack8";
+$MM::LoadoutRemixCount[HercKntalon] = 2;
+
+$MM::LoadoutRemix[HercMgexec, 0] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercMgexec, 1] = "MechQuantumGun";
+$MM::LoadoutRemix[HercMgexec, 2] = "MechArachnitron12Pack";
+$MM::LoadoutRemix[HercMgexec, 3] = "MechHeavyBlaster";
+$MM::LoadoutRemixCount[HercMgexec] = 4;
+
+$MM::LoadoutRemix[HercMggoad, 0] = "MechElectronFluxWhip";
+$MM::LoadoutRemix[HercMggoad, 1] = "MechMinionMisslePack10";
+$MM::LoadoutRemixCount[HercMggoad] = 2;
+
+$MM::LoadoutRemix[HercMgjudg, 0] = "MechMinionMisslePack10";
+$MM::LoadoutRemix[HercMgjudg, 1] = "MechSeismicProbe";
+$MM::LoadoutRemix[HercMgjudg, 2] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercMgjudg, 3] = "MechNikeSiegeGun";
+$MM::LoadoutRemixCount[HercMgjudg] = 4;
+
+$MM::LoadoutRemix[HercMgseek, 0] = "MechSeismicProbe";
+$MM::LoadoutRemix[HercMgseek, 1] = "MechProximity10Pack";
+$MM::LoadoutRemixCount[HercMgseek] = 2;
+
+$MM::LoadoutRemix[HercMgshep, 0] = "MechProximity10Pack";
+$MM::LoadoutRemix[HercMgshep, 1] = "MechArachnitron8Pack";
+$MM::LoadoutRemix[HercMgshep, 2] = "MechLaserGuidedBomb";
+$MM::LoadoutRemix[HercMgshep, 3] = "MechHades";
+$MM::LoadoutRemixCount[HercMgshep] = 4;
+
+$MM::LoadoutRemix[HercPiapoc, 0] = "MechArachnitron8Pack";
+$MM::LoadoutRemix[HercPiapoc, 1] = "MechLaserGuidedBomb";
+$MM::LoadoutRemix[HercPiapoc, 2] = "MechArtilleryBattery";
+$MM::LoadoutRemix[HercPiapoc, 3] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercPiapoc, 4] = "MechAphidAaMissileSystemPack10";
+$MM::LoadoutRemix[HercPiapoc, 5] = "MechNannoInfuser";
+$MM::LoadoutRemixCount[HercPiapoc] = 6;
+
+$MM::LoadoutRemix[HercPieman, 0] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercPieman, 1] = "MechLaserGuidedBomb";
+$MM::LoadoutRemixCount[HercPieman] = 2;
+
+$MM::LoadoutRemix[HercPlexec, 0] = "MechQuantumGun";
+$MM::LoadoutRemix[HercPlexec, 1] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercPlexec, 2] = "MechArachnitron12Pack";
+$MM::LoadoutRemix[HercPlexec, 3] = "MechHeavyBlaster";
+$MM::LoadoutRemixCount[HercPlexec] = 4;
+
+$MM::LoadoutRemix[HercPljudg, 0] = "MechSparrowMissilePack10";
+$MM::LoadoutRemix[HercPljudg, 1] = "MechDisrupter";
+$MM::LoadoutRemix[HercPljudg, 2] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercPljudg, 3] = "MechNikeSiegeGun";
+$MM::LoadoutRemixCount[HercPljudg] = 4;
+
+$MM::LoadoutRemix[HercRbeman, 0] = "MechNikeSiegeGun";
+$MM::LoadoutRemix[HercRbeman, 1] = "MechDisrupter";
+$MM::LoadoutRemixCount[HercRbeman] = 2;
+
+$MM::LoadoutRemix[HercRboly, 0] = "MechArtilleryMissleLauncher";
+$MM::LoadoutRemix[HercRboly, 1] = "MechArtilleryBattery";
+$MM::LoadoutRemix[HercRboly, 2] = "MechBlastCannon";
+$MM::LoadoutRemix[HercRboly, 3] = "MechRailGun";
+$MM::LoadoutRemix[HercRboly, 4] = "MechProximity6Pack";
+$MM::LoadoutRemix[HercRboly, 5] = "MechArachnitron4Pack";
+$MM::LoadoutRemixCount[HercRboly] = 6;
+
+$MM::LoadoutRemix[HercTrapoc, 0] = "MechScattergun";
+$MM::LoadoutRemix[HercTrapoc, 1] = "MechSwarmMisslePack6";
+$MM::LoadoutRemix[HercTrapoc, 2] = "MechArtilleryBattery";
+$MM::LoadoutRemix[HercTrapoc, 3] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercTrapoc, 4] = "MechArachnitron4Pack";
+$MM::LoadoutRemix[HercTrapoc, 5] = "MechLaser";
+$MM::LoadoutRemixCount[HercTrapoc] = 6;
+
+$MM::LoadoutRemix[HercTrbasl, 0] = "MechSwarmMisslePack6";
+$MM::LoadoutRemix[HercTrbasl, 1] = "MechNanniteCannon";
+$MM::LoadoutRemix[HercTrbasl, 2] = "MechHeavyBlastCannon";
+$MM::LoadoutRemix[HercTrbasl, 3] = "MechQuantumGun";
+$MM::LoadoutRemixCount[HercTrbasl] = 4;
+
+$MM::LoadoutRemix[HercTrgorg, 0] = "MechQuantumGun";
+$MM::LoadoutRemix[HercTrgorg, 1] = "MechMagnetoFusionAssaultCannon";
+$MM::LoadoutRemix[HercTrgorg, 2] = "MechProximity15Pack";
+$MM::LoadoutRemix[HercTrgorg, 3] = "MechArachnitron12Pack";
+$MM::LoadoutRemixCount[HercTrgorg] = 4;
+
+$MM::LoadoutRemix[HercTrmino, 0] = "MechTwinLaser";
+$MM::LoadoutRemix[HercTrmino, 1] = "MechElectroMagAutocannon";
+$MM::LoadoutRemix[HercTrmino, 2] = "MechHeavyLaser";
+$MM::LoadoutRemix[HercTrmino, 3] = "MechPitViperMissilePack12";
+$MM::LoadoutRemixCount[HercTrmino] = 4;
+
+$MM::LoadoutRemix[HercTrtalon, 0] = "MechPitViperMissilePack12";
+$MM::LoadoutRemix[HercTrtalon, 1] = "MechBlaster";
+$MM::LoadoutRemixCount[HercTrtalon] = 2;
+
+// Default OFF: the authentic rack changes every engagement, so it stays
+// opt-in until the movement and ammo stages have been played.
+if ($MM::Authentic == "") $MM::Authentic = 0;
 
 echo("[MECH] MechWeapons: 44 authentic Starsiege weapons declared.");
