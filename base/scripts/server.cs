@@ -73,7 +73,9 @@ function Server::onClientDisconnect(%clientId)
    // client, tripped this, and was overridden: relight Broadside, land in
    // BullsEye. Rotating an empty server makes sense in play; in the editor the
    // reload is already bringing the same map back.
-   if(getNumClients() == 1 && !$EditingMission) // this is the last client.
+   // MCP (mission hold): refreshData() would rotate; Server::nextMission gates it too, but
+   // skip the temp-prefs re-exec as well so a held host stays exactly as prepared.
+   if(getNumClients() == 1 && !$EditingMission && !$Server::HoldMission) // this is the last client.
       Server::refreshData();
 }
 
@@ -235,6 +237,18 @@ function createServer(%mission, %dedicated)
 
 function Server::nextMission(%replay)
 {
+   // MCP (mission hold, 2026-09-01): $Server::HoldMission pins the host to the map it is on.
+   // EVERY rotation funnels through here -- Game::checkTimeLimit (three copies: game.cs,
+   // dm.cs, objectives.cs), ObjectiveMission::missionComplete (score limit -- bots reach it
+   // on an empty server), the last-client-drop refreshData() below, remoteCycleMission and
+   // votes -- so one gate holds the map against all of them. An explicit
+   // Server::loadMission(<name>, true) still changes the map: that is the harness's own
+   // switch (bridge-allowlisted, tribes_mission mission:<name>). Unset on shipped configs.
+   if($Server::HoldMission)
+   {
+      echo("[HOLD] mission rotation suppressed (staying on ", $missionName, ")");
+      return;
+   }
    if(%replay || $Server::TourneyMode)
       %nextMission = $missionName;
    else
@@ -278,6 +292,9 @@ function remoteCGADone(%playerId)
 	if ($cdTrack != "")
 		remoteEval (%playerId, setMusic, $cdTrack, $cdPlayMode);
    remoteEval(%playerId, MInfo, $missionName);
+   // Late joiner: hand over the signed match clock now instead of waiting up to
+   // 20 s for the next Game::timeLimitTick pulse (objectives.cs).
+   Game::syncClientClock(%playerId);
 }
 
 function Server::loadMission(%missionName, %immed)

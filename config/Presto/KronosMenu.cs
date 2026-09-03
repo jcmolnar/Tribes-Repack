@@ -208,8 +208,21 @@ function remoteNewMenu(%server, %title)
 	if($KM::plReqTime == "" || %plDt > 3.0 || %plDt < 0)
 	{
 		$KM::plReqTime = GetSimTime();
-		remoteEval(2048, KMGetPlayers);
+		KronosMenu::pollRoster();
 	}
+}
+
+// Only Kronos/RPG servers answer KMGetPlayers. On a base server every request used
+// to print "remoteKMGetPlayers: Unknown command." on the HOST console -- 16k lines
+// in one hosted night, enough to wedge the server behind a blocked console write.
+// Probe ONCE per connection; keep polling only after a KMPlayerCount push has
+// proved the server is Kronos ($KM::kmServer, cleared in rosterReset).
+function KronosMenu::pollRoster()
+{
+	if($KM::kmProbed && !$KM::kmServer)
+		return;
+	$KM::kmProbed = 1;
+	remoteEval(2048, KMGetPlayers);
 }
 
 function remoteAddMenuItem(%server, %title, %code)
@@ -499,6 +512,7 @@ function remoteKMPlayerCount(%server, %sent, %total)
 	// SCOREBOARD-REFRESH: stamp the Kronos push so scoreTick's base-server
 	// fallback (cfgPushBaseScoreRows) never overwrites a live Kronos roster.
 	$KM::kmFeedTime = GetSimTime();
+	$KM::kmServer = 1;   // this server answers KMGetPlayers: keep polling it
 }
 
 // Character info lines. Stock base client.cs writes these into the
@@ -1738,8 +1752,8 @@ function KronosMenu::scoreTick()
 		return;
 	$KM::scoreTickTime = %t;
 
-	// Kronos roster (vanilla-safe: base servers just ignore the remoteEval)
-	remoteEval(2048, KMGetPlayers);
+	// Kronos roster (one probe per connection on base servers, see pollRoster)
+	KronosMenu::pollRoster();
 
 	// Base-server fallback: live name/team/score/ping straight from the engine's
 	// PlayerManager. Only when no Kronos push has landed recently -- a Kronos
@@ -1767,6 +1781,8 @@ function KronosMenu::rosterReset()
 	$KM::plReqTime = "";
 	$KM::scoreTickTime = "";
 	$KM::kmFeedTime = "";
+	$KM::kmServer = "";   // re-probe the roster once on the next connection/mission
+	$KM::kmProbed = "";
 	$KM::lvPrefix = "Lv ";
 	for(%i = 0; %i < 4; %i++)
 	{

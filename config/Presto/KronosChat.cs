@@ -33,6 +33,9 @@ if($pref::Kronos::chatH == "")       $pref::Kronos::chatH = 0.16;         // WIN
 if($pref::Kronos::chatPosX == "")    $pref::Kronos::chatPosX = 0.015;     // top-left, fractions
 if($pref::Kronos::chatPosY == "")    $pref::Kronos::chatPosY = 0.58;
 if($pref::Kronos::chatBg == "")      $pref::Kronos::chatBg = true;        // dim backdrop behind text
+// Shared with the native stock chat (FearGuiChatDisplay): consecutive identical player
+// lines collapse to one row with a " (Nx)" counter instead of flooding the log.
+if($pref::ChatCollapseRepeats == "") $pref::ChatCollapseRepeats = true;
 // $pref::Kronos::chatHide = space-list of filtered categories (persists). "" = none hidden.
 
 $KC::MaxRaw = 120;   // stored source messages (for re-wrap on resize)
@@ -62,7 +65,7 @@ function KronosChat::onTag(%client, %tag, %value, %repeated)
 }
 Event::Attach(eventClientTagMessage, KronosChat::onTag, attachKronosChatTag);
 
-function KronosChat::onMsg(%client, %msg, %repeated)
+function KronosChat::onMsg(%client, %msg, %repeated, %msgType)
 {
 	%muted = $KC::muteThis;
 	$KC::muteThis = false;        // consume the per-message filter flag
@@ -79,8 +82,17 @@ function KronosChat::onMsg(%client, %msg, %repeated)
 	// quotes; system lines ("You have entered...", "Jobo has joined") have neither.
 	// (Use the \" escaped double quote - standard in this codebase - NOT a single
 	// quote, which Tribes' parser treats as a tagged-string delimiter.)
+	// On a STOCK server the engine already tells us: %msgType 2 = global chat, 3 = team
+	// chat (events.cs forwards it from the native onClientMessage), and %client is the
+	// sender's id -- so "Jobo: hi" from a normal Tribes server is a player line even
+	// though it carries neither quotes nor a channel tag. Kronos relays everything as
+	// %client 0 / type 0, where the text heuristic below still decides.
 	%type = "srv";
-	if(String::findSubStr(%msg, "\"") != -1
+	if(%msgType == 2 || %msgType == 3)
+		%type = "ply";
+	else if(%client != 0 && %client != "")
+		%type = "ply";
+	else if(String::findSubStr(%msg, "\"") != -1
 		|| String::findSubStr(%msg, "[GLBL]") != -1
 		|| String::findSubStr(%msg, "[TEAM]") != -1)
 		%type = "ply";
@@ -92,12 +104,31 @@ function KronosChat::onMsg(%client, %msg, %repeated)
 	$KC::diag1 = $KC::diag0;
 	$KC::diag0 = "[" @ %type @ "] " @ String::getSubStr(%msg, 0, 45);
 
+	// REPEAT COLLAPSE ($pref::ChatCollapseRepeats): a player line identical to the
+	// newest stored one (exact text incl. the sender prefix, so different senders
+	// never merge; case- and space-sensitive) bumps that entry's counter instead of
+	// adding a row. $KC::raw[] stays UNDECORATED -- the " (Nx)" suffix is generated
+	// at wrap time by KronosChat::rawText, so a rewrap (resize / font change) and the
+	// 9x -> 10x width change are always correct. Only "ply" lines collapse; repeated
+	// system lines are distinct events even when worded alike.
+	if($pref::ChatCollapseRepeats && $KC::rawN > 0
+		&& String::Compare(%type, "ply") == 0
+		&& String::Compare($KC::rawType[$KC::rawN - 1], "ply") == 0
+		&& String::Compare($KC::raw[$KC::rawN - 1], %msg) == 0)
+	{
+		%last = $KC::rawN - 1;
+		$KC::rawRepeat[%last] = $KC::rawRepeat[%last] + 1;
+		if($KC::lastW > 0 && $KC::lastFont > 0)
+			KronosChat::rewrapNewest($KC::lastW, $KC::lastFont);
+		return;
+	}
+
 	KronosChat::pushRaw(%msg, %type);
 
 	// wrap incrementally using the last render metrics; if we haven't
 	// rendered yet, render()'s first pass will rewrap everything
 	if($KC::lastW > 0 && $KC::lastFont > 0)
-		KronosChat::wrapPush(%msg, %type, $KC::lastW, $KC::lastFont);
+		KronosChat::wrapNewest($KC::lastW, $KC::lastFont);
 }
 
 Event::Attach(eventClientMessage, KronosChat::onMsg, attachKronosChat);
@@ -114,12 +145,52 @@ function KronosChat::pushRaw(%text, %type)
 		{
 			$KC::raw[%i] = $KC::raw[%i + %drop];
 			$KC::rawType[%i] = $KC::rawType[%i + %drop];
+			$KC::rawRepeat[%i] = $KC::rawRepeat[%i + %drop];
 		}
 		$KC::rawN -= %drop;
 	}
 	$KC::raw[$KC::rawN] = %text;
 	$KC::rawType[$KC::rawN] = %type;
+	$KC::rawRepeat[$KC::rawN] = 1;
 	$KC::rawN++;
+}
+
+// The DISPLAYED text of raw entry %i: the stored text plus " (Nx)" once repeated.
+function KronosChat::rawText(%i)
+{
+	if($KC::rawRepeat[%i] > 1)
+		return $KC::raw[%i] @ " (" @ $KC::rawRepeat[%i] @ "x)";
+	return $KC::raw[%i];
+}
+
+// Wrap the newest raw entry onto the DL buffer and remember how many display lines
+// it produced ($KC::newestDL), so a repeat can replace exactly those lines.
+function KronosChat::wrapNewest(%w, %font)
+{
+	%p0 = $KC::dlPushed;
+	%i = $KC::rawN - 1;
+	KronosChat::wrapPush(KronosChat::rawText(%i), $KC::rawType[%i], %w, %font);
+	$KC::newestDL = $KC::dlPushed - %p0;
+}
+
+// Re-wrap the newest raw entry in place after its repeat counter changed: pop the
+// lines it contributed, push the decorated text again, and keep a paged-up reader
+// anchored on the same old lines even if the line count changed.
+function KronosChat::rewrapNewest(%w, %font)
+{
+	%pop = $KC::newestDL;
+	if(%pop > $KC::dlN)
+		%pop = $KC::dlN;
+	$KC::dlN -= %pop;
+	if($KC::scroll > 0)
+	{
+		$KC::scroll -= %pop;
+		if($KC::scroll < 0)
+			$KC::scroll = 0;
+	}
+	// pushDL only advances the anchor while scroll > 0; if the pop took it to 0 the
+	// reader was looking at this very message, so it may simply follow the bottom.
+	KronosChat::wrapNewest(%w, %font);
 }
 
 function KronosChat::pushDL(%text, %type)
@@ -137,6 +208,7 @@ function KronosChat::pushDL(%text, %type)
 	$KC::dl[$KC::dlN] = %text;
 	$KC::dlType[$KC::dlN] = %type;
 	$KC::dlN++;
+	$KC::dlPushed++;   // monotonic; wrapNewest measures its line count from this
 
 	// if the user has scrolled up, keep the view anchored on the same old
 	// lines as new ones arrive (don't yank them to the bottom)
@@ -179,8 +251,13 @@ function KronosChat::rewrap(%w, %font)
 {
 	$KC::rewrapping = true;   // suppress scroll anchoring during a full rebuild
 	$KC::dlN = 0;
+	$KC::newestDL = 0;
 	for(%i = 0; %i < $KC::rawN; %i++)
-		KronosChat::wrapPush($KC::raw[%i], $KC::rawType[%i], %w, %font);
+	{
+		%p0 = $KC::dlPushed;
+		KronosChat::wrapPush(KronosChat::rawText(%i), $KC::rawType[%i], %w, %font);
+		$KC::newestDL = $KC::dlPushed - %p0;   // last iteration = newest entry
+	}
 	$KC::rewrapping = false;
 }
 
@@ -806,6 +883,7 @@ function KronosChat::clear()
 {
 	$KC::rawN = 0;
 	$KC::dlN = 0;
+	$KC::newestDL = 0;
 }
 
 // preview without a server: inject sample lines
@@ -848,6 +926,8 @@ function KronosChat::bindTalkKey()
 // ============================================
 $KC::rawN = 0;
 $KC::dlN = 0;
+$KC::dlPushed = 0;
+$KC::newestDL = 0;
 $KC::scroll = 0;
 $KC::rewrapping = false;
 $KC::btnShown = false;

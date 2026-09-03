@@ -694,7 +694,12 @@ function Game::checkTimeLimit()
 
    if(!$Server::timeLimit)
    {
-      schedule("Game::checkTimeLimit();", 60);
+      // (2026-09-01) Unlimited match: still publish the clock so clients count up from
+      // 00:00 at match start instead of keeping the previous map's value (positive =
+      // seconds elapsed; negative = countdown). See objectives.cs Game::timeLimitTick.
+      if($matchStarted)
+         UpdateClientTimes($missionStartTime - getSimTime());
+      schedule("Game::checkTimeLimit();", 20);
       return;
    }
    %curTimeLeft = ($Server::timeLimit * 60) + $missionStartTime - getSimTime();

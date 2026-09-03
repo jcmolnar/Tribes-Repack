@@ -261,7 +261,11 @@ function CheckRepeatedMessages(%msg)
 // eventClientTagMessage(%client, %tag, %value, %repeated);
 // eventOtherPlayerMessage(%client, %msg, %repeated);
 // ---------------------------------------------------------------------------
-function onClientMessage(%client, %msg)
+// %msgType: the native client passes the engine message type as a third argument
+// (System 0 / Game 1 / Chat 2 / TeamChat 3 / Command 4). Forwarded as a FOURTH
+// eventClientMessage argument so handlers can tell player chat from system lines
+// without text heuristics; 3-argument handlers simply ignore it. "" on old clients.
+function onClientMessage(%client, %msg, %msgType)
 {
     %repeated = false;
 
@@ -337,7 +341,7 @@ function onClientMessage(%client, %msg)
     Event::Trigger(eventExtendedClientMessage, %client, %msg, %short, %repeated);
     %muted = %muted || Event::Returned(eventExtendedClientMessage, mute);
 
-    Event::Trigger(eventClientMessage, %client, %short, %repeated);
+    Event::Trigger(eventClientMessage, %client, %short, %repeated, %msgType);
     %muted = %muted || Event::Returned(eventClientMessage, mute);
 
     return !%muted;

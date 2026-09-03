@@ -244,12 +244,22 @@ function vodka::clock::Update()
 }
 
 // from Modules/gameclock.acs.cs  (originally clock::UpdateTime)
+// (2026-09-01) The eventUpdateTime bridge (Presto events.cs remoteSetTime) assumes every
+// setTime is a countdown and negates it; an unlimited match now syncs a POSITIVE count-up
+// clock (objectives.cs Game::timeLimitTick), which arrived here as negative minutes and
+// ran the private timer below zero. Read the engine clock directly instead: sign = direction.
 function vodka::clock::UpdateTime(%min, %sec)
 {
-   $clock::Hour = floor(%min / 60);
-   $clock::Min = %min % 60;
-   $clock::Sec = %sec;
-   $clock::CountingDown = true;
+   %t = getHudTimer();
+   if(%t == "")
+      %t = 0;
+   $clock::CountingDown = (%t < 0);
+   if(%t < 0)
+      %t = -%t;
+   %t = floor(%t);
+   $clock::Hour = floor(%t / 3600);
+   $clock::Min = floor((%t - $clock::Hour * 3600) / 60);
+   $clock::Sec = %t % 60;
    Schedule::Add("vodka::clock::Iterate();", 1);
 }
 

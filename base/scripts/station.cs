@@ -211,6 +211,12 @@ function Station::weaponCheck(%this)
 {
 	if(%this.lastPlayer != "") {
 		%player = %this.lastPlayer;
+		// lastPlayer is a bare object id; once that player is deleted the id can be
+		// reused by a connection object, and touching a field on it faults the engine.
+		if(getObjectType(%player) != "Player") {
+			%this.lastPlayer = "";
+			return;
+		}
 		%player.Station = "";
 		if(Player::getMountedItem(%player,$WeaponSlot) == -1){
 			if(%player.lastWeapon != "") {
@@ -454,7 +460,7 @@ function AmmoStation::onResupply(%this)
 			}		
 			%this.target = "";
 		}
-		else {
+		else if(getObjectType(%this.lastPlayer) == "Player") {
 			%this.lastPlayer.Station = "";
 			if(Player::getMountedItem(%this.lastPlayer,$WeaponSlot) == -1){
 				if(%this.lastPlayer.lastWeapon != "") {

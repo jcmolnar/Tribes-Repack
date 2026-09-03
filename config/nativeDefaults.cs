@@ -1053,6 +1053,28 @@ function Telestrator::paint(%dims)
 // (loaded after client.cs) keeps rolling while a demo is genuinely playing:
 // getDemoTime() is -1 the instant playback is over, so the stock disconnect branch
 // still runs when the recording itself ends.
+// 2026-09-03 (player report: "pressing Escape does not exit a demo"). The ELM() guard
+// below is right for the RECORDED match-end, but the player's Escape reached the same
+// function and was swallowed with it. The engine now sends the player's key here during
+// playback (dlgPlay.cpp, SimGame::isPlayback), and this ends the demo unconditionally --
+// the same exit stock ELM() takes once a recording is over.
+// DEFERRED like stock EnterLobbyMode (schedule("ELM();", 0)): the engine calls this from
+// INSIDE the action-map dispatch of the Escape key, and disconnect() tears down the
+// play delegate and its maps while SimActionHandler::onSimInputEvent is still walking
+// them -- Joe's first try crashed there (simAction.cpp:520, freed-memory read).
+function DemoPlaybackEscape()
+{
+	schedule("DemoPlaybackEscapeNow();", 0);
+}
+
+function DemoPlaybackEscapeNow()
+{
+	setCursor(MainWindow, "Cur_Arrow.bmp");
+	disconnect();
+	startMainMenuScreen();
+	GuiLoadContentCtrl(MainWindow, "gui\\Recordings.gui");
+}
+
 function ELM()
 {
 	if($playingDemo && getDemoTime() != -1)
@@ -1104,3 +1126,100 @@ function remoteMMTurn(%server, %slow, %fast)
    $MMC::turnSlow = %slow;
    $MMC::turnFast = %fast;
 }
+
+//====================================================================================
+// GAMEPLAY SCRIPTS (2026-08-30) -- the classic community QoL modules (retro 1.41's
+// config\Modules\*.acs.cs), ported here behind $pref::script* toggles. Each has a row
+// on Options > Scripts (fearGuiModernOptions.cpp g_scripts); everything ships OFF.
+//
+// AUTOKIT (port of autokit.acs.cs): use a Repair Kit automatically when health drops
+// below 65 (engine exports $Health 0-100 every frame, CfgSyncHudVars_now). The tick
+// chain rides schedule(), which dies with the sim manager on disconnect -- so
+// eventConnected (fired by events.cs dataFinished on every connect/mission load)
+// restarts it, and the generation stamp keeps a restart from stacking a second chain.
+// The PREF gates the tick BODY, not the chain, so the Options toggle applies on the
+// next tick with no reconnect.
+//
+// Station hold: at an inventory station healing is free, so firing a kit there wastes
+// it. The classic script watched $Station::Type (set by community config packs'
+// Core\Station.cs); our stock GUI signal is $Mode::InventoryMode (events.cs
+// CmdInventoryGui::onOpen). Watch both, and keep holding 9 seconds after leaving,
+// exactly like the original's station defer.
+//====================================================================================
+if($pref::scriptAutokit == "")
+	$pref::scriptAutokit = 0;
+
+function Autokit::tick(%gen)
+{
+	if(%gen != $Autokit::gen)
+		return;
+	schedule("Autokit::tick(" @ %gen @ ");", 0.1);
+	if($pref::scriptAutokit != 1)
+		return;
+	if($Station::Type != "" || $Mode::InventoryMode)
+	{
+		$Autokit::holdUntil = getSimTime() + 9;
+		return;
+	}
+	if(getSimTime() < $Autokit::holdUntil)
+		return;
+	if($Health <= 0 || $Health >= 65)
+		return;
+	if(getItemCount("Repair Kit") > 0)
+		useItem(getItemType("Repair Kit"));
+}
+
+function Autokit::start()
+{
+	$Autokit::gen = $Autokit::gen + 1;
+	$Autokit::holdUntil = 0;
+	Autokit::tick($Autokit::gen);
+}
+Event::Attach(eventConnected, Autokit::start);
+
+//====================================================================================
+// DEMO NAMER (port of DemoNamer.acs.cs, replaces stock base\scripts\client.cs
+// setupRecorderFile -- this file execs LAST, so this definition wins). Stock named
+// demos recordings\recordingN.rec (first free slot: sorts terribly, reuses deleted
+// slots); name them by wall clock instead -- recordings\2026-08-30-21.14.05.rec.
+// timestamp() format is the TimestampPlugin contract "YYYY-MM-DD HH:MM:SS.mmm"
+// (kronosNativeCmds.cpp); colons must NOT reach the filename (the engine sanitizer
+// would rewrite them, netCSDelegate.cpp:339), hence dots in the time part.
+//
+// Callers: the Join page Record Demo checkbox and the modern Host page toggle (both
+// eval "setupRecorderFile();"); an explicit %fileName still wins, stock-style. The
+// engine reads $recorderFileName ONCE per connect, so eventConnected/eventLeaveServer
+// re-arm a FRESH name for the NEXT connect -- without that, a second join with the
+// box still ticked reused the old name and overwrote the first demo.
+//
+// $pref::casterAutoRecord owns $recorderFileName when it is on (see the AUTO-RECORD
+// block above) -- never touch the variable in that mode.
+//====================================================================================
+function setupRecorderFile(%fileName)
+{
+	if($pref::casterAutoRecord == 1)
+		return "True";
+	if(!$recordDemo)
+	{
+		$recorderFileName = "";
+		return "True";
+	}
+	if(%fileName != "" && %fileName != "False")
+		$recorderFileName = "recordings\\" @ %fileName;
+	else
+	{
+		%ts = timestamp();
+		$recorderFileName = "recordings\\" @ String::getSubStr(%ts, 0, 10) @ "-" @ String::getSubStr(%ts, 11, 2) @ "." @ String::getSubStr(%ts, 14, 2) @ "." @ String::getSubStr(%ts, 17, 2) @ ".rec";
+	}
+	echo("Recording to - " @ $recorderFileName);
+	return "True";
+}
+
+function DemoNamer::rearm()
+{
+	if($pref::casterAutoRecord == 1)
+		return;
+	setupRecorderFile();
+}
+Event::Attach(eventConnected, DemoNamer::rearm);
+Event::Attach(eventLeaveServer, DemoNamer::rearm);

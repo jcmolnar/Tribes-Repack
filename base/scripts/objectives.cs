@@ -3,6 +3,19 @@ $flagReturnTime = 45;
 
 function ObjectiveMission::missionComplete()
 {
+   // MCP (mission hold): a held host never ends its match -- score limit and time limit
+   // both land here, and the frozen victory state (nospawn, guiLock) would break a test
+   // as surely as the rotation it precedes. See Server::nextMission.
+   if($Server::HoldMission)
+   {
+      // Once per map: bots re-hit the score limit on every capture (HillPileLT: every few seconds).
+      if($Server::HoldMissionSaid != $missionName)
+      {
+         $Server::HoldMissionSaid = $missionName;
+         echo("[HOLD] mission complete suppressed (staying on ", $missionName, ")");
+      }
+      return;
+   }
    $missionComplete = true;
    %group = nameToID("MissionCleanup/ObjectivesSet");
    for(%i = 0; (%obj = Group::getObject(%group, %i)) != -1; %i++)
@@ -143,16 +156,56 @@ function objective::displayBitmap(%team, %line)
  		Team::setObjective(%team, %line, "<jc><B0,0:" @ %bitmap1 @ "><B0,0:" @ %bitmap2 @ ">");
 }
 
+// Client clock sync (2026-09-01, "28:00+ after a map change" bug):
+// cg.clockTime on every client (1.40 and 1.50 alike) is a free-running counter that
+// only the server's remoteEval(setTime) ever sets (client.cs remoteSetTime ->
+// setHudTimer -> FearPlugin.cpp c_setHudTimer). The stock no-limit branch below
+// rescheduled itself and sent NOTHING, so with $Server::timeLimit = 0 a client kept
+// whatever clock it inherited from the previous map (or from process start) and
+// kept counting. Fix: always publish a signed clock value -- negative = seconds
+// remaining (countdown, unchanged), positive = seconds elapsed (count-up from 00:00
+// at match start). ClockHud and ModernHUD draw abs(), so both signs display.
+//
+// The checker is also generation-tokened: Game::checkTimeLimit() (called from
+// Game::startMatch and from remoteSetTimeLimit below) restarts the chain and any
+// older scheduled tick exits, so there is exactly one live chain per mission.
+
+// Signed clock value the client should display right now (see above).
+function Game::clientClockValue()
+{
+   if($Server::timeLimit)
+      return getSimTime() - $missionStartTime - ($Server::timeLimit * 60);
+   return getSimTime() - $missionStartTime;
+}
+
+// Send the current clock to ONE client (late joiners, remoteCGADone in server.cs).
+function Game::syncClientClock(%cl)
+{
+   if(!$matchStarted)
+      return;
+   remoteEval(%cl, "setTime", Game::clientClockValue());
+}
+
 function Game::checkTimeLimit()
 {
+   $Game::timeChainGen = $Game::timeChainGen + 1;
+   Game::timeLimitTick($Game::timeChainGen);
+}
+
+function Game::timeLimitTick(%gen)
+{
+   if(%gen != $Game::timeChainGen)
+      return;
    // if no timeLimit set or timeLimit set to 0,
-   // just reschedule the check for a minute hence
+   // keep the clients' clocks in step and reschedule the check
    $timeLimitReached = false;
    ObjectiveMission::setObjectiveHeading();
 
    if(!$Server::timeLimit)
    {
-      schedule("Game::checkTimeLimit();", 60);
+      if($matchStarted)
+         UpdateClientTimes($missionStartTime - getSimTime());
+      schedule("Game::timeLimitTick(" @ %gen @ ");", 20);
       return;
    }
 
@@ -170,10 +223,29 @@ function Game::checkTimeLimit()
    else
    {
       if(%curTimeLeft >= 20)
-         schedule("Game::checkTimeLimit();", 20);
+         schedule("Game::timeLimitTick(" @ %gen @ ");", 20);
       else
-         schedule("Game::checkTimeLimit();", %curTimeLeft + 1);
+         schedule("Game::timeLimitTick(" @ %gen @ ");", %curTimeLeft + 1);
       UpdateClientTimes(%curTimeLeft);
+   }
+}
+
+// Overrides admin.cs remoteSetTimeLimit (objectives.cs is exec'd per mission, after
+// admin.cs): same body, plus an immediate clock resync + checker restart so a
+// 30 -> 10 or 10 -> 0 change shows on every client now, not up to 60 s later.
+function remoteSetTimeLimit(%client, %time)
+{
+   %time = floor(%time);
+   if(%time == $Server::timeLimit || (%time != 0 && %time < 1))
+      return;
+   if(%client.isAdmin)
+   {
+      $Server::timeLimit = %time;
+      if(%time)
+         messageAll(0, Client::getName(%client) @ " changed the time limit to " @ %time @ " minute(s).");
+      else
+         messageAll(0, Client::getName(%client) @ " disabled the time limit.");
+      Game::checkTimeLimit();
    }
 }
 

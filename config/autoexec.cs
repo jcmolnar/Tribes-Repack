@@ -18,6 +18,21 @@ exec("presto\\install.cs");
 if($Config::Name == "")
 	Include("cowboy\\CmdHUD.cs");
 
+// NATIVE FIX 2026-09-02 (Joe: "hit MAP in the command screen and everything disappeared").
+// command.gui bakes "CmdHUD::CmdButtonPress();" on the MAP tab, and cowboy's version toggles
+// its 1.40 small-map mode: it deletes the live FearGui::TSCommander, news a 204x204 one
+// inside SmallMapFrame and shows the world behind it. Under the native full-screen layout
+// (CmdHUD::FullLayout resizes BOTH frames to the whole screen) that leaves a bare world
+// with the TeeniCam in the corner and no map at all. Retail's MAP tab is the tab you are
+// already on: make it exactly that. Must sit AFTER the Include -- same-named console
+// functions silently replace, last definition wins.
+function CmdHUD::CmdButtonPress() {
+	if ($CmdHUD::guiOpen == 2)
+		return;
+	remoteEval(2048, CommandMode);
+	CmdHUD::SetGui(2);
+	}
+
 // FIX: game boots in the Software renderer even though ClientPrefs
 // saves $pref::VideoWindowedDriver = "OpenGL". console.cs applies the
 // video prefs (OptionsVideo::apply) immediately after creating the
@@ -102,9 +117,32 @@ function PrestoAutoAttackToggle() {
 // Edit action map for keybinds
 editActionMap("playMap.sae");
 
-// Mouse wheel weapon switching
-bindCommand(mouse0, zaxis0, TO, "nextWeapon();"); //Wheel forward
-bindCommand(mouse0, zaxis1, TO, "prevWeapon();"); //Wheel backward
+// Mouse wheel weapon switching -- a ONE-TIME seed, not a boot-time reclaim.
+//
+// NATIVE FIX 2026-09-01 (Joe: "unbinding next/prev weapon in Controls looks unbound but the
+// wheel still switches weapons"): this file runs LAST in the boot chain, after the saved
+// config.cs has rebuilt playMap.sae exactly as the player left it, and it used to bindCommand
+// the wheel here unconditionally -- so a deliberate unbind (or a rebind of the wheel to
+// something else) was overwritten on the very next boot. The Options rows for Next/Prev
+// Weapon edit playMap.sae, which is where this bound, so the row even SHOWED "Wheel Up"
+// again after the restart.
+//
+// Now: seed the wheel ONLY on a fresh install -- no saved config.cs yet -- and only once
+// (bindCommandDefault never displaces an existing bind for the command or the key; the
+// persisted pref stops it running again). A returning player's config.cs already carries
+// whatever the wheel does for them, because the old unconditional bind was re-exported into
+// it on every quit -- so an update changes nothing for them, and an unbind made in Controls
+// is never put back. saeModern.cs still ships the same pair inside the preset, so
+// "Defaults" restores it.
+if($pref::wheelWeaponSeeded == "")
+{
+	if(File::findFirst("config\\config.cs") == "")
+	{
+		bindCommandDefault(mouse0, zaxis0, TO, "nextWeapon();"); //Wheel forward
+		bindCommandDefault(mouse0, zaxis1, TO, "prevWeapon();"); //Wheel backward
+	}
+	$pref::wheelWeaponSeeded = 1;
+}
 
 // Auto-attack toggle on J.
 //

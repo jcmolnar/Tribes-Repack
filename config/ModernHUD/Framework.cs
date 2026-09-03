@@ -485,16 +485,60 @@ function ModernHUD::commonSettings()
    // is False too), so guarding on it skipped this row on every pack and the K menu
    // gained nothing. Calling it and testing the spec is self-guarding: an unregistered
    // command evaluates to "" and the row is simply not offered.
-   %fsSpec = ModernHUD::fontSets();
-   if($ModernHUD::PackId != "" && %fsSpec != "" && %fsSpec != "False")
+   // 2026-09-02 (Joe): the per-config "Font set" row is GONE from here and from
+   // Options > Configs > Fonts -- it swapped .pft bitmap sets and read as doing
+   // nothing. Chat text is now ScriptGL in every config (FearGuiChatDisplay.cpp),
+   // and these two GLOBAL rows are its controls: face + size, separate from any
+   // pack's own "HUD font". The engine rewraps the live log the frame a value
+   // changes, so no apply command is needed.
+   %cfSpec = ModernHUD::ttfSpec();
+   if(%cfSpec != "" && !ModernHUD::hasSetting("pref::ChatFont"))
    {
-      %fsKey = "pref::ModernHUD::FontSet::" @ $ModernHUD::PackId;
-      if(!ModernHUD::hasSetting(%fsKey))
-      {
-         ModernHUD::setting("enum", %fsKey, "Font set", "",
-                            %fsSpec, "ModernHUD::applyFonts();");
-      }
+      ModernHUD::setting("enum", "pref::ChatFont", "Chat font", "Segoe UI",
+                         %cfSpec, "");
    }
+   if(!ModernHUD::hasSetting("pref::ChatFontSize"))
+   {
+      ModernHUD::setting("int", "pref::ChatFontSize", "Chat font size (px, 0 = auto)",
+                         "0", "0|48|1", "");
+   }
+   if(!ModernHUD::hasSetting("pref::ChatFontBold"))
+   {
+      ModernHUD::setting("enum", "pref::ChatFontBold", "Chat font weight", "1",
+                         "Semibold|1;Regular|0", "");
+   }
+}
+
+// Installed TrueType families as an enum spec ("Name|Name;..."), scanned ONCE per
+// session from the same candidate list Vector uses (Vector::fontScan), gated on
+// glFontExists so only faces this machine can rasterize are offered.
+function ModernHUD::ttfSpec()
+{
+   if($ModernHUD::TtfSpec != "")
+      return $ModernHUD::TtfSpec;
+   %cand = "Segoe UI;Segoe UI Semibold;Verdana;Tahoma;Trebuchet MS;Calibri;Candara;Corbel;" @
+           "Bahnschrift;Bahnschrift Condensed;Franklin Gothic Medium;Century Gothic;Arial;" @
+           "Arial Narrow;Consolas;Cascadia Mono;Lucida Console;Impact;Rockwell;Eurostile;Agency FB";
+   %spec = "";
+   %cur = "";
+   %len = String::Length(%cand);
+   for(%i = 0; %i <= %len; %i++)
+   {
+      %c = String::getSubStr(%cand, %i, 1);
+      if(%c == ";" || %i == %len)
+      {
+         if(%cur != "" && glFontExists(%cur) == 1)
+         {
+            if(%spec != "") %spec = %spec @ ";";
+            %spec = %spec @ %cur @ "|" @ %cur;
+         }
+         %cur = "";
+      }
+      else
+         %cur = %cur @ %c;
+   }
+   $ModernHUD::TtfSpec = %spec;
+   return %spec;
 }
 
 //------------------------------------------------------------------------------
