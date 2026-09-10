@@ -79,6 +79,34 @@ function Server::onClientDisconnect(%clientId)
       Server::refreshData();
 }
 
+// NETCODE-150 RESUME (session resume): the engine calls Client::onPark when a 1.50 client's
+// link dies while $Server::sessionResume is on, and Client::onResume when that client comes
+// back and gets its own slot again. Score lives in dynamic fields on the client id, which
+// live on the PacketStream object and die with it -- so onPark is the ONLY chance to keep
+// them. A mod that wants more (or less) redefines these two; the engine restores name, team
+// and the scoreboard row either way.
+function Client::onPark(%clientId)
+{
+   $Resume::score[%clientId] = %clientId.score;
+   $Resume::kills[%clientId] = %clientId.scoreKills;
+   $Resume::deaths[%clientId] = %clientId.scoreDeaths;
+   $Resume::ratio[%clientId] = %clientId.ratio;
+   $Resume::admin[%clientId] = %clientId.isAdmin;
+   $Resume::superAdmin[%clientId] = %clientId.isSuperAdmin;
+}
+
+function Client::onResume(%clientId)
+{
+   %clientId.score = $Resume::score[%clientId];
+   %clientId.scoreKills = $Resume::kills[%clientId];
+   %clientId.scoreDeaths = $Resume::deaths[%clientId];
+   %clientId.ratio = $Resume::ratio[%clientId];
+   %clientId.isAdmin = $Resume::admin[%clientId];
+   %clientId.isSuperAdmin = $Resume::superAdmin[%clientId];
+   %clientId.justConnected = "";
+   Game::refreshClientScore(%clientId);
+}
+
 function KickDaJackal(%clientId)
 {
    Net::kick(%clientId, "The FBI has been notified.  You better buy a legit copy before they get to your house.");

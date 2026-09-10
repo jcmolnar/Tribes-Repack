@@ -37,6 +37,7 @@ $Server::MinVotes = "1";
 $Server::MinVotesPct = "0.5";
 $Server::MinVoteTime = "45";
 $server::modinfo = "Running RPG Mod 6.9 - www.tribesrpg.org\n";
+$Server::NetcodeMode = "modern150";
 $Server::NoRepair = "false";
 $Server::numMasters = "6";
 $Server::PermaBanMessage = "You were permanently banned";

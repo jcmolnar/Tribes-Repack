@@ -464,6 +464,17 @@ function ModernHUD::commonSettings()
                          "TRUE", "Off|FALSE;On|TRUE", "");
    }
 
+   // NETCODE-150 NETHUD: live link readout (rtt, loss, snapshot age, clock offset,
+   // negotiated 1.50 badge). Global, not pack-scoped: it describes the connection, which
+   // does not change meaning with the HUD skin. Drawn by ModernHUD::netStats from values
+   // the engine publishes ($net::rttMs/lossPct10/modern/caps from PlayerPSC::readPacket,
+   // $net::snapAgeMs from Item snapshots, $net::clockOffsetMs from CLOCK_SYNC). Default OFF.
+   if(!ModernHUD::hasSetting("pref::Hud::NetStats"))
+   {
+      ModernHUD::setting("enum", "pref::Hud::NetStats", "Net stats readout",
+                         "0", "Off|0;Top right|1;Top left|2", "");
+   }
+
    // ★Fonts, in the K menu, for THIS pack.★ Reported by Joe: the Options tabs had a
    // font row but the K menu had nowhere to change fonts at all, which is the one
    // place a player is actually looking at the HUD while they judge it.
@@ -491,6 +502,41 @@ function ModernHUD::commonSettings()
    // and these two GLOBAL rows are its controls: face + size, separate from any
    // pack's own "HUD font". The engine rewraps the live log the frame a value
    // changes, so no apply command is needed.
+   // ★CHAT VISIBILITY, in the K menu.★ Reported by Joe: the setting existed only on
+   // the Options page, and this is a HUD behaviour a player changes mid-match, in the
+   // menu that opens over the game. Placed with the chat font rows below rather than
+   // up with the crosshair pair so every chat row is adjacent in the panel, which
+   // walks the registry in declaration order.
+   //
+   // Global engine prefs, not pack-scoped, for the same reason as the crosshair pair:
+   // they describe the chat log, which does not change meaning when the HUD skin does.
+   //
+   // ★These are exactly the packs that need it.★ commonSettings runs only for a
+   // ModernHUD pack (modernHudPacks.cpp MHPacks_load is its one caller), and Vector,
+   // Vantage and Ascend are the packs that switch the legacy per-message hider on at
+   // 12 seconds -- the reason lines vanish while people are still talking. Mode 0
+   // leaves that behaviour exactly as it is.
+   //
+   // Resolved natively by ChatVis_mode / ChatVis_idleSeconds (FearGuiChatDisplay.cpp),
+   // which the stock log and the Kronos overlay both read, so no apply command is
+   // needed -- same as the font rows below, the renderers pick it up next frame.
+   if(!ModernHUD::hasSetting("pref::ChatVisibilityMode"))
+   {
+      ModernHUD::setting("enum", "pref::ChatVisibilityMode", "Chat visibility",
+                         "0", "HUD default|0;Keep visible|1;Hide when idle|2", "");
+   }
+
+   // The delay is consulted only in mode 2. The K panel walks a flat row registry and
+   // has no conditional-row mechanism, so unlike the Options page this cannot be
+   // hidden in the other two modes; it sits under its master and reads inert there
+   // rather than inventing a mechanism for one row. The spec matches the native clamp
+   // [5,120] so the stepper cannot author a value the resolver would silently change.
+   if(!ModernHUD::hasSetting("pref::ChatIdleSeconds"))
+   {
+      ModernHUD::setting("int", "pref::ChatIdleSeconds", "Hide chat after (sec)",
+                         "15", "5|120|5", "");
+   }
+
    %cfSpec = ModernHUD::ttfSpec();
    if(%cfSpec != "" && !ModernHUD::hasSetting("pref::ChatFont"))
    {
@@ -2133,6 +2179,363 @@ function ModernHUD::clearComponents()
    $ModernHUD::CompCount = 0;
 }
 
+// NETCODE-150 NETHUD: one-line link readout, framework-level so every pack gets it.
+// Immediate mode: nothing here early-outs once the pref is on (see AUTHORING.md), and
+// the per-frame cost is a handful of global reads plus two glDrawString calls.
+// Values are published by the engine (see the setting comment in commonSettings);
+// a value that has never been published reads "" and is shown as "-".
+function ModernHUD::netStats(%screen)
+{
+   %mode = $pref::Hud::NetStats;
+   if(%mode == "" || %mode == 0)
+      return;
+
+   %rtt  = $net::rttMs;
+   %l10  = $net::lossPct10;
+   %age  = $net::snapAgeMs;
+   %mod  = $net::modern;
+   %lc   = $net::lagComp;
+
+   if(%rtt == "") { %rtt = "-"; }
+   if(%l10 == "") { %l10 = 0; }
+   %whole = floor(%l10 / 10);
+   %lossStr = %whole @ "." @ (%l10 - %whole * 10) @ "%";
+
+   if(%mod == 1)
+   {
+      %badge = "1.50";
+      if(%lc == 1) { %badge = %badge @ "+LC"; }
+   }
+   else
+      %badge = "legacy";
+
+   %str = %badge @ "  rtt " @ %rtt @ " ms  loss " @ %lossStr;
+   // snap = age of the newest in-flight item snapshot; the engine publishes -1 once
+   // nothing has been in flight for 2 s, so a frozen number never lingers.
+   if(%mod == 1 && %age != "" && %age >= 0)
+      %str = %str @ "  snap " @ %age @ " ms";
+
+   // Amber when the link is the likely cause of what the player is seeing.
+   %warn = (%rtt != "-" && %rtt >= 150) || (%l10 >= 20);
+   %rgb = %warn ? "255 176 64" : "222 226 232";
+
+   // Same height as the engine FPS counter beside it (12 px read as fine print).
+   %px = 16;
+   %font = $ModernHUD::MenuFont;
+   if(%font == "") { %font = "Verdana"; }
+   glSetFont(%font, %px);
+   %sw = getWord(glGetStringDimensions(%str), 0);
+
+   %sx = getWord(%screen, 0);
+   %x = (%mode == 2) ? 12 : (%sx - %sw - 12);
+   %y = 8;
+
+   ModernHUD::mColor("0 0 0", 160);
+   glDrawString(%x + 1, %y + 1, %str);
+   ModernHUD::mColor(%rgb, 230);
+   glDrawString(%x, %y, %str);
+}
+
+//------------------------------------------------------------------------------
+// MUSIC PANEL (2026-09-04). Opened by MusicHud::toggle() (config\nativeDefaults.cs;
+// default J in the base set, Escape closes it through dlgPlay.cpp). Same chrome,
+// palette and pointer plumbing as the K panel above. This file only DRAWS and turns
+// clicks into MusicHud::* calls -- the transport logic lives in nativeDefaults.cs so
+// the bare next / previous keys work with any HUD loaded.
+//------------------------------------------------------------------------------
+
+// Centre-top line for ~2.5 s after a bare-key track change ($MusicHud::Toast*).
+function ModernHUD::musicToast(%screen)
+{
+   if($MusicHud::ToastText == "")
+      return;
+   if(getSimTime() > $MusicHud::ToastUntil)
+      return;
+
+   %sw = getWord(%screen, 0);
+   %sh = getWord(%screen, 1);
+   %str = "MUSIC   " @ $MusicHud::ToastText;
+   %px = 16;
+   %font = $ModernHUD::MenuFont;
+   if(%font == "") { %font = "Verdana"; }
+   glSetFont(%font, %px);
+   %tw = getWord(glGetStringDimensions(%str), 0);
+   %x = floor((%sw - %tw) / 2);
+   // A quarter of the way down: clear of the packs' top score/clock bars (at y=48 it
+   // sat under the ascend clock) and above the reticle.
+   %y = floor(%sh / 4);
+
+   ModernHUD::mColor("10 13 16", 170);
+   glRectangle(%x - 12, %y - 5, %tw + 24, %px + 10);
+   ModernHUD::mColor($ModernHUD::MenuPrimary, 255);
+   glRectangle(%x - 12, %y - 5, 3, %px + 10);
+   ModernHUD::mText(%x, %y, %tw, $ModernHUD::MenuText, %str, 245, %px, "l");
+}
+
+function ModernHUD::musicTime(%s)
+{
+   %s = floor(%s);
+   %m = floor(%s / 60);
+   %r = %s - %m * 60;
+   if(%r < 10)
+      return %m @ ":0" @ %r;
+   return %m @ ":" @ %r;
+}
+
+// A labelled button: 1px outline that FILLS under the pointer. Returns 1 on a fresh
+// click (edge-triggered through mClicked, like mStep).
+function ModernHUD::mButton(%x, %y, %w, %h, %label, %mx, %my)
+{
+   if(ModernHUD::mHit(%mx, %my, %x, %y, %w, %h))
+   {
+      ModernHUD::mColor($ModernHUD::MenuPrimary, 255);
+      glRectangle(%x, %y, %w, %h);
+      ModernHUD::mText(%x, %y + 3, %w, "16 20 24", %label, 255, 11, "c");
+   }
+   else
+   {
+      ModernHUD::mColor($ModernHUD::MenuPrimary, 130);
+      glRectangle(%x, %y, %w, 1);
+      glRectangle(%x, %y + %h - 1, %w, 1);
+      glRectangle(%x, %y, 1, %h);
+      glRectangle(%x + %w - 1, %y, 1, %h);
+      ModernHUD::mText(%x, %y + 3, %w, $ModernHUD::MenuPrimary, %label, 230, 11, "c");
+   }
+   if(ModernHUD::mClicked(%mx, %my, %x, %y, %w, %h)) { return 1; }
+   return 0;
+}
+
+function ModernHUD::musicPanel(%screen)
+{
+   ModernHUD::musicToast(%screen);
+
+   if($MusicHud::Open != 1)
+   {
+      $MusicHud::Down = "";
+      $MusicHud::Drag = "";
+      return;
+   }
+
+   %sw = getWord(%screen, 0);
+   %sh = getWord(%screen, 1);
+
+   // Identity part scale, for the same reason menu() does it.
+   glPartScale(0, 0, 1);
+
+   %have = isObject(CD);
+   %n = 0;
+   if(%have) { %n = rbGetTrackCount(CD); }
+   %tracks = %n - 1;                 // CD tracks 2..%n are the files
+   if(%tracks < 0) { %tracks = 0; }
+
+   %rowH = 20;
+   %head = 34;
+   %top  = 112;                      // now-playing, transport, volume/mode
+   %foot = 30;
+   %w    = 330;
+   %h    = %head + %top + %tracks * %rowH + %foot;
+
+   %x = $pref::ModernHUD::MusicX;
+   %y = $pref::ModernHUD::MusicY;
+   if(%x == "") { %x = 40; }
+   if(%y == "") { %y = floor((%sh - %h) / 2); }
+
+   %m   = glMousePos();
+   %mx  = getWord(%m, 0);
+   %my  = getWord(%m, 1);
+   %lmb = getWord(%m, 2);
+
+   // Same click edge the K panel computes (mStep / mClicked read
+   // $ModernHUD::MenuClick). With both panels open, menu() derived the identical
+   // value from the same button state this frame.
+   $ModernHUD::MenuClick = "";
+   if(%lmb == 1 && $MusicHud::Down != 1) { $ModernHUD::MenuClick = 1; }
+   $MusicHud::Down = %lmb;
+   %click = $ModernHUD::MenuClick;
+
+   // Drag by the header (grab offset, so no jump on the first frame).
+   if(%lmb != 1)
+   {
+      $MusicHud::Drag = "";
+   }
+   else if($MusicHud::Drag == 1)
+   {
+      %x = %mx - $MusicHud::DragDX;
+      %y = %my - $MusicHud::DragDY;
+   }
+   else if(%click == 1 && ModernHUD::mHit(%mx, %my, %x, %y, %w, %head))
+   {
+      $MusicHud::Drag   = 1;
+      $MusicHud::DragDX = %mx - %x;
+      $MusicHud::DragDY = %my - %y;
+   }
+   if(%x < 0)           { %x = 0; }
+   if(%y < 0)           { %y = 0; }
+   if(%x > %sw - 60)    { %x = %sw - 60; }
+   if(%y > %sh - %head) { %y = %sh - %head; }
+   $pref::ModernHUD::MusicX = %x;
+   $pref::ModernHUD::MusicY = %y;
+
+   ModernHUD::mFrame(%x, %y, %w, %h, %head);
+   ModernHUD::mText(%x + 14, %y + 8, 200, $ModernHUD::MenuPrimary, "MUSIC", 255, 16, "l");
+   ModernHUD::mText(%x + 78, %y + 13, 200, "120 135 150", "SOUNDTRACK", 210, 10, "l");
+   ModernHUD::mText(%x - 14, %y + 13, %w, "120 135 150", "J / Esc to close", 200, 10, "r");
+
+   %cur = 0;
+   %state = "none";
+   if(%have)
+   {
+      %cur = rbGetCurrentTrack(CD);
+      %state = rbGetState(CD);
+   }
+   %on = $pref::cdMusic;
+
+   // -- now playing -----------------------------------------------------------
+   %cy = %y + %head + 8;
+   if(!%on)
+   {
+      %line1 = "music is off";
+      %line2 = "";
+   }
+   else if(!%have || %n < 2)
+   {
+      %line1 = "no music files";
+      %line2 = "drop .mp3 / .ogg files into base\\music";
+   }
+   else if(%state == "stopped" || %cur < 2)
+   {
+      %line1 = "stopped";
+      %line2 = %tracks @ " tracks";
+   }
+   else
+   {
+      %line1 = rbGetTrackName(CD, %cur);
+      %line2 = ModernHUD::musicTime(rbGetPosition(CD)) @ "   track " @ %cur;
+      if(%state == "paused")
+         %line2 = "paused   " @ %line2;
+   }
+   ModernHUD::mText(%x + 14, %cy, %w - 28, $ModernHUD::MenuText, %line1, 250, 13, "l");
+   ModernHUD::mText(%x + 14, %cy + 19, %w - 28, $ModernHUD::MenuAccent, %line2, 235, 11, "l");
+
+   // -- transport -------------------------------------------------------------
+   %by = %cy + 42;
+   %bh = 18;
+   %bx = %x + 14;
+   if(ModernHUD::mButton(%bx, %by, 40, %bh, "|<", %mx, %my) == 1) { MusicHud::prev(); }
+   %bx = %bx + 46;
+   %pp = ">";
+   if(%state == "playing") { %pp = "||"; }
+   if(ModernHUD::mButton(%bx, %by, 40, %bh, %pp, %mx, %my) == 1) { MusicHud::playPause(); }
+   %bx = %bx + 46;
+   if(ModernHUD::mButton(%bx, %by, 40, %bh, ">|", %mx, %my) == 1) { MusicHud::next(); }
+   %bx = %bx + 46;
+   if(ModernHUD::mButton(%bx, %by, 40, %bh, "[ ]", %mx, %my) == 1) { MusicHud::stop(); }
+   %onLabel = "OFF";
+   if(%on) { %onLabel = "ON"; }
+   if(ModernHUD::mButton(%x + %w - 14 - 56, %by, 56, %bh, %onLabel, %mx, %my) == 1) { MusicHud::toggleEnabled(); }
+
+   // -- volume + mode ---------------------------------------------------------
+   %vy = %by + 27;
+   %vol = $pref::cdVolume;
+   if(%vol == "") { %vol = 0.5; }
+   %pct = floor(%vol * 100 + 0.5);
+   %bs = 16;
+   ModernHUD::mText(%x + 14, %vy + 2, 56, "150 165 180", "volume", 245, 11, "l");
+   if(ModernHUD::mStep(%x + 72, %vy, %bs, "-", %mx, %my) == 1) { MusicHud::volume(-0.1); }
+   ModernHUD::mText(%x + 72 + %bs, %vy + 2, 44, $ModernHUD::MenuAccent, %pct @ "%", 255, 11, "c");
+   if(ModernHUD::mStep(%x + 72 + %bs + 44, %vy, %bs, "+", %mx, %my) == 1) { MusicHud::volume(0.1); }
+
+   %mode = $cdPlayMode;
+   %modeLabel = "MODE: REPEAT";
+   %modeNext = 2;
+   if(%mode == 2)
+   {
+      %modeLabel = "MODE: ALL";
+      %modeNext = 1;
+   }
+   if(ModernHUD::mButton(%x + %w - 14 - 110, %vy - 1, 110, %bh, %modeLabel, %mx, %my) == 1) { MusicHud::setMode(%modeNext); }
+
+   // -- track list ------------------------------------------------------------
+   %ly = %y + %head + %top;
+   ModernHUD::mColor($ModernHUD::MenuPrimary, 70);
+   glRectangle(%x + 3, %ly - 4, %w - 4, 1);
+   %ry = %ly;
+   for(%t = 2; %t <= %n; %t++)
+   {
+      %name = rbGetTrackName(CD, %t);
+      %over = ModernHUD::mHit(%mx, %my, %x, %ry, %w, %rowH);
+      %isCur = 0;
+      if(%t == %cur && %state != "stopped") { %isCur = 1; }
+      if(%over || %isCur == 1)
+      {
+         %a = 30;
+         if(%over) { %a = 55; }
+         ModernHUD::mColor($ModernHUD::MenuPrimary, %a);
+         glGradientRect(%x + 2, %ry, %w - 4, %rowH,
+                        getWord($ModernHUD::MenuPrimary, 0),
+                        getWord($ModernHUD::MenuPrimary, 1),
+                        getWord($ModernHUD::MenuPrimary, 2), 0, "h");
+      }
+      if(%isCur == 1)
+      {
+         ModernHUD::mColor($ModernHUD::MenuPrimary, 255);
+         glRectangle(%x + 2, %ry + 4, 3, %rowH - 8);
+      }
+      %lc = "150 165 180";
+      if(%over) { %lc = $ModernHUD::MenuText; }
+      if(%isCur == 1) { %lc = $ModernHUD::MenuAccent; }
+      ModernHUD::mText(%x + 14, %ry + 4, 24, "90 105 118", %t, 220, 10, "l");
+      ModernHUD::mText(%x + 40, %ry + 3, %w - 54, %lc, %name, 245, 12, "l");
+      if(%over && %click == 1) { MusicHud::playTrack(%t); }
+      %ry = %ry + %rowH;
+   }
+
+   // -- footer ----------------------------------------------------------------
+   %fy = %y + %h - %foot;
+   ModernHUD::mColor($ModernHUD::MenuPrimary, 70);
+   glRectangle(%x + 3, %fy, %w - 4, 1);
+   ModernHUD::mText(%x + 14, %fy + 9, %w - 28, "90 105 118",
+                    "shift-J next   ctrl-J previous   drag title to move", 195, 9, "l");
+}
+
+//------------------------------------------------------------------------------
+// KILL POP (2026-09-05). Centre-top line for a few seconds after YOU kill someone
+// ($KillPop::Toast*, set by KillPop::onKill in config\nativeDefaults.cs from the
+// engine's obituary matcher). Same chrome as the music toast, sat a little higher so
+// the two never overlap when a track changes mid-fight.
+//------------------------------------------------------------------------------
+function ModernHUD::killToast(%screen)
+{
+   if($KillPop::ToastVictim == "")
+      return;
+   if(getSimTime() > $KillPop::ToastUntil)
+      return;
+
+   %sw = getWord(%screen, 0);
+   %sh = getWord(%screen, 1);
+   %px = 18;
+   %font = $ModernHUD::MenuFont;
+   if(%font == "") { %font = "Verdana"; }
+   glSetFont(%font, %px);
+   %head = "YOU KILLED  ";
+   %name = $KillPop::ToastVictim;
+   %tail = "   " @ $KillPop::ToastWeapon;
+   %wh = getWord(glGetStringDimensions(%head), 0);
+   %wn = getWord(glGetStringDimensions(%name), 0);
+   %wt = getWord(glGetStringDimensions(%tail), 0);
+   %tw = %wh + %wn + %wt;
+   %x = floor((%sw - %tw) / 2);
+   %y = floor(%sh / 4) - %px - 14;
+
+   ModernHUD::mColor("10 13 16", 180);
+   glRectangle(%x - 12, %y - 5, %tw + 24, %px + 10);
+   ModernHUD::mColor("230 60 50", 255);
+   glRectangle(%x - 12, %y - 5, 3, %px + 10);
+   ModernHUD::mText(%x, %y, %wh, $ModernHUD::MenuText, %head, 220, %px, "l");
+   ModernHUD::mText(%x + %wh, %y, %wn, "255 230 90", %name, 255, %px, "l");
+   ModernHUD::mText(%x + %wh + %wn, %y, %wt, $ModernHUD::MenuText, %tail, 180, %px, "l");
+}
+
 function ModernHUD::onDraw(%screen)
 {
    if(!$ModernHUD::Enabled)
@@ -2144,6 +2547,16 @@ function ModernHUD::onDraw(%screen)
    // borrowed part is never covered by the base pack's own art for that slot.
    // The base pack yields the slot itself (ownsSlot / baseOwns).
    ModernHUD::drawBorrowed(%screen);
+
+   // NETCODE-150 NETHUD: after the pack and borrowed parts, before the menu.
+   ModernHUD::netStats(%screen);
+
+   // MUSIC HUD: the J panel (and the bare-key toast). Before the K panel so the
+   // settings panel still draws over everything when both are up.
+   ModernHUD::musicPanel(%screen);
+
+   // KILL POP: the "you killed" line (nativeDefaults.cs KillPop::onKill sets it).
+   ModernHUD::killToast(%screen);
 
    // The settings panel draws LAST, over the pack's own art -- it is modal
    // furniture and must not be occluded by the HUD it configures. No-ops when the
