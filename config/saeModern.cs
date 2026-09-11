@@ -79,6 +79,12 @@ bindCommand(keyboard, make, control, n, to, "voteNo();");
 bindCommand(keyboard, make, control, e, to, "targetClient();");
 bindCommand(keyboard0, make, "n", TO, "sendControl(\"n\");");
 bindCommand(keyboard0, make, "q", TO, "sendControl(\"q\");");
+// MUSIC HUD (2026-09-04): soundtrack panel + bare transport keys (nativeDefaults.cs
+// MusicHud::*). j is free in this set; under RPG it is Presto's autofire toggle, so the
+// RPG set does not carry these -- the Controls tab rows let anyone bind them.
+bindCommand(keyboard0, make, "j", TO, "MusicHud::toggle();");
+bindCommand(keyboard0, make, shift, "j", TO, "MusicHud::next();");
+bindCommand(keyboard0, make, control, "j", TO, "MusicHud::prev();");
 
 //
 // Actions bound only in play mode

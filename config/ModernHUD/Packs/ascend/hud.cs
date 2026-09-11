@@ -959,6 +959,24 @@ function Ascend::Reticle(%screen)
    %t   = floor(3 * %k);
    if(%t < 2) %t = 2;
 
+   // Authoritative hit feedback moves only the two outer brackets.  The pulse
+   // counter is advanced by FearPlayerPSC when SHOT_FEEDBACK says "hit"; the
+   // centre diamond and optional inner X never change.  Start fully expanded
+   // and settle back over the same 250 ms used by the generic marker.
+   %pulse = $net::hitMarkerPulse;
+   if($Ascend::HitMarkerPulse == "")
+      $Ascend::HitMarkerPulse = %pulse;
+   else if(%pulse != $Ascend::HitMarkerPulse)
+   {
+      $Ascend::HitMarkerPulse = %pulse;
+      $Ascend::HitMarkerUntil = getSimTime() + 0.25;
+   }
+   if($pref::hitMarker && getSimTime() < $Ascend::HitMarkerUntil)
+   {
+      %remaining = ($Ascend::HitMarkerUntil - getSimTime()) / 0.25;
+      %gap = %gap + floor(11 * %k * %remaining);
+   }
+
    %rgb = $Ascend::Primary;
    if(%style == 3)
       %rgb = $Ascend::Bright;
@@ -1148,6 +1166,8 @@ function Ascend::apply()
       $Ascend::Sav::BarB         = $mj::bar_border_width;
       $Ascend::Sav::PassHelper   = $mj::passhelper;
       $Ascend::Sav::PassHelperMM = $mj::passhelpermm;
+      $Ascend::Sav::HidePlayerIFF= $pref::hidePlayerIFFMarker;
+      $Ascend::Sav::HitMarkerPulse= $pref::hitMarkerReticlePulse;
 
       $Ascend::Sav::HideXArt     = $pref::hideCrosshairArt;
 
@@ -1178,10 +1198,8 @@ function Ascend::apply()
    $pref::Hud::ColorPass    = $Ascend::Bright;
 
    // -- the world layer ------------------------------------------------------
-   // Ascend puts a name and a health bar over every player it can see, so this
-   // pack turns the same client features on. NOT crouch-gated: $mj::barscrouch
-   // means "only while crouching", and a bar you only get when the enemy
-   // crouches is a bar you never get.
+   // Ascend puts a name and health/energy bars over every visible player.
+   // These are independent of the stock friend/foe IFF marker drawn below them.
    $mj::shownames        = "True";
    $mj::showhpbars       = "True";
    $mj::showjetbars      = "True";
@@ -1192,6 +1210,9 @@ function Ascend::apply()
    $mj::bar_border_width = "1";
    $mj::passhelper       = "True";
    $mj::passhelpermm     = "True";
+   // Keep the stock friend/foe IFF marker.  It is the actual team indicator;
+   // Ascend's name and health/energy bars complement it rather than replace it.
+   $pref::hidePlayerIFFMarker = "0";
 
    // -- get the chat log out from under the top strip ------------------------
    // ★Measured on the first render: chatDisplayHud sits at 7,6 and is 440x60★
@@ -1233,6 +1254,8 @@ function Ascend::apply()
    $xChat::HideCmdMsg    = "True";
    $xChat::TransChat     = "True";
 
+   $Ascend::HitMarkerPulse = $net::hitMarkerPulse;
+   $Ascend::HitMarkerUntil = 0;
    Ascend::crosshair();
 }
 
@@ -1245,6 +1268,9 @@ function Ascend::crosshair()
    %style = $pref::Ascend::Reticle;
    if(%style == "") %style = 1;
    $pref::hideCrosshairArt = (%style == 0) ? "0" : "1";
+   // A stock reticle keeps the generic orange X. Ascend-drawn reticles consume
+   // the same hit as bracket motion instead.
+   $pref::hitMarkerReticlePulse = (%style == 1 || %style == 2) ? "1" : "0";
 }
 
 function Ascend::restore()
@@ -1272,6 +1298,8 @@ function Ascend::restore()
    $mj::bar_border_width = $Ascend::Sav::BarB;
    $mj::passhelper       = $Ascend::Sav::PassHelper;
    $mj::passhelpermm     = $Ascend::Sav::PassHelperMM;
+   $pref::hidePlayerIFFMarker = $Ascend::Sav::HidePlayerIFF;
+   $pref::hitMarkerReticlePulse = $Ascend::Sav::HitMarkerPulse;
 
    $pref::hideCrosshairArt = $Ascend::Sav::HideXArt;
 
@@ -1304,6 +1332,8 @@ function Ascend::defaults()
 {
    $pref::Ascend::Theme          = "0";
    $pref::Ascend::Reticle        = "1";
+   $pref::hitMarker              = "1";
+   $pref::hidePlayerIFFMarker    = "0";
    $pref::Ascend::Scale          = "100";
    $pref::Ascend::ReticleOpacity = "100";
    $pref::Ascend::Opacity        = "100";
@@ -1456,6 +1486,12 @@ ModernHUD::setting("enum", "pref::Ascend::Theme", "Colour Theme", "0",
 ModernHUD::setting("enum", "pref::Ascend::Reticle", "Reticle", "1",
    "Stock crosshair|0;Ascend (reference)|1;Ascend, open centre|2;Diamond only|3",
    "Ascend::crosshair();");
+
+// Modern 1.50 SHOT_FEEDBACK is rendered natively over every HUD, but its
+// presentation pref defaults off unless a pack exposes and seeds it. Ascend's
+// combat reticle opts in while leaving the player free to turn it back off.
+ModernHUD::setting("bool", "pref::hitMarker", "Server hit marker", "1", "", "");
+ModernHUD::setting("bool", "pref::hidePlayerIFFMarker", "Hide stock IFF marker", "0", "", "");
 
 // ★Reticle size is a number, not a drag handle.★ A dragged corner grows a HUD
 // from that corner; a reticle has to grow about its CENTRE or it stops pointing

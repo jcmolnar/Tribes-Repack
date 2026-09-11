@@ -39,10 +39,52 @@
 //------------------------------------------------------------------------------
 if($pref::netKeepSaved != 1)
 {
-   if($pref::PacketSize == "" || $pref::PacketSize < 800)   { $pref::PacketSize = 800; }
-   if($pref::PacketRate == "" || $pref::PacketRate < 60)    { $pref::PacketRate = 60; }
+   // 2026-09-08 (Joe: "we are in 2026 -- bandwidth is not an issue; sync both ways to
+   // whatever the server can support"): ask for the engine caps (netPacketStream.cpp
+   // checkMaxRate: rate 100 = 10 ms, size 1000). Because the receiver takes the CONSERVATIVE
+   // side of the two requests, asking for the maximum IS the sync: every host caps us at
+   // its own value, a stock 1.40 host included, and a host running this file offers its
+   // maximum too, so two modern ends meet at 10 ms. Measured: the fixed 64/64 smoothing
+   // control was ~45% smoother at a 10 ms cadence than at 32 ms (smoothing-preddiag2).
+   // Worst case a full server sends ~0.8 Mbps to one client. Opt out: $pref::netKeepSaved.
+   if($pref::PacketSize == "" || $pref::PacketSize < 1000)  { $pref::PacketSize = 1000; }
+   if($pref::PacketRate == "" || $pref::PacketRate < 100)   { $pref::PacketRate = 100; }
    // Lower is faster here -- it is a minimum interval in ms, so this one is a ceiling.
    if($pref::PacketFrame == "" || $pref::PacketFrame > 16)  { $pref::PacketFrame = 16; }
+}
+
+//------------------------------------------------------------------------------
+// 1a. STANDARD SMOOTHING NUMBERS (2026-09-08). The engine initialises both remote-player
+// smoothing prefs to 0 (FearPlugin.cpp, "Behaviour is UNCHANGED until one is set"), so a
+// fresh install under Smoothing = Standard had NO easing and NO prediction -- worse than
+// stock 1.40, which hardcodes 64 ms interpolation and predicts rtt-32 per frame. 64/64 with
+// the Fixed method is the netset-style setting most competitive players run and the control
+// that beat every candidate in the Stage B / predictor-diagnostics runs (SMOOTHING-STAGEB-
+// STATUS-2026-09-08.md, output/smoothing-preddiag2-results-2026-09-08.md).
+// ★ONE-TIME MIGRATION (Joe, 2026-09-08: "our old setting defaults ARE a regression, it caused
+// a lot of users to say 'this feels bad'").★ An empty-guard alone cannot reach existing
+// installs: every one of them exported the engine's 0/0 into ClientPrefs.cs on quit, so
+// their files hold a SAVED "0", not an absent value. Exactly once per install (the marker
+// survives the exit export sweep, same idiom as fontSetResetV2), a 0 or absent value in
+// either number becomes 64. A non-zero saved number is a choice and is kept. After the
+// marker is set a player who deliberately sets 0 keeps it forever. Automatic users are
+// unaffected while Automatic owns the numbers; their Standard fallback is fixed underneath.
+//------------------------------------------------------------------------------
+if($pref::netSmoothStdV1 == "")
+{
+   $netStdMigrated = 0;
+   if($pref::netInterpolateTime == "" || $pref::netInterpolateTime == 0)
+   {
+      $pref::netInterpolateTime = 64;
+      $netStdMigrated++;
+   }
+   if($pref::netPredictForwardTime == "" || $pref::netPredictForwardTime == 0)
+   {
+      $pref::netPredictForwardTime = 64;
+      $netStdMigrated++;
+   }
+   $pref::netSmoothStdV1 = 1;
+   echo("[NETSTD] one-time Standard smoothing migration: " @ $netStdMigrated @ " value(s) moved 0->64, now smoothing " @ $pref::netInterpolateTime @ " prediction " @ $pref::netPredictForwardTime);
 }
 
 //------------------------------------------------------------------------------
@@ -214,6 +256,25 @@ if($pref::aiSeedResetV1 == "")
    if($pref::aiScanPerTick == 4) { $pref::aiScanPerTick = ""; }
    $pref::aiSeedResetV1 = 1;
    echo("[GATING] one-time AI seed-era preference reset applied");
+}
+
+//------------------------------------------------------------------------------
+// PRESENT one-time migration (2026-09-05, screen tearing). VSync now ships ON under a NEW
+// pref name ($pref::gfxVSync, C++ default 1 -- a new name needs no migration) and Present
+// Sync ships as Fence (2), because vsync + the stock glFinish is the laggy pairing. But
+// $pref::gfxPresentSync was exported as "0" into every ClientPrefs.cs that ran the earlier
+// builds, and a saved value beats a changed default -- same idiom as the telestrator reset
+// below. Move a 0 to 2 exactly once; a deliberate Flush (1) survives, and a Finish chosen
+// AFTER the marker is never touched again. The two dead vsync names are blanked so they stop
+// riding along in every export as a switch that does nothing.
+//------------------------------------------------------------------------------
+if($pref::presentDefaultsV1 == "")
+{
+   if($pref::gfxPresentSync == 0) { $pref::gfxPresentSync = 2; }
+   $pref::OpenGL::WaitForVSync = "";
+   $pref::waitForVSync = "";
+   $pref::presentDefaultsV1 = 1;
+   echo("[PRESENT] one-time frame-pacing default migration applied (Present Sync -> Fence)");
 }
 
 //------------------------------------------------------------------------------
@@ -1223,3 +1284,304 @@ function DemoNamer::rearm()
 }
 Event::Attach(eventConnected, DemoNamer::rearm);
 Event::Attach(eventLeaveServer, DemoNamer::rearm);
+
+//------------------------------------------------------------------------------
+// FILE MUSIC (2026-09-04). The soundtrack now plays from base\music through the stock
+// CD commands (engine\SimObjects\Code\musicFile.cpp), gated by the SAME prefs the CD
+// path always used: console.cs:359-370 only creates the CD object when $pref::cdMusic,
+// and $pref::cdVolume is the level. Every saved ClientPrefs.cs on earth has cdMusic
+// FALSE and cdVolume 0 -- there was never a disc to hear -- so a ONE-TIME migration turns
+// them on. Runs here because autoexec.cs is exec'd (console.cs:293) after clientPrefs.cs
+// and before the cdMusic block; the flag persists through the quit-time pref export.
+// Turning music off again in Options sticks: the migration never re-fires.
+//------------------------------------------------------------------------------
+if($pref::musicMigrated == "")
+{
+	$pref::musicMigrated = 1;
+	$pref::cdMusic = True;
+	if($pref::cdVolume == "" || $pref::cdVolume < 0.05)
+		$pref::cdVolume = 0.5;
+	$pref::userCDOverride = False;
+}
+
+//------------------------------------------------------------------------------
+// MUSIC HUD (2026-09-04). J opens a soundtrack panel; shift-J / ctrl-J skip tracks.
+// The panel itself is DRAWN by ModernHUD (config\ModernHUD\Framework.cs,
+// ModernHUD::musicPanel) -- the logic lives here so the bare keys work whatever HUD is
+// loaded. Track numbers are the CD numbers the engine already uses (2 = menu theme,
+// 3.. = the rest, wrapping); rbGetTrackName/rbGetCurrentTrack/rbGetPosition/rbGetState
+// are the script-readable queries added to redbookPlugin.cpp for this.
+// $cdTrack / $cdPlayMode are kept in step with what plays, because Options.cs and the
+// server cue handler (client.cs remoteSetMusic) both read them.
+//------------------------------------------------------------------------------
+function MusicHud::trackCount()
+{
+	if(!isObject(CD))
+		return 0;
+	return rbGetTrackCount(CD);
+}
+
+// Music OFF means console.cs never created the CD object. Turning the pref on lets the
+// engine create it on the next frame and start $cdTrack; the caller sets that first.
+function MusicHud::ensure()
+{
+	if(isObject(CD))
+		return true;
+	$pref::cdMusic = 1;
+	return false;
+}
+
+function MusicHud::playTrack(%t)
+{
+	%n = MusicHud::trackCount();
+	if(%n < 2)
+	{
+		$cdTrack = %t;
+		return;
+	}
+	if(%t < 2)
+		%t = %n;
+	if(%t > %n)
+		%t = 2;
+	%mode = $cdPlayMode;
+	if(%mode == "" || %mode == 0)
+		%mode = 1;
+	$cdPlayMode = %mode;
+	$cdTrack = %t;
+	rbSetPlayMode(CD, %mode);
+	rbPlay(CD, %t);
+	MusicHud::toast(rbGetTrackName(CD, %t));
+}
+
+function MusicHud::next()
+{
+	if(!MusicHud::ensure())
+	{
+		$cdTrack = 2;
+		MusicHud::toast("music on");
+		return;
+	}
+	%t = rbGetCurrentTrack(CD);
+	if(%t == "" || %t < 2)
+		%t = 1;
+	MusicHud::playTrack(%t + 1);
+}
+
+function MusicHud::prev()
+{
+	if(!MusicHud::ensure())
+	{
+		$cdTrack = 2;
+		MusicHud::toast("music on");
+		return;
+	}
+	%t = rbGetCurrentTrack(CD);
+	if(%t == "" || %t < 2)
+		%t = 3;
+	MusicHud::playTrack(%t - 1);
+}
+
+function MusicHud::playPause()
+{
+	if(!MusicHud::ensure())
+	{
+		$cdTrack = 2;
+		return;
+	}
+	%st = rbGetState(CD);
+	if(%st == "playing")
+		rbPause(CD);
+	else if(%st == "paused")
+		rbResume(CD);
+	else
+	{
+		%t = $cdTrack;
+		if(%t == "" || %t < 2)
+			%t = 2;
+		MusicHud::playTrack(%t);
+	}
+}
+
+function MusicHud::stop()
+{
+	if(isObject(CD))
+		rbStop(CD);
+}
+
+function MusicHud::volume(%delta)
+{
+	%v = $pref::cdVolume;
+	if(%v == "")
+		%v = 0.5;
+	%v = %v + %delta;
+	if(%v < 0)
+		%v = 0;
+	if(%v > 1)
+		%v = 1;
+	$pref::cdVolume = %v;
+}
+
+// The ON/OFF button. Off stops the track outright (the Options toggle only mutes, which
+// keeps decoding); on resumes the remembered track, or lets the engine create the CD.
+function MusicHud::toggleEnabled()
+{
+	if($pref::cdMusic)
+	{
+		$pref::cdMusic = 0;
+		if(isObject(CD))
+			rbStop(CD);
+	}
+	else
+	{
+		$pref::cdMusic = 1;
+		%t = $cdTrack;
+		if(%t == "" || %t < 2)
+			%t = 2;
+		if(isObject(CD))
+			MusicHud::playTrack(%t);
+		else
+			$cdTrack = %t;
+	}
+}
+
+// 1 = repeat the track, 2 = run the whole folder.
+function MusicHud::setMode(%m)
+{
+	$cdPlayMode = %m;
+	if(isObject(CD))
+		rbSetPlayMode(CD, %m);
+}
+
+// A short centre-top line (drawn by ModernHUD::musicToast) so the bare keys give
+// feedback without the panel. getSimTime() is SECONDS (simGame.cpp getCurrentTime;
+// the first cut added 2500 and the toast stayed up for 42 minutes).
+function MusicHud::toast(%text)
+{
+	$MusicHud::ToastText = %text;
+	$MusicHud::ToastUntil = getSimTime() + 2.5;
+}
+
+function MusicHud::toggle()
+{
+	if($MusicHud::Open == 1)
+	{
+		MusicHud::close();
+		return;
+	}
+	if($ModernHUD::Enabled != 1)
+	{
+		echo("MusicHud: the music panel is drawn by ModernHUD -- enable a ModernHUD pack, or use the next / previous track keys.");
+		return;
+	}
+	$MusicHud::Open = 1;
+	cursorOn(MainWindow);
+}
+
+// Also the Escape route (dlgPlay.cpp asks $MusicHud::Open first) and the leave-server
+// event, so the flag never outlives the match it was opened in.
+function MusicHud::close()
+{
+	$MusicHud::Open = "";
+	if($Config::HudListVisible != 1)
+		cursorOff(MainWindow);
+}
+Event::Attach(eventLeaveServer, MusicHud::close);
+
+// Default keys, BASE ONLY and only if free: J is Presto's autofire toggle under a mod
+// (autoexec.cs binds it after this file), and bindCommandDefault leaves a key the player
+// has already bound -- or a command they already own on another key -- alone.
+// ★bindCommand targets the CURRENT action map, and at this point in the file that is
+// pdaMap.sae (the editActionMap above) -- the first cut put these three keys in the PDA
+// map, where they only work with the PDA open (harness run-c5f6d010). actionMap.sae is
+// the always-active map (interface keys like K and Tab live there), so the panel works
+// alive, dead or observing; the PDA map is restored afterwards so nothing later in the
+// boot chain lands somewhere new.
+if($KV::isBase)
+{
+	editActionMap("actionMap.sae");
+	bindCommandDefault(keyboard0, make, "j", TO, "MusicHud::toggle();");
+	bindCommandDefault(keyboard0, make, shift, "j", TO, "MusicHud::next();");
+	bindCommandDefault(keyboard0, make, control, "j", TO, "MusicHud::prev();");
+	editActionMap("pdaMap.sae");
+}
+
+//------------------------------------------------------------------------------
+// KILL POP (2026-09-05). The engine (killPop.cpp) matches every server line against the
+// obituary table and calls KillPop::onKill(%victimName, %weapon) when the killer is YOU.
+// It also fires eventClientKilled / eventClientTeamKilled for the packs' kill feeds. This
+// side only decides what to show: a centre-top toast drawn by ModernHUD::killToast
+// (hud\Framework.cs, same slot as the music toast) and a cue through localSound().
+//   $pref::killPop          absent = on
+//   $pref::killPopSound     absent = on
+//   $pref::killPopSoundFile default "kill.wav" (base\voices; any .wav/.ogg on the path)
+//   $pref::killPopTime      seconds the toast stays up (default 2.5)
+// A mod with its own obituaries adds them from its client script:
+//   killPopAddPattern("{K} fragged {V}.", "Disc");   ({K} killer, {V} victim, {P} his/her/its)
+//------------------------------------------------------------------------------
+function KillPop::onKill(%victim, %weapon)
+{
+	if($pref::killPop != "" && !$pref::killPop)
+		return;
+	%t = $pref::killPopTime;
+	if(%t == "" || %t <= 0)
+		%t = 2.5;
+	$KillPop::ToastVictim = %victim;
+	$KillPop::ToastWeapon = %weapon;
+	$KillPop::ToastUntil = getSimTime() + %t;
+	$KillPop::Count++;
+	if($pref::killPopSound == "" || $pref::killPopSound)
+	{
+		%f = $pref::killPopSoundFile;
+		if(%f == "")
+			%f = "kill.wav";
+		localSound(%f);
+	}
+	if($pref::killPopDiag)
+		echo("[KILLPOP] pop: " @ %victim @ " (" @ %weapon @ ")");
+}
+
+//------------------------------------------------------------------------------
+// GRENADE TOSS (2026-09-05). Fixed-strength grenade throws for the three Options rows
+// (fearGuiModernOptions.cpp ensureNativeKeybinds: Short / Medium / Max). The stock G key
+// measures the hold (client.cs throwStart / throwRelease -> remoteEval throwItem with
+// 0..100); the server (item.cs remoteThrowItem) maps that to throwStrength 0.3 + 0.7 *
+// n/100, so 0 / 50 / 100 = 0.3 / 0.65 / 1.0 of a full throw. Same raw-key fallback as
+// throwRelease for servers that take the key itself ($repackKeyOverride == 2).
+//------------------------------------------------------------------------------
+function GrenadeToss::throw(%strength)
+{
+	if($repackKeyOverride == 2)
+	{
+		remoteEval(2048, rawKey, $weaponNameToKey["Grenade"]);
+		return;
+	}
+	%type = getItemType("Grenade");
+	if(%type == -1)
+		return;
+	if(%strength == "" || %strength < 0)
+		%strength = 0;
+	if(%strength > 100)
+		%strength = 100;
+	remoteEval(2048, throwItem, %type, %strength);
+}
+
+//------------------------------------------------------------------------------
+// CHAT VISIBILITY (2026-09-09). One setting for both chat renderers -- the stock
+// log (FearGuiChatDisplay) and the Kronos ScriptGL overlay -- resolved natively by
+// ChatVis_mode()/ChatVis_idleSeconds() and readable from script through
+// Chat::visMode() / Chat::visIdleSecs().
+//
+//   $pref::ChatVisibilityMode  0 HUD default   the pack's own $xChat per-message
+//                                              hider keeps owning it (Vector,
+//                                              Vantage and Ascend set 12 seconds)
+//                              1 Keep visible  no timed hiding at all
+//                              2 Idle Hide     the whole log hides after quiet
+//   $pref::ChatIdleSeconds     mode 2's delay in seconds, clamped to [5, 120]
+//
+// Seeded, never assigned: an existing install has no value, resolves to 0, and
+// therefore behaves exactly as it did before this option existed. A fresh-install
+// default of Keep visible is a separate decision -- it must not silently migrate
+// anyone who is used to the pack behaviour.
+//------------------------------------------------------------------------------
+if($pref::ChatVisibilityMode == "") { $pref::ChatVisibilityMode = 0; }
+if($pref::ChatIdleSeconds == "")    { $pref::ChatIdleSeconds = 15; }

@@ -142,6 +142,23 @@ function ModernHUDPack::stockHuds()
    Control::SetVisible(reticleCompass, false);
 }
 
+// The shared team/timer data layer this pack's CTF readout reads through.
+//
+// ★Every other pack requires these; this hand-authored one did not.★ The CTF
+// part calls Team::Friendly, Team::Enemy, Team::Score, Team::Flag::Location and
+// Team::Flag::Timer from the per-frame render hook. Presto's TeamTrak.cs happens
+// to define the first two, so the gap was invisible on a Presto server and total
+// everywhere else -- the other three resolved to nothing.
+//
+// An undefined call is not silent: eval.cpp returns the STRING "False" and logs
+// "<name>: Unknown command." So the miss cost two console lines per frame AND
+// fed "False" to the digit art, which is why the log carried five
+// "image load FAILED 'Modules/numHUD/Black/{F,a,l,s,e}.png'" lines. A user
+// console.log came back 30 MB with 850,910 of its 860,673 lines from this.
+// Team.cs calls Timer::FormatSeconds/New/Dec, so it does not stand alone.
+ModernHUD::require("ModernHUD/Core/Data/Team.cs");
+ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
+
 // The pack's own stock-HUD PREFERENCES, carried from its ClientPrefs.cs.
 //
 // ★A pack must state its minimap the same way it states stock visibility.★ Every

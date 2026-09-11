@@ -76,6 +76,15 @@ function KronosChat::onMsg(%client, %msg, %repeated, %msgType)
 	if(%msg == "")
 		return;
 
+	// CHAT VISIBILITY ($pref::ChatVisibilityMode): this line is accepted and WILL be
+	// visible, so it restarts the inactivity clock. Placed above the repeat-collapse
+	// return below on purpose - a bumped "(3x)" counter is a line the player watches
+	// change, which is every bit as much chat activity as a new row. Disabled,
+	// category-filtered and empty messages returned above and never reach here.
+	// The clock itself lives in native code (FearGuiChatDisplay.cpp) so this overlay
+	// and the stock chat can never disagree about the delay or its limits.
+	Chat::visNote(getSimTime());
+
 	// Kronos relays ALL chat as server messages (%client is 0 even for player chat),
 	// so we can't use the sender id. Player chat looks like  [GLBL] "text"  /
 	// [TEAM] "text"  - it carries a channel tag AND the spoken text is in DOUBLE
@@ -286,6 +295,23 @@ function KronosChat::render(%sw, %sh)
 
 	%up = $KM::mouseOn;
 
+	// CHAT VISIBILITY ($pref::ChatVisibilityMode / $pref::ChatIdleSeconds). The mode,
+	// the delay and the idle test are all resolved natively - this overlay only says
+	// whether the player is USING chat right now and then honours the answer.
+	//
+	// HOLD = cursor up (the size/scroll/filter widgets are on screen and being read),
+	// composing, or scrolled back into history. Holding also keeps re-stamping the
+	// clock natively, so letting go grants the FULL delay instead of hiding the log
+	// the instant you close the composer.
+	//
+	// Nothing below this point drops a message, rebuilds a buffer or moves the scroll
+	// anchor: hidden means "draw no rows and no backdrop", and the next accepted line
+	// brings the log back with its history intact.
+	%kcHold = false;
+	if(%up || $KC::scroll > 0 || KronosInput::isFocused("kchat"))
+		%kcHold = true;
+	%kcHide = Chat::visHidden(%kcHold, getSimTime());
+
 	// drain captured keystrokes from the native plugin into the focused field
 	KronosInput::pump();
 
@@ -346,7 +372,10 @@ function KronosChat::render(%sw, %sh)
 	$Panel::kchatShown = true;
 
 	// ---- backdrop ----
-	if(($pref::Kronos::chatBg && $KC::dlN > 0) || %up)
+	// An idle-hidden log takes its backdrop with it - a lit empty panel with no text
+	// in it reads as breakage, not as "chat is quiet". (%up is part of the hold, so
+	// the cursor-up case can never be hidden here.)
+	if((($pref::Kronos::chatBg && $KC::dlN > 0) || %up) && !%kcHide)
 	{
 		glDisable($GL_TEXTURE_2D);
 		glBlendFunc($GL_SRC_ALPHA, $GL_ONE_MINUS_SRC_ALPHA);
@@ -373,6 +402,12 @@ function KronosChat::render(%sw, %sh)
 	%start = %end - %visible;
 	if(%start < 0)
 		%start = 0;
+	// CHAT VISIBILITY: hiding is "draw zero rows", nothing more. $KC::dl / $KC::raw
+	// and the scroll anchor are untouched, so waking shows the normal latest viewport
+	// with every retained line still in it - and the composer, scrollbar, resize grip
+	// and A-/A+ buttons below all keep drawing and taking input.
+	if(%kcHide)
+		%start = %end;
 	%nshown = %end - %start;
 
 	%ty = %y + %boxH - %pad - (%nshown * %lineH);
