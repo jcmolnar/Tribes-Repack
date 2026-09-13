@@ -1,0 +1,94 @@
+{
+  "format": 2,
+  "framework": 2,
+  "id": "stock2026",
+  "name": "Stock (2026)",
+  "category": "original",
+  "releaseState": "partial",
+  "authoring": "manual",
+  "reference": {
+    "width": 1920,
+    "height": 1080
+  },
+  "assets": {},
+  "prefs": {},
+  "stockHuds": [
+    { "name": "crosshairHud",   "class": "FearGui::Crosshair",          "visible": true },
+    { "name": "chatDisplayHud", "class": "FearGui::FearGuiChatDisplay", "visible": true },
+    { "name": "Minimap",        "class": "FearGui::Minimap",            "visible": false },
+    { "name": "clockHud",       "class": "FearGui::ClockHud",           "visible": false },
+    { "name": "healthHud",      "class": "FearGui::HealthHud",          "visible": false },
+    { "name": "jetPackHud",     "class": "FearGui::JetPackHud",         "visible": false },
+    { "name": "weaponHud",      "class": "FearGui::CurrentWeaponHud",   "visible": false },
+    { "name": "compassHud",     "class": "FearGui::CompassHud",         "visible": false },
+    { "name": "sensorHUD",      "class": "FearGui::FGHSensorPing",      "visible": false },
+    { "name": "reticleCompass", "class": "FearGui::ReticleCompassHud",  "visible": true }
+  ],
+  "parts": [
+    {
+      "id": "health",
+      "slot": "healthenergy",
+      "handle": "ModernHUD::S26Health",
+      "anchor": "top-left",
+      "offset": [50, 7],
+      "size": [131, 35],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "S26::health", "body": ["S26::health(%x, %y);"] }
+      ]
+    },
+    {
+      "id": "jet",
+      "slot": "healthenergy",
+      "handle": "ModernHUD::S26Jet",
+      "anchor": "top-left",
+      "offset": [50, 28],
+      "size": [131, 35],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "S26::jet", "body": ["S26::jet(%x, %y);"] }
+      ]
+    },
+    {
+      "id": "weapons",
+      "slot": "weapon",
+      "handle": "ModernHUD::S26Weapons",
+      "anchor": "bottom-left",
+      "offset": [0, 150],
+      "size": [62, 124],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "S26::weapons", "body": ["S26::weapons(%screen);"] }
+      ]
+    },
+    {
+      "id": "clock",
+      "slot": "clock",
+      "handle": "ModernHUD::S26Clock",
+      "anchor": "bottom-left",
+      "offset": [0, 0],
+      "size": [79, 18],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "S26::clock", "body": ["S26::clock(%screen);"] }
+      ]
+    },
+    {
+      "id": "compass",
+      "handle": "ModernHUD::S26Compass",
+      "anchor": "top-right",
+      "offset": [0, 376],
+      "size": [64, 64],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "S26::compass", "body": ["S26::compass(%screen);"] }
+      ]
+    },
+    {
+      "id": "sensor",
+      "handle": "ModernHUD::S26Sensor",
+      "anchor": "top-right",
+      "offset": [384, 0],
+      "size": [32, 23],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "S26::sensor", "body": ["S26::sensor(%screen);"] }
+      ]
+    }
+  ],
+  "adapters": []
+}

@@ -70,6 +70,9 @@ function ModernHUDPack::stockHuds()
    Control::SetVisible(reticleCompass, false);
 }
 
+ModernHUD::require("ModernHUD/Core/Data/Team.cs");
+ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
+
 // ---- helpers carried from the legacy pack -------------------------
 // A lifted body calls these; the converted pack does not execute the
 // legacy module, so they have to come along or the call resolves to

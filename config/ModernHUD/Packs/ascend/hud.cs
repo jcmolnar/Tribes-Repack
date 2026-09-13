@@ -1273,6 +1273,18 @@ function Ascend::crosshair()
    $pref::hitMarkerReticlePulse = (%style == 1 || %style == 2) ? "1" : "0";
 }
 
+// Called by ModernHUD::unload (Framework.cs) when this pack is swapped away, so the
+// crosshair-art, nameplate and chat globals it rewrote do not follow the player into
+// the next pack. Before this hook existed, Ascend::restore was reachable only from the
+// console, and every pack loaded after Ascend ran with the stock reticle hidden.
+function ModernHUDPack::restore()
+{
+   // Guarded here too: this fixed name outlives the pack in the console dictionary,
+   // so a later pack's unload would otherwise echo "nothing to restore" every swap.
+   if($Ascend::Saved != "")
+      Ascend::restore();
+}
+
 function Ascend::restore()
 {
    if($Ascend::Saved == "")

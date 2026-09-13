@@ -259,6 +259,17 @@ function ModernHUD::resetPositions()
 // Walk backwards because Module::hudRemove compacts the indexed Hud inventory.
 function ModernHUD::unload()
 {
+   // ★Give the outgoing pack its chance to put back what it borrowed.★ Ascend and
+   // Vector save client-wide globals ($pref::hideCrosshairArt, the $mj:: nameplate
+   // knobs, chat placement) at load and had a restore() nothing ever called -- so
+   // every pack loaded after them inherited a hidden stock reticle (Joe, 2026-09-12:
+   // "a bug with other packs that can make the crosshair be hidden"). The hook is a
+   // fixed name like the other lifecycle functions; a pack that borrows nothing
+   // simply does not define it, and a stale definition from an earlier pack is
+   // harmless because each restore() is guarded by its own Saved flag.
+   if(isFunction("ModernHUDPack::restore"))
+      ModernHUDPack::restore();
+
    for(%i = $Hud::Count - 1; %i >= 0; %i--)
    {
       %name = $Hud::Huds[%i, name];

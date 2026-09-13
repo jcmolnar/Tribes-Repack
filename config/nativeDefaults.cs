@@ -473,8 +473,16 @@ bindDefault(keyboard0, break, "z", TO, IDACTION_ZOOM_MODE_OFF);
 function Repack::saveKeymap()
 {
 	saveActionMap("config\\config.cs", "actionMap.sae", "playMap.sae", "pdaMap.sae");
+	// This migration belongs to the keymap. Saving its latch with the map also
+	// preserves a deliberately cleared favorite shortcut after an unclean exit.
+	// favoritesFRow is the current one (loadouts moved onto the bare F-row);
+	// favorites12Seeded is the retired shift+F6-F12 latch, still written so a
+	// rollback to that build does not re-seed the shift shortcuts on top.
+	export("Binds::favoritesFRow", "config\\config.cs", True);
+	export("Binds::favorites12Seeded", "config\\config.cs", True);
 }
 $Repack::keymapSaver = 1;
+$Repack::favoriteKeySaver = 1;
 
 //====================================================================================
 // CASTER TOOLS (2026-08-28) -- client-side console wrappers for the shoutcaster

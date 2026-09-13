@@ -1000,6 +1000,14 @@ function Vector::defaults()
    echo("Vector: settings reset to pack defaults.");
 }
 
+// Called by ModernHUD::unload (Framework.cs) when this pack is swapped away -- see the
+// same hook in ascend/hud.cs for why.
+function ModernHUDPack::restore()
+{
+   if($Vector::Saved != "")
+      Vector::restore();
+}
+
 function Vector::restore()
 {
    if($Vector::Saved == "")

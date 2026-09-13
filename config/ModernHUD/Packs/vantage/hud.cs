@@ -391,6 +391,14 @@ function Vantage::apply()
    $pref::ChatDisplayWidth      = "440";
 }
 
+// Called by ModernHUD::unload (Framework.cs) when this pack is swapped away -- see the
+// same hook in ascend/hud.cs for why.
+function ModernHUDPack::restore()
+{
+   if($Vantage::Saved != "")
+      Vantage::restore();
+}
+
 function Vantage::restore()
 {
    if($Vantage::Saved == "")

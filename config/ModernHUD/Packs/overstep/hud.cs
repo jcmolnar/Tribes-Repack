@@ -41,6 +41,12 @@ function ModernHUDPack::hideHandle(%name)
 
 function ModernHUDPack::detachRetained()
 {
+   // No retained client HUDs or Presto scheduler exist on a dedicated server; the
+   // six Schedule::Cancel calls below each logged "Unknown command." there.
+   // (TribesMod handoff, 2026-09-06.)
+   if($dedicated)
+      return;
+
    %status = ModernHUDPack::ownsSlot($pref::HudSlot::healthenergy);
    %weapon = ModernHUDPack::ownsSlot($pref::HudSlot::weapon);
    %items = ModernHUDPack::ownsSlot($pref::HudSlot::items);
@@ -141,6 +147,23 @@ function ModernHUDPack::stockHuds()
    ModernHUD::stock(Minimap, true);
    Control::SetVisible(reticleCompass, false);
 }
+
+// The shared team/timer data layer this pack's CTF readout reads through.
+//
+// ★Every other pack requires these; this hand-authored one did not.★ The CTF
+// part calls Team::Friendly, Team::Enemy, Team::Score, Team::Flag::Location and
+// Team::Flag::Timer from the per-frame render hook. Presto's TeamTrak.cs happens
+// to define the first two, so the gap was invisible on a Presto server and total
+// everywhere else -- the other three resolved to nothing.
+//
+// An undefined call is not silent: eval.cpp returns the STRING "False" and logs
+// "<name>: Unknown command." So the miss cost two console lines per frame AND
+// fed "False" to the digit art, which is why the log carried five
+// "image load FAILED 'Modules/numHUD/Black/{F,a,l,s,e}.png'" lines. A user
+// console.log came back 30 MB with 850,910 of its 860,673 lines from this.
+// Team.cs calls Timer::FormatSeconds/New/Dec, so it does not stand alone.
+ModernHUD::require("ModernHUD/Core/Data/Team.cs");
+ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
 
 // The pack's own stock-HUD PREFERENCES, carried from its ClientPrefs.cs.
 //
@@ -538,19 +561,36 @@ function ModernHUDPack::drawCtfClock(%screen)
                "Modules/numHUD/CTFHud/enemy." ~ %enemyState ~ ".png", 255);
 
    if(%friendlyLoc == "field")
-   {
-      %timer = Team::Flag::Timer(%friendly);
-      %timerW = ModernHUD::digitsWidth("Modules/numHUD/Ammo", %timer, 0);
-      ModernHUD::digitsAt(%x + 73 - floor(%timerW / 2), %y + 76,
-                          "Modules/numHUD/Ammo", %timer, 255, 0);
-   }
+      ModernHUDPack::drawFlagTimer(%x + 73, %y + 76, %friendly);
    if(%enemyLoc == "field")
+      ModernHUDPack::drawFlagTimer(%x + 228, %y + 76, %enemy);
+}
+
+// The flag timer is decimal text ("47.5" -- Timer::FormatSeconds always emits one
+// decimal place) and the Ammo digit font has no decimal-point image, so feeding it
+// through digitsAt asked for 'Modules/numHUD/Ammo/..png' on every dropped flag.
+// Draw the whole and fractional digits separately with a 2x2 dot between, centred
+// on %centerX. (TribesMod handoff, 2026-09-06.)
+function ModernHUDPack::drawFlagTimer(%centerX, %y, %team)
+{
+   %timer = Team::Flag::Timer(%team);
+   %folder = "Modules/numHUD/Ammo";
+   %dot = String::findSubStr(%timer, ".");
+   if(%dot < 0)
    {
-      %timer = Team::Flag::Timer(%enemy);
-      %timerW = ModernHUD::digitsWidth("Modules/numHUD/Ammo", %timer, 0);
-      ModernHUD::digitsAt(%x + 228 - floor(%timerW / 2), %y + 76,
-                          "Modules/numHUD/Ammo", %timer, 255, 0);
+      %timerW = ModernHUD::digitsWidth(%folder, %timer, 0);
+      ModernHUD::digitsAt(%centerX - floor(%timerW / 2), %y, %folder, %timer, 255, 0);
+      return;
    }
+   %whole = String::getSubStr(%timer, 0, %dot);
+   %fraction = String::getSubStr(%timer, %dot + 1, String::len(%timer));
+   %wholeW = ModernHUD::digitsWidth(%folder, %whole, 0);
+   %fractionW = ModernHUD::digitsWidth(%folder, %fraction, 0);
+   %x = %centerX - floor((%wholeW + 5 + %fractionW) / 2);
+   ModernHUD::digitsAt(%x, %y, %folder, %whole, 255, 0);
+   glColor4ub(255, 255, 255, 255);
+   glRectangle(%x + %wholeW + 1, %y + 15, 2, 2);
+   ModernHUD::digitsAt(%x + %wholeW + 5, %y, %folder, %fraction, 255, 0);
 }
 
 function ModernHUDPack::drawScore(%screen)

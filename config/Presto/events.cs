@@ -748,7 +748,13 @@ function PlayGui::onOpen()
     Event::Trigger(eventGuiOpen_PlayGui);
 
     // Trigger events when screen mode or size changes
-    if($pref::VideoFullScreen != $Events::VideoFullScreen)
+    // NATIVE FIX 2026-09-12 (display modes): there are THREE modes now, so the fullscreen
+    // BOOLEAN no longer tells them apart -- Borderless -> Exclusive leaves it TRUE, and this
+    // test fired nothing at all for a switch that changes the monitor's actual resolution.
+    // $pref::displayMode (0 Windowed / 1 Borderless / 2 Exclusive) is the authority; the
+    // boolean stays in the test so an old exported pref set still behaves exactly as before.
+    if($pref::displayMode != $Events::displayMode ||
+       $pref::VideoFullScreen != $Events::VideoFullScreen)
     {
         Event::Trigger(eventScreenModeChanged);
         if($pref::VideoFullScreen)
@@ -761,6 +767,7 @@ function PlayGui::onOpen()
         Event::Trigger(eventScreenSizeChanged, $pref::VideoFullScreenRes);
     }
 
+    $Events::displayMode = $pref::displayMode;
     $Events::VideoFullScreen = $pref::VideoFullScreen;
     $Events::VideoFullScreenRes = $pref::VideoFullScreenRes;
 }
