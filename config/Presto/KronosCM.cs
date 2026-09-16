@@ -156,6 +156,12 @@ function KronosCM::up()
 	}
 	$KCM::navN--;
 	KronosCM::buildRows();
+	// NATIVE-PORT FIX (Joe 2026-09-15: "V, G, Esc back to the main menu, Esc again opens the
+	// escape menu"). The engine's stuck-capture safety releases the keyboard capture on EVERY
+	// escape make (simGame.cpp), before this pump ever sees the queued key. Going up a level
+	// leaves the menu open with the capture gone, so the next escape reaches the play binds
+	// and opens the lobby. We are still open here: take the keyboard back.
+	glTextInput(1);
 }
 
 // A hotkey letter was pressed: descend a submenu, or eval + close a leaf.

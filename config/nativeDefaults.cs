@@ -278,6 +278,29 @@ if($pref::presentDefaultsV1 == "")
 }
 
 //------------------------------------------------------------------------------
+// DRAW-DISTANCE TIER migration (2026-09-15, flag visibility per graphics tier). The Low and
+// Medium graphics tiers used to set $pref::TerrainVisibleDistance to 200 / 850 through the
+// terrain slider, and since the 1.40 sight-distance parity that number also culls flags,
+// players and every other gameplay object at 0.85x of it: a Low player lost the flag at 170u
+// while the GPU world around it drew to the full draw distance. The tier no longer lowers the
+// distance (fearGuiModernOptions.cpp, tier apply), but a config saved under Low or Medium
+// still carries the short value and a saved value beats a changed default. Move it once, only
+// for a config whose LAST press was a tier -- a distance chosen by dragging the terrain slider
+// by hand has no preset name and is left alone.
+//------------------------------------------------------------------------------
+if($pref::drawDistTierV1 == "")
+{
+   %tier = String::ICompare($pref::graphicsPreset, "Low") == 0 || String::ICompare($pref::graphicsPreset, "Medium") == 0;
+   if(%tier && $pref::TerrainVisibleDistance < 1500)
+   {
+      $pref::TerrainVisibleDistance = 1500;
+      $pref::uTVD = 10000;
+      echo("[DRAWDIST] one-time draw-distance migration: " @ $pref::graphicsPreset @ " tier now keeps the full sight distance");
+   }
+   $pref::drawDistTierV1 = 1;
+}
+
+//------------------------------------------------------------------------------
 // 4. DEDICATED-SERVER CONSOLE LOG BUFFER.
 //
 // The in-RAM console scrollback is forced on every session and retains every line for the life of
@@ -1546,6 +1569,173 @@ function KillPop::onKill(%victim, %weapon)
 	}
 	if($pref::killPopDiag)
 		echo("[KILLPOP] pop: " @ %victim @ " (" @ %weapon @ ")");
+}
+
+//------------------------------------------------------------------------------
+// TAGGED PRINTS (2026-09-13). Annihilation and Star Wars servers send some messages through
+// their tagged-string protocol (server\messaging.cs message::tagged):
+//   remoteEval(client, T, "<type> add", template, params)   the first time a template is used
+//   remoteEval(client, T, "<type>", index, params)           every time after that
+// The client half ships in the Star Wars mod's own HUD config (config\Core\TagString.cs in
+// TribesStarWars.zip). This client never had it, so the engine dropped every such message,
+// "You just scored a mid-air hit on <name>" included.
+// remoteT keeps TagString.cs's bookkeeping: the same $Count++ the server uses for its indices,
+// with the table cleared on every connection, and client ids in %1-%6 expanded to player names
+// with their formatting characters stripped. Only the presentation changes. A TP / CP / BP
+// (top / centre / bottom) print becomes a banner under the kill toast (ModernHUD::tagToast,
+// hud\Framework.cs) while a ModernHUD pack is active, and the stock centre print otherwise.
+// RPC, ST and KD (station hooks and the mods' stat HUD) have no consumer in this client, so
+// they are only registered.
+// The template comes from the server, so it never goes near the C++ sprintf, which has no
+// bounds checks and never advances past a '%' that is not followed by a digit. TagMsg::fill
+// and TagMsg::runs substitute %1-%6 in script instead.
+//   $pref::tagMsgDiag   1 = echo each tagged message received
+//------------------------------------------------------------------------------
+function TagMsg::reset()
+{
+	deleteVariables("$TagMsg::Tag*");
+	$TagMsg::Count = 0;
+}
+Event::Attach(eventConnectionAccepted, TagMsg::reset);
+Event::Attach(eventLeaveServer, TagMsg::reset);
+
+// A client id in a print's parameters becomes that player's name with its formatting characters
+// stripped, as TagString.cs does. Anything that is not a known client (a damage number, a word)
+// comes back unchanged.
+function TagMsg::name(%v)
+{
+	%n = String::escapeFormatting(Client::getName(%v));
+	if(%n == "")
+		return %v;
+	return %n;
+}
+
+// Classic path: the template with %1-%6 filled in and its formatting tags kept.
+function TagMsg::fill(%tpl, %a1, %a2, %a3, %a4, %a5, %a6)
+{
+	%out = "";
+	for(%i = 0; %i < 1024; %i++)
+	{
+		%c = String::getSubStr(%tpl, %i, 1);
+		if(%c == "")
+			break;
+		if(%c == "%")
+		{
+			%d = String::getSubStr(%tpl, %i + 1, 1);
+			if(%d != "" && String::findSubStr("123456", %d) != -1)
+			{
+				%out = %out @ %a[%d];
+				%i++;
+				continue;
+			}
+		}
+		%out = %out @ %c;
+	}
+	return %out;
+}
+
+// Banner path: splits the template into runs in $TagMsg::Run[%slot, n]. Formatting tags (<jc>,
+// <f1>, ...) are dropped, literal text makes one run, and each %1-%6 makes a run of its own
+// holding that parameter, flagged in $TagMsg::RunHi so the banner can colour it. Returns the
+// run count.
+function TagMsg::runs(%slot, %tpl, %a1, %a2, %a3, %a4, %a5, %a6)
+{
+	%count = 0;
+	%lit = "";
+	%inTag = 0;
+	for(%i = 0; %i < 1024; %i++)
+	{
+		%c = String::getSubStr(%tpl, %i, 1);
+		if(%c == "")
+			break;
+		if(%inTag)
+		{
+			if(%c == ">")
+				%inTag = 0;
+			continue;
+		}
+		if(%c == "<")
+		{
+			%inTag = 1;
+			continue;
+		}
+		if(%c == "%")
+		{
+			%d = String::getSubStr(%tpl, %i + 1, 1);
+			if(%d != "" && String::findSubStr("123456", %d) != -1)
+			{
+				if(%lit != "")
+				{
+					$TagMsg::Run[%slot, %count] = %lit;
+					$TagMsg::RunHi[%slot, %count] = 0;
+					%count++;
+					%lit = "";
+				}
+				$TagMsg::Run[%slot, %count] = %a[%d];
+				$TagMsg::RunHi[%slot, %count] = 1;
+				%count++;
+				%i++;
+				continue;
+			}
+		}
+		%lit = %lit @ %c;
+	}
+	if(%lit != "")
+	{
+		$TagMsg::Run[%slot, %count] = %lit;
+		$TagMsg::RunHi[%slot, %count] = 0;
+		%count++;
+	}
+	return %count;
+}
+
+function TagMsg::print(%type, %tag, %timeout, %a1, %a2, %a3, %a4, %a5, %a6)
+{
+	if($ModernHUD::Enabled)
+	{
+		%t = %timeout;
+		if(%t <= 0)
+			%t = 5;
+		if(%t > 15)
+			%t = 15;
+		$TagMsg::RunCount[%type] = TagMsg::runs(%type, %tag, %a1, %a2, %a3, %a4, %a5, %a6);
+		$TagMsg::Until[%type] = getSimTime() + %t;
+		return;
+	}
+	%msg = TagMsg::fill(%tag, %a1, %a2, %a3, %a4, %a5, %a6);
+	if(%type == "TP")
+		remoteTP(2048, %msg, %timeout);
+	else if(%type == "CP")
+		remoteCP(2048, %msg, %timeout);
+	else
+		remoteBP(2048, %msg, %timeout);
+}
+
+function remoteT(%sv, %cmd, %tagValue, %p0, %p1, %p2, %p3, %p4, %p5, %p6)
+{
+	if(%sv != 2048)
+		return;
+
+	// "<type> add" stores a new template; a bare "<type>" (getWord gives -1) names a stored
+	// one. Anything else leaves the index empty and is dropped below, as in TagString.cs.
+	%type = getWord(%cmd, 0);
+	%action = getWord(%cmd, 1);
+	if(%action == "add")
+	{
+		%index = $TagMsg::Count++;
+		$TagMsg::Tag[%index] = %tagValue;
+	}
+	else if(%action == -1)
+		%index = %tagValue;
+
+	%tag = $TagMsg::Tag[%index];
+	if($pref::tagMsgDiag)
+		echo("[TAGMSG] " @ %cmd @ " #" @ %index @ ": " @ %tag);
+	if(%tag == "")
+		return;
+
+	if(%type == "TP" || %type == "CP" || %type == "BP")
+		TagMsg::print(%type, %tag, %p0, TagMsg::name(%p1), TagMsg::name(%p2), TagMsg::name(%p3), TagMsg::name(%p4), TagMsg::name(%p5), TagMsg::name(%p6));
 }
 
 //------------------------------------------------------------------------------

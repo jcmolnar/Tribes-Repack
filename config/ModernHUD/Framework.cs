@@ -2510,17 +2510,68 @@ function ModernHUD::musicPanel(%screen)
 }
 
 //------------------------------------------------------------------------------
+// TOAST CLOCK (2026-09-13). The toasts below, and the music toast above, time out against
+// getSimTime(), and that clock goes BACKWARDS: resetSimTime() rewinds the client's sim
+// manager as well as the server's (FearPlugin.cpp c_resetSimTime), and a listen host's
+// Server::loadMission calls it on every mission change (base\scripts\server.cs:368). A toast
+// that was up when the mission changed kept an end time far ahead of the new clock, so the
+// kill line stayed on screen until the next kill replaced it (Joe, 2026-09-13).
+// onDraw runs this once per frame: when the clock reads less than it did on the last frame,
+// every toast's end time is cleared.
+//------------------------------------------------------------------------------
+function ModernHUD::toastClock()
+{
+   %now = getSimTime();
+   if($ModernHUD::ToastClock != "" && %now < $ModernHUD::ToastClock)
+   {
+      $KillPop::ToastUntil = -1;
+      $MusicHud::ToastUntil = -1;
+      $TagMsg::Until["TP"] = -1;
+      $TagMsg::Until["CP"] = -1;
+      $TagMsg::Until["BP"] = -1;
+   }
+   $ModernHUD::ToastClock = %now;
+}
+
+// A framework toast as a movable part (Joe, 2026-09-13: the toasts are not up long enough
+// to grab). The retained handle makes it a K-editor target like any pack part: drag it to
+// move it, drag its corner to resize it. ModernHUD::handle keeps the position per pack in
+// $pref::hudPositions, and "Reset HUD positions" puts it back. The callers draw a sample
+// while the K editor is open, so there is something to grab.
+// Returns the box's top-left, with the toast's own resize active as a draw scale about that
+// corner; the caller pops it with glPartScale(0, 0, 1). Not ModernHUD::part, which also
+// applies the pack-wide HUD size: a toast keeps its size unless it is resized itself. The
+// identity reset comes first because ModernHUD::part leaves the last pack part's scale
+// active for the rest of the pass, and a toast drawn after it would take that part's scale
+// and origin.
+function ModernHUD::toastPart(%name, %defaultPos, %w, %h)
+{
+   glPartScale(0, 0, 1);
+   %at = ModernHUD::handle(%name, %defaultPos, %w, %h);
+   %scale = ModernHUD::scaleOfPart(%name);
+   if(%scale == "" || %scale <= 0)
+      %scale = 1;
+   glPartScale(getWord(%at, 0), getWord(%at, 1), %scale);
+   return %at;
+}
+
+//------------------------------------------------------------------------------
 // KILL POP (2026-09-05). Centre-top line for a few seconds after YOU kill someone
 // ($KillPop::Toast*, set by KillPop::onKill in config\nativeDefaults.cs from the
 // engine's obituary matcher). Same chrome as the music toast, sat a little higher so
 // the two never overlap when a track changes mid-fight.
+// Movable since 2026-09-13 (ModernHUD::toastPart). The handle box is the size of the
+// K-editor sample and a live line is centred on it, so the line stays centred where the
+// player put it whatever the names' widths. The default is the old spot.
 //------------------------------------------------------------------------------
 function ModernHUD::killToast(%screen)
 {
-   if($KillPop::ToastVictim == "")
+   %live = $KillPop::ToastVictim != "" && getSimTime() <= $KillPop::ToastUntil;
+   if(!%live && $Config::HudListVisible != 1)
+   {
+      ModernHUD::hide("ModernHUD::KillToast");
       return;
-   if(getSimTime() > $KillPop::ToastUntil)
-      return;
+   }
 
    %sw = getWord(%screen, 0);
    %sh = getWord(%screen, 1);
@@ -2529,28 +2580,141 @@ function ModernHUD::killToast(%screen)
    if(%font == "") { %font = "Verdana"; }
    glSetFont(%font, %px);
    %head = "YOU KILLED  ";
-   %name = $KillPop::ToastVictim;
-   %tail = "   " @ $KillPop::ToastWeapon;
+   if(%live)
+   {
+      %name = $KillPop::ToastVictim;
+      %tail = "   " @ $KillPop::ToastWeapon;
+   }
+   else
+   {
+      %name = "Enemy Player";
+      %tail = "   Disc Launcher";
+   }
+
+   %bw = getWord(glGetStringDimensions("YOU KILLED  Enemy Player   Disc Launcher"), 0) + 24;
+   %bh = %px + 10;
+   %dx = floor((%sw - %bw) / 2);
+   %dy = floor(%sh / 4) - %px - 19;
+   %at = ModernHUD::toastPart("ModernHUD::KillToast", %dx @ " " @ %dy, %bw, %bh);
+
    %wh = getWord(glGetStringDimensions(%head), 0);
    %wn = getWord(glGetStringDimensions(%name), 0);
    %wt = getWord(glGetStringDimensions(%tail), 0);
    %tw = %wh + %wn + %wt;
-   %x = floor((%sw - %tw) / 2);
-   %y = floor(%sh / 4) - %px - 14;
+   %x = getWord(%at, 0) + floor((%bw - %tw) / 2);
+   %by = getWord(%at, 1);
+   %y = %by + 5;
 
    ModernHUD::mColor("10 13 16", 180);
-   glRectangle(%x - 12, %y - 5, %tw + 24, %px + 10);
+   glRectangle(%x - 12, %by, %tw + 24, %bh);
    ModernHUD::mColor("230 60 50", 255);
-   glRectangle(%x - 12, %y - 5, 3, %px + 10);
+   glRectangle(%x - 12, %by, 3, %bh);
    ModernHUD::mText(%x, %y, %wh, $ModernHUD::MenuText, %head, 220, %px, "l");
    ModernHUD::mText(%x + %wh, %y, %wn, "255 230 90", %name, 255, %px, "l");
    ModernHUD::mText(%x + %wh + %wn, %y, %wt, $ModernHUD::MenuText, %tail, 180, %px, "l");
+   glPartScale(0, 0, 1);
+}
+
+//------------------------------------------------------------------------------
+// TAGGED PRINTS (2026-09-13). The top/centre/bottom prints that Annihilation and Star Wars
+// servers send through their tagged-string protocol ("You just scored a mid-air hit on
+// <name>" is one), drawn in the kill toast's chrome. remoteT in config\nativeDefaults.cs
+// fills $TagMsg::Run[<type>, n] with the text runs and sets $TagMsg::Until[<type>].
+// $TagMsg::RunHi marks the runs that came from the server's parameters; those are drawn in
+// the kill toast's name colour.
+// One movable part (ModernHUD::toastPart) holds every print type. Its handle is the first
+// row's box, the size of the K-editor sample, and each live type draws one row, in top /
+// centre / bottom order, stacked down from it. The default is the old spot: one kill-toast
+// box plus a 6 px gap below the kill toast's default.
+//------------------------------------------------------------------------------
+function ModernHUD::tagToast(%screen)
+{
+   %now = getSimTime();
+   %rows = 0;
+   for(%t = 0; %t < 3; %t++)
+   {
+      %type = getWord("TP CP BP", %t);
+      %n = $TagMsg::RunCount[%type];
+      if(%n == "" || %n <= 0)
+         continue;
+      if(%now > $TagMsg::Until[%type])
+         continue;
+      %row[%rows] = %type;
+      %rows++;
+   }
+
+   // Nothing live: a sample row while the K editor is open, so the banner can be found and
+   // dragged. Otherwise nothing is drawn and the handle is hidden.
+   if(%rows == 0)
+   {
+      if($Config::HudListVisible != 1)
+      {
+         ModernHUD::hide("ModernHUD::TagToast");
+         return;
+      }
+      $TagMsg::Run["Sample", 0] = "You just scored a mid-air hit on ";
+      $TagMsg::RunHi["Sample", 0] = 0;
+      $TagMsg::Run["Sample", 1] = "Enemy Player";
+      $TagMsg::RunHi["Sample", 1] = 1;
+      $TagMsg::RunCount["Sample"] = 2;
+      %row[0] = "Sample";
+      %rows = 1;
+   }
+
+   %sw = getWord(%screen, 0);
+   %sh = getWord(%screen, 1);
+   %px = 16;
+   %font = $ModernHUD::MenuFont;
+   if(%font == "") { %font = "Verdana"; }
+   glSetFont(%font, %px);
+   %bw = getWord(glGetStringDimensions("You just scored a mid-air hit on Enemy Player"), 0) + 24;
+   %bh = %px + 10;
+   %dx = floor((%sw - %bw) / 2);
+   %dy = floor(%sh / 4) - 3;
+   %at = ModernHUD::toastPart("ModernHUD::TagToast", %dx @ " " @ %dy, %bw, %bh);
+   %bx = getWord(%at, 0);
+   %by = getWord(%at, 1);
+
+   for(%r = 0; %r < %rows; %r++)
+   {
+      %type = %row[%r];
+      %n = $TagMsg::RunCount[%type];
+      glSetFont(%font, %px);
+      %tw = 0;
+      for(%i = 0; %i < %n; %i++)
+      {
+         %w[%i] = getWord(glGetStringDimensions($TagMsg::Run[%type, %i]), 0);
+         %tw += %w[%i];
+      }
+      %x = %bx + floor((%bw - %tw) / 2);
+      %y = %by + %r * (%bh + 6);
+
+      ModernHUD::mColor("10 13 16", 180);
+      glRectangle(%x - 12, %y, %tw + 24, %bh);
+      ModernHUD::mColor("90 170 255", 255);
+      glRectangle(%x - 12, %y, 3, %bh);
+      %cx = %x;
+      for(%i = 0; %i < %n; %i++)
+      {
+         if($TagMsg::RunHi[%type, %i])
+            ModernHUD::mText(%cx, %y + 5, %w[%i], "255 230 90", $TagMsg::Run[%type, %i], 255, %px, "l");
+         else
+            ModernHUD::mText(%cx, %y + 5, %w[%i], $ModernHUD::MenuText, $TagMsg::Run[%type, %i], 220, %px, "l");
+         %cx += %w[%i];
+      }
+   }
+   glPartScale(0, 0, 1);
 }
 
 function ModernHUD::onDraw(%screen)
 {
    if(!$ModernHUD::Enabled)
       return;
+
+   // TOAST CLOCK: every toast ends when getSimTime() has gone backwards since the last
+   // frame (see ModernHUD::toastClock). First, so nothing below draws against an end time
+   // from before a clock reset.
+   ModernHUD::toastClock();
 
    ModernHUDPack::draw(%screen);
 
@@ -2568,6 +2732,10 @@ function ModernHUD::onDraw(%screen)
 
    // KILL POP: the "you killed" line (nativeDefaults.cs KillPop::onKill sets it).
    ModernHUD::killToast(%screen);
+
+   // TAGGED PRINTS: Annihilation / Star Wars top, centre and bottom prints, as banners
+   // under the kill toast (nativeDefaults.cs remoteT sets them).
+   ModernHUD::tagToast(%screen);
 
    // The settings panel draws LAST, over the pack's own art -- it is modal
    // furniture and must not be occluded by the HUD it configures. No-ops when the
