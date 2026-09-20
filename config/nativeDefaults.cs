@@ -423,10 +423,47 @@ BindSet::report();
 // unconditionally, so it beats any persisted value. Enable a diagnostic at RUNTIME while
 // you need it; to keep one across restarts, remove it from this list.
 //
+// (2026-09-19) WIDENED from 14 names to 107. Fourteen covered an eighth of the tree's
+// diagnostics, so the other seven eighths still persisted forever: $pref::gltfDiag = 2,
+// left on after a rig hunt, wrote 15,593 of the 100,341 lines in Joe's console.log before
+// anyone noticed, and $pref::netShotDiag had drifted back on since the 2026-09-10 sweep.
+// The list is now every debug-ish pref tools/audit_pref_defaults.py sees, MINUS its
+// ALLOWLIST (rates, paths and misnamed feature flags: consoleLogBuffer = 0 EMPTIES the
+// in-game console, heapDiagEvery is a rate, recPlaybackScaleDiag = 1 means inactive) and
+// MINUS its DIAGRESET_EXCLUDE -- three prefs where a present "0" is NOT the same as
+// absent. This loop writes the string "0"; it cannot write "absent":
+//   * gpuTerrMipDiag -- absent touches nothing, "0" FORCES terrain MIN_FILTER
+//     (rt.cpp:14336). That is the same "a leftover 0 silently disabled the fix" trap
+//     rt.cpp:14225 documents for gpuTerrEdgeDiag.
+//   * mouseDiagNoRecenter -- the pref:: form is never honoured; mouseDiag.cpp:61 clears it
+//     to "" and PRINTS when it is present, so writing "0" would fire that line every boot.
+//   * rtCellDiag (2026-09-19, 765b9933) -- absent = pixel-tracking sampling cells (default
+//     1.0); "0" = the legacy fixed 0.5u world cells, the huge dancing squares fd9376d
+//     exists to cure. It was on this list for one day and Joe hit it at $pref::rtQuality=3
+//     standing next to a wall. $pref::rtCellPx = 0 is the real legacy A/B and is NOT swept.
+// A PREF WHOSE ABSENT DEFAULT IS NON-ZERO MUST NEVER BE BLANKET-SWEPT TO 0. Read the C++
+// site before adding a name: the shapes to look for are "int x = -1; if(v && v[0])" and a
+// non-zero initialiser that the pref only overrides.
+// Regenerate the block below with: python tools/audit_pref_defaults.py --diagreset
+//
 // Escape hatch: set $DiagReset::skip = 1 before autoexec runs.
 //====================================================================================
 if($DiagReset::skip != 1) {
-	$DiagReset::list = "fireDiag frameProfile heapDiag aiTaskDiag mouseDiag netTimeoutDiag playerPreviewDiag uiBtnDiag uiRectDiag localSkinDebug uiThemeCoverageDiag ghostSkipDiag srvProfLog allocProfile";
+	$DiagReset::list = "aimLagDiag aiStuckLog aiTaskDiag allocProfile assertProbe assetPackDiag bbYawProbe beamParityDiag bindDiag";
+	$DiagReset::list = $DiagReset::list @ " botAscendTrace botDebug botEdgeLog botFlagDiag botLog botRouteLog botTelemetry browserDiag";
+	$DiagReset::list = $DiagReset::list @ " chainSparkDiag chainSparkProbe dropPointDiag fireDiag flagPriDiag flareDiag frameProfDiag";
+	$DiagReset::list = $DiagReset::list @ " frameProfile ghostSkipDiag gltfDiag gpuDiag gpuDiagFade gpuDynLDiagStress gpuDynLDiagTest";
+	$DiagReset::list = $DiagReset::list @ " gpuLinPrevDiag gpuMatDiag gpuReflectTrace gpuTerrEdgeDiag gpuTerrUVDiag heapDiag";
+	$DiagReset::list = $DiagReset::list @ " heapDiagSelfTest hostDiag hudSlotDiag itemSnapDiag killPopDiag localSkinDebug masterDiag";
+	$DiagReset::list = $DiagReset::list @ " mechMountDiag mechTurnDiag meColorDiag meFontDiag memProfileDiag meShapeDiag meToolbarDiag";
+	$DiagReset::list = $DiagReset::list @ " mjDiag mlDiag mlistDiag mouseDiag moveDropDiag navScanDebug netClockDiag netDataBlockDiag";
+	$DiagReset::list = $DiagReset::list @ " netMoveDiag netPacketDiag netPingDiag netPredictDiag netPredShadowDiag netResumeDiag";
+	$DiagReset::list = $DiagReset::list @ " netShotDiag netSmoothDiag netSmoothScoreDiag netSnapDiag netTimeoutDiag objDiag optionsDiag";
+	$DiagReset::list = $DiagReset::list @ " playerPreviewDiag playerTrace predictDiag projDiag rainDiag recTraceDiag rtDebug rtMatDiag";
+	$DiagReset::list = $DiagReset::list @ " rtProfSkipDiag rtShapeDiag rtUVDiag scorePingDiag serverListDiag shadowPaletteDiag";
+	$DiagReset::list = $DiagReset::list @ " shapeViewDiag skinDiag skyShipDiag srvProfLog stormBoltDiag texLoadDiag uiBoxDiag uiBtnDiag";
+	$DiagReset::list = $DiagReset::list @ " uiEditMissionDiag uiInvDiag uiPlateDiag uiRectDiag uiScopeDiag uiSdfDiag uiSurfDiag uiTextDiag";
+	$DiagReset::list = $DiagReset::list @ " uiThemeCoverageDiag uiThemeScanDiag uiVideoDiag viewLagDiag visDistDiag xhairDiag";
 	for(%i = 0; (%dg = getWord($DiagReset::list, %i)) != -1; %i++) {
 		if($pref::[%dg] != "" && $pref::[%dg] != "0") {
 			echo("[DIAGRESET] $pref::" @ %dg @ " was " @ $pref::[%dg] @ " -- forcing 0 (see nativeDefaults.cs)");
