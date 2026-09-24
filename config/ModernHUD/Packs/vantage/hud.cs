@@ -25,6 +25,7 @@
 //==============================================================================
 
 exec("ModernHUD/Framework.cs");
+exec("ModernHUD/Packs/vantage/components.cs");   // borrowable parts (HUD designer mix-and-match)
 
 $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "Vantage";
@@ -42,261 +43,6 @@ function ModernHUDPack::ownsSlot(%value)
    if(%value == "off")
       return false;
    return String::findSubStr(%value, "Vantage::") == 0;
-}
-
-//------------------------------------------------------------------------------
-// The palette. One place, so the whole HUD moves together.
-//
-// These are RGB triples fed to $pref::Hud::Color* (which resolve through the
-// engine palette's GetNearestColor) and to glColor4ub for our own draws. Using
-// the SAME numbers for both is the point: our bars and the engine's brackets,
-// crosshair box and chat end up the same colour.
-//------------------------------------------------------------------------------
-function Vantage::palette()
-{
-   $Vantage::Primary  = "0 200 255";      // cyan -- the HUD's voice
-   $Vantage::Dim      = "0 62 78";        // the same hue, backgrounded
-   $Vantage::Accent   = "255 190 60";     // amber -- "attention", not "danger"
-   $Vantage::Warn     = "255 60 60";      // red   -- danger only
-   $Vantage::Text     = "235 245 255";
-   $Vantage::Pass     = "255 105 180";    // flag carrier
-}
-
-// Set the raw-GL draw colour from one of the palette entries.
-function Vantage::color(%rgb, %alpha)
-{
-   glColor4ub(getWord(%rgb, 0), getWord(%rgb, 1), getWord(%rgb, 2), %alpha);
-}
-
-// A filled bar with a dim bed behind it. %frac is 0..1.
-function Vantage::meter(%x, %y, %w, %h, %frac, %rgb, %alpha)
-{
-   if(%frac < 0) %frac = 0;
-   if(%frac > 1) %frac = 1;
-
-   Vantage::color($Vantage::Dim, %alpha * 0.55);
-   glRectangle(%x, %y, %w, %h);
-
-   %fill = floor(%w * %frac);
-   if(%fill > 0)
-   {
-      Vantage::color(%rgb, %alpha);
-      glRectangle(%x, %y, %fill, %h);
-   }
-}
-
-// Text in a palette colour. Uses the self-contained <f:file:rgba:shadow:dx,dy>
-// markup form rather than <fN> so the pack never depends on whatever font table
-// the previously-loaded pack happened to leave behind.
-function Vantage::text(%x, %y, %width, %rgb, %str, %alpha)
-{
-   %hex = Vantage::hex(%rgb);
-   ModernHUD::markup(%x, %y, %width,
-      "<f:sf_white_10b.pft:" @ %hex @ "ff:000000c0:1,1>" @ %str, %alpha);
-}
-
-function Vantage::textSmall(%x, %y, %width, %rgb, %str, %alpha)
-{
-   %hex = Vantage::hex(%rgb);
-   ModernHUD::markup(%x, %y, %width,
-      "<f:sf_white_7.pft:" @ %hex @ "ff:000000c0:1,1>" @ %str, %alpha);
-}
-
-// "r g b" -> "rrggbb". The console has no printf, so this is a nibble table.
-function Vantage::hex(%rgb)
-{
-   return Vantage::hex2(getWord(%rgb, 0)) @ Vantage::hex2(getWord(%rgb, 1)) @
-          Vantage::hex2(getWord(%rgb, 2));
-}
-
-function Vantage::hex2(%v)
-{
-   if(%v < 0)   %v = 0;
-   if(%v > 255) %v = 255;
-   return Vantage::nib(floor(%v / 16)) @ Vantage::nib(%v - floor(%v / 16) * 16);
-}
-
-function Vantage::nib(%n)
-{
-   if(%n <= 9)
-      return %n;
-   if(%n == 10) return "a";
-   if(%n == 11) return "b";
-   if(%n == 12) return "c";
-   if(%n == 13) return "d";
-   if(%n == 14) return "e";
-   return "f";
-}
-
-//------------------------------------------------------------------------------
-// PART: vitals -- health + energy, bottom centre, with a DAMAGE TRAIL.
-//
-// ★The trail is the widget this pack exists for.★ The health bar drops to the
-// real value instantly; a second, lighter bar behind it falls to meet it over
-// ~400ms. You see how much you just LOST, not only what is left -- which in a
-// game where damage arrives as discrete disc hits is the more useful fact.
-//
-// A retained control cannot do this: it has no per-frame tick, which is why
-// every legacy health plate is a number that teleports. Immediate mode plus
-// glTicks (a real ms wall clock) makes it three lines.
-//------------------------------------------------------------------------------
-function Vantage::Vitals(%x, %y, %w)
-{
-   %health = $health;
-   %energy = $energy;
-   if(%health == "") %health = 0;
-   if(%energy == "") %energy = 0;
-
-   %now = glTicks();
-
-   // Trail state. Seeded on first draw so the bar does not sweep in from zero
-   // the moment you spawn.
-   if($Vantage::TrailInit == "")
-   {
-      $Vantage::TrailInit = 1;
-      $Vantage::Trail = %health;
-      $Vantage::TrailAt = %now;
-   }
-
-   if(%health > $Vantage::Trail)
-   {
-      // Healed: no trail. A trail on the way UP would be showing you a deficit
-      // you no longer have.
-      $Vantage::Trail = %health;
-   }
-   else if($Vantage::Trail > %health)
-   {
-      // 400ms to close the gap, frame-rate independent because the step is
-      // scaled by the REAL elapsed ms, not by a per-frame constant.
-      %dt = %now - $Vantage::TrailAt;
-      if(%dt < 0)    %dt = 0;      // clock reset (map change) -- do not lurch
-      if(%dt > 250)  %dt = 250;    // long stall -- do not snap
-      %step = ($Vantage::Trail - %health) * (%dt / 400);
-      $Vantage::Trail = $Vantage::Trail - %step;
-      if($Vantage::Trail < %health)
-         $Vantage::Trail = %health;
-   }
-   $Vantage::TrailAt = %now;
-
-   // Colour by threshold. Amber is "pay attention", red is "you are dying" --
-   // two distinct states, not a gradient, because a gradient tells you nothing
-   // you can act on at a glance.
-   if(%health > 66)      %hc = $Vantage::Primary;
-   else if(%health > 33) %hc = $Vantage::Accent;
-   else                  %hc = $Vantage::Warn;
-
-   %barW = %w;
-
-   // trail first, behind
-   if($Vantage::Trail > %health)
-   {
-      Vantage::color($Vantage::Warn, 90);
-      glRectangle(%x, %y, floor(%barW * ($Vantage::Trail / 100)), 7);
-   }
-
-   Vantage::meter(%x, %y, %barW, 7, %health / 100, %hc, 235);
-   Vantage::meter(%x, %y + 9, %barW, 4, %energy / 100, $Vantage::Primary, 190);
-
-   // ★The number appears only when it matters.★ A readout you look at every
-   // frame is a readout you have stopped seeing; one that only exists below 40
-   // is an alarm.
-   if(%health < 40)
-      Vantage::text(%x, %y - 18, %barW, $Vantage::Warn, "<jc>" @ floor(%health), 255);
-}
-
-//------------------------------------------------------------------------------
-// PART: weapon -- name + ammo, bottom right.
-//------------------------------------------------------------------------------
-function Vantage::Weapon(%x, %y, %w)
-{
-   %wep = GetItemDesc(GetMountedItem(0));
-   if(%wep == "")
-      return;
-
-   %ammo = $Weapon::Ammo;
-
-   Vantage::text(%x, %y, %w, $Vantage::Text, "<jr>" @ %wep, 220);
-
-   if(%ammo == "" || %ammo < 0)
-   {
-      // Energy weapons report no ammo count. Say so rather than drawing a bar
-      // that is always empty.
-      Vantage::textSmall(%x, %y + 16, %w, $Vantage::Dim, "<jr>--", 200);
-      return;
-   }
-
-   if(%ammo <= 2) %ac = $Vantage::Warn;
-   else           %ac = $Vantage::Accent;
-
-   Vantage::text(%x, %y + 14, %w, %ac, "<jr>" @ %ammo, 255);
-}
-
-//------------------------------------------------------------------------------
-// PART: ctf -- both scores and both flag states, top centre.
-//
-// Uses the shared Team.cs data layer that ships with the framework's Core/Data,
-// the same one the converted packs require. Degrades to scores alone when the
-// layer is not present rather than erroring per frame.
-//------------------------------------------------------------------------------
-function Vantage::Ctf(%x, %y, %w)
-{
-   %mine = Team::Friendly();
-   %theirs = Team::Enemy();
-   if(%mine == "" || %theirs == "")
-      return;
-
-   %s0 = Team::Score(%mine);
-   %s1 = Team::Score(%theirs);
-   if(%s0 == "") %s0 = 0;
-   if(%s1 == "") %s1 = 0;
-
-   %half = floor(%w / 2);
-
-   Vantage::text(%x, %y, %half - 10, $Vantage::Primary, "<jr>" @ %s0, 255);
-   Vantage::text(%x + %half + 10, %y, %half - 10, $Vantage::Warn, "<jl>" @ %s1, 255);
-   Vantage::textSmall(%x, %y + 3, %w, $Vantage::Dim, "<jc>/", 200);
-
-   Vantage::flagState(%x, %y + 18, %half - 10, %mine, $Vantage::Primary, "<jr>");
-   Vantage::flagState(%x + %half + 10, %y + 18, %half - 10, %theirs, $Vantage::Warn, "<jl>");
-}
-
-function Vantage::flagState(%x, %y, %w, %team, %rgb, %just)
-{
-   %loc = Team::Flag::Location(%team);
-   if(%loc == "")
-      return;
-
-   if(%loc == "home")
-      Vantage::textSmall(%x, %y, %w, $Vantage::Dim, %just @ "home", 190);
-   else if(%loc == "field")
-      Vantage::textSmall(%x, %y, %w, $Vantage::Accent, %just @ "dropped", 235);
-   else
-      Vantage::textSmall(%x, %y, %w, %rgb,
-         %just @ String::escapeFormatting(Client::GetName(%loc)), 255);
-}
-
-//------------------------------------------------------------------------------
-// PART: items -- grenades / beacons / repair kit, top left.
-//
-// Dimmed at zero rather than hidden: a slot that disappears makes the row jump,
-// and "I have none" is information too.
-//------------------------------------------------------------------------------
-function Vantage::Items(%x, %y, %w)
-{
-   Vantage::itemRow(%x, %y,      %w, "Grenade",    "GREN");
-   Vantage::itemRow(%x, %y + 18, %w, "Beacon",     "BCN");
-   Vantage::itemRow(%x, %y + 36, %w, "Repair Kit", "KIT");
-}
-
-function Vantage::itemRow(%x, %y, %w, %item, %label)
-{
-   %n = GetItemCount(%item);
-   if(%n == "") %n = 0;
-
-   if(%n > 0) { %c = $Vantage::Text;  %a = 235; }
-   else       { %c = $Vantage::Dim;   %a = 160; }
-
-   Vantage::textSmall(%x, %y, %w, %c, %label @ "  " @ %n, %a);
 }
 
 //------------------------------------------------------------------------------
@@ -399,49 +145,6 @@ function ModernHUDPack::restore()
       Vantage::restore();
 }
 
-function Vantage::restore()
-{
-   if($Vantage::Saved == "")
-   {
-      echo("Vantage: nothing to restore.");
-      return;
-   }
-
-   $pref::Hud::ColorPrimary = $Vantage::Sav::ColorPrimary;
-   $pref::Hud::ColorDim     = $Vantage::Sav::ColorDim;
-   $pref::Hud::ColorAccent  = $Vantage::Sav::ColorAccent;
-   $pref::Hud::ColorWarn    = $Vantage::Sav::ColorWarn;
-   $pref::Hud::ColorText    = $Vantage::Sav::ColorText;
-   $pref::Hud::ColorPass    = $Vantage::Sav::ColorPass;
-
-   $mj::shownames        = $Vantage::Sav::ShowNames;
-   $mj::showhpbars       = $Vantage::Sav::ShowHpBars;
-   $mj::showjetbars      = $Vantage::Sav::ShowJetBars;
-   $mj::showhptext       = $Vantage::Sav::ShowHpText;
-   $mj::barscrouch       = $Vantage::Sav::BarsCrouch;
-   $mj::bar_width        = $Vantage::Sav::BarW;
-   $mj::bar_height       = $Vantage::Sav::BarH;
-   $mj::bar_border_width = $Vantage::Sav::BarB;
-   $mj::fontdefault      = $Vantage::Sav::FontDefault;
-   $mj::fontpass         = $Vantage::Sav::FontPass;
-   $mj::passhelper       = $Vantage::Sav::PassHelper;
-   $mj::passhelpermm     = $Vantage::Sav::PassHelperMM;
-
-   $xChat::HiderEnabled  = $Vantage::Sav::HiderEnabled;
-   $xChat::HiderTimeout  = $Vantage::Sav::HiderTimeout;
-   $xChat::ScrollTimeout = $Vantage::Sav::ScrollTimeout;
-   $xChat::HideCmdMsg    = $Vantage::Sav::HideCmdMsg;
-   $xChat::TransChat     = $Vantage::Sav::TransChat;
-
-   $pref::ChatDisplayModMethodX = $Vantage::Sav::ChatModX;
-   $pref::ChatDisplayX          = $Vantage::Sav::ChatX;
-   $pref::ChatDisplayWidth      = $Vantage::Sav::ChatWidth;
-
-   deleteVariables("$Vantage::Sav::*");
-   $Vantage::Saved = "";
-   echo("Vantage: client settings restored.");
-}
-
 //------------------------------------------------------------------------------
 // Pack lifecycle.
 //------------------------------------------------------------------------------
@@ -464,11 +167,9 @@ function ModernHUDPack::stockHuds()
    Control::SetVisible(crosshairHud,   true);
    ModernHUD::stock(chatDisplayHud, true);
    ModernHUD::stock(Minimap,        true);
-   // ★Defaulted ON deliberately.★ Vantage has no clock part -- a real match clock
-   // needs its own data layer (gameclock.acs.cs maintains $clock::* off a
-   // server message), and shipping a part that silently draws nothing is worse
-   // than shipping none. The stock clock is a working clock; use it.
-   ModernHUD::stock(clockHud,       true);
+   // Off: Vantage draws its own clock part now (getHudTimer, the same client clock
+   // the stock ClockHud reads). The K panel's Clock row still brings the stock one back.
+   ModernHUD::stock(clockHud,       false);
    ModernHUD::stock(healthHud,      false);
    ModernHUD::stock(jetPackHud,     false);
    ModernHUD::stock(weaponHud,      false);
@@ -490,55 +191,42 @@ function ModernHUDPack::init()
 ModernHUD::require("ModernHUD/Core/Data/Team.cs");
 ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
 
-function ModernHUDPack::draw_vitals(%screen)
-{
-   %partW = 260;
-   %at = ModernHUD::part("ModernHUD::VantageVitals", "bottom-center", 0, 96, 260, 22, %screen);
-   Vantage::Vitals(getWord(%at, 0), getWord(%at, 1), %partW);
-}
-
-function ModernHUDPack::draw_weapon(%screen)
-{
-   %partW = 220;
-   %at = ModernHUD::part("ModernHUD::VantageWeapon", "bottom-right", 18, 96, 220, 34, %screen);
-   Vantage::Weapon(getWord(%at, 0), getWord(%at, 1), %partW);
-}
-
-function ModernHUDPack::draw_ctf(%screen)
-{
-   %partW = 420;
-   %at = ModernHUD::part("ModernHUD::VantageCtf", "top-center", 0, 14, 420, 34, %screen);
-   Vantage::Ctf(getWord(%at, 0), getWord(%at, 1), %partW);
-}
-
-function ModernHUDPack::draw_items(%screen)
-{
-   %partW = 150;
-   %at = ModernHUD::part("ModernHUD::VantageItems", "top-left", 18, 14, 150, 56, %screen);
-   Vantage::Items(getWord(%at, 0), getWord(%at, 1), %partW);
-}
-
 function ModernHUDPack::draw(%screen)
 {
    if(ModernHUDPack::ownsSlot($pref::HudSlot::healthenergy))
-      ModernHUDPack::draw_vitals(%screen);
+      Vantage::draw_vitals(%screen);
    else
       ModernHUD::hide("ModernHUD::VantageVitals");
 
    if(ModernHUDPack::ownsSlot($pref::HudSlot::weapon))
-      ModernHUDPack::draw_weapon(%screen);
+      Vantage::draw_weapon(%screen);
    else
       ModernHUD::hide("ModernHUD::VantageWeapon");
 
    if(ModernHUDPack::ownsSlot($pref::HudSlot::ctf))
-      ModernHUDPack::draw_ctf(%screen);
+      Vantage::draw_ctf(%screen);
    else
       ModernHUD::hide("ModernHUD::VantageCtf");
 
    if(ModernHUDPack::ownsSlot($pref::HudSlot::items))
-      ModernHUDPack::draw_items(%screen);
+      Vantage::draw_items(%screen);
    else
       ModernHUD::hide("ModernHUD::VantageItems");
+
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::clock))
+      Vantage::draw_clock(%screen);
+   else
+      ModernHUD::hide("ModernHUD::VantageClock");
+
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::killfeed))
+      Vantage::draw_killfeed(%screen);
+   else
+      ModernHUD::hide("ModernHUD::VantageKillFeed");
+
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::scoreboard))
+      Vantage::draw_scoreboard(%screen);
+   else
+      ModernHUD::hide("ModernHUD::VantageScoreboard");
 }
 
 // ★Bound to eventGuiOpen_PlayGui, NOT eventGuiOpen plus a gui-name test.★

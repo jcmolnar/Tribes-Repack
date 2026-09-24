@@ -27,6 +27,8 @@ exec("ModernHUD/Framework.cs");
 $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "Observer (filming)";
 $ModernHUD::PackId = "observer";
+// Options > CONFIGS/HUDS says this on the empty preview, so it does not read as broken.
+$ModernHUD::PreviewNote = "A filming HUD: the screen stays empty on purpose. Its settings bring parts back.";
 
 // This pack draws nothing, so it owns no slot; another pack's slot pref changes
 // nothing here either way.

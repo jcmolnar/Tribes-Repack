@@ -1,0 +1,92 @@
+{
+  "format": 2,
+  "framework": 2,
+  "id": "ops",
+  "name": "OPS",
+  "category": "original",
+  "releaseState": "partial",
+  "authoring": "manual",
+  "note": "OPS extras: Options > 07 Scripts",
+  "reference": {
+    "width": 1920,
+    "height": 1080
+  },
+  "assets": {},
+  "prefs": {
+    "$pref::miniMapAlpha": "1",
+    "$pref::miniMapRotate": "True",
+    "$pref::miniMapSquare": "True",
+    "$pref::miniMapWidth": "302",
+    "$pref::miniMapZoom": "1.75"
+  },
+  "stockHuds": [
+    { "name": "crosshairHud",   "class": "FearGui::Crosshair",          "visible": true },
+    { "name": "chatDisplayHud", "class": "FearGui::FearGuiChatDisplay", "visible": true },
+    { "name": "Minimap",        "class": "FearGui::Minimap",            "visible": true },
+    { "name": "clockHud",       "class": "FearGui::ClockHud",           "visible": false },
+    { "name": "healthHud",      "class": "FearGui::HealthHud",          "visible": false },
+    { "name": "jetPackHud",     "class": "FearGui::JetPackHud",         "visible": false },
+    { "name": "weaponHud",      "class": "FearGui::CurrentWeaponHud",   "visible": false },
+    { "name": "compassHud",     "class": "FearGui::CompassHud",         "visible": false },
+    { "name": "sensorHUD",      "class": "FearGui::FGHSensorPing",      "visible": false },
+    { "name": "reticleCompass", "class": "FearGui::ReticleCompassHud",  "visible": false }
+  ],
+  "parts": [
+    {
+      "id": "vitals",
+      "slot": "healthenergy",
+      "handle": "ModernHUD::OpsVitals",
+      "anchor": "top-center",
+      "offset": [-265, 6],
+      "size": [160, 40],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "OPS::Vitals", "body": ["OPS::Vitals(%x, %y);"] }
+      ]
+    },
+    {
+      "id": "clock",
+      "slot": "clock",
+      "handle": "ModernHUD::OpsClock",
+      "anchor": "top-center",
+      "offset": [-265, 46],
+      "size": [160, 21],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "OPS::Clock", "body": ["OPS::Clock(%x, %y);"] }
+      ]
+    },
+    {
+      "id": "ctf",
+      "slot": "ctf",
+      "handle": "ModernHUD::OpsCtf",
+      "anchor": "top-center",
+      "offset": [265, 6],
+      "size": [160, 61],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "OPS::Ctf", "body": ["OPS::Ctf(%x, %y);"] }
+      ]
+    },
+    {
+      "id": "enemy",
+      "slot": "enemy",
+      "handle": "ModernHUD::OpsEnemy",
+      "anchor": "top-right",
+      "offset": [313, 8],
+      "size": [150, 85],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "OPS::Enemy", "body": ["OPS::Enemy(%x, %y);"] }
+      ]
+    },
+    {
+      "id": "weapons",
+      "slot": "weapon",
+      "handle": "ModernHUD::OpsWeapons",
+      "anchor": "bottom-left",
+      "offset": [0, 0],
+      "size": [770, 50],
+      "elements": [
+        { "type": "script", "at": [0, 0], "from": "OPS::Weapons", "body": ["OPS::Weapons(%x, %y);"] }
+      ]
+    }
+  ],
+  "adapters": []
+}

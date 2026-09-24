@@ -37,7 +37,7 @@
     {
       "name": "clockHud",
       "class": "FearGui::ClockHud",
-      "visible": true
+      "visible": false
     },
     {
       "name": "healthHud",
@@ -173,26 +173,88 @@
           ]
         }
       ]
+    },
+    {
+      "id": "clock",
+      "slot": "clock",
+      "handle": "ModernHUD::VantageClock",
+      "anchor": "top-center",
+      "offset": [
+        0,
+        52
+      ],
+      "size": [
+        120,
+        16
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::Clock",
+          "body": [
+            "Vantage::Clock(%x, %y, %partW);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "killfeed",
+      "slot": "killfeed",
+      "handle": "ModernHUD::VantageKillFeed",
+      "anchor": "top-right",
+      "offset": [
+        18,
+        206
+      ],
+      "size": [
+        300,
+        80
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::KillFeed",
+          "body": [
+            "Vantage::KillFeed(%x, %y, %partW);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scoreboard",
+      "slot": "scoreboard",
+      "handle": "ModernHUD::VantageScoreboard",
+      "anchor": "bottom-right",
+      "offset": [
+        18,
+        150
+      ],
+      "size": [
+        240,
+        162
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "Vantage::Scoreboard",
+          "body": [
+            "Vantage::Scoreboard(%x, %y, %partW);"
+          ]
+        }
+      ]
     }
   ],
-  "adapters": [
-    {
-      "part": "scoreboard",
-      "status": "manual",
-      "reason": "a real scoreboard needs a Team.cs-class data layer; deliberately not lifted from another pack for v1",
-      "legacyFiles": []
-    },
-    {
-      "part": "killfeed",
-      "status": "manual",
-      "reason": "needs the eventClientKilled data layer; same reason as scoreboard",
-      "legacyFiles": []
-    },
-    {
-      "part": "clock",
-      "status": "manual",
-      "reason": "a match clock needs its own data layer (gameclock.acs.cs maintains $clock::Hour/Min/Sec off a server message); the framework's Timer.cs has no current-time accessor. The stock clockHud is left VISIBLE instead of shipping a part that draws nothing.",
-      "legacyFiles": []
-    }
-  ]
+  "adapters": []
 }

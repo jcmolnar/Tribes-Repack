@@ -83,8 +83,24 @@ function Team::onTeamAdd( %team, %name ) {
 	$Team::Name[ %team - 1 ] = %name;
 }
 
+// Backstop (2026-09-23): see the same function in Team.cs -- a missed return must not
+// leave us shown as the carrier once the server has taken the Flag item away.
 function Team::Flag::Location( %team ) {
-	return $Team::Flag::Location[%team];
+	// Picked mid-match: never initialised -- see the same lines in Team.cs.
+	if ( String::len($Team::Flag::Location[%team]) == 0 )
+		Team::Init();
+	%loc = $Team::Flag::Location[%team];
+	if ( %loc != "" && %loc == getManagerId() ) {
+		if ( getItemCount("Flag") > 0 )
+			$Team::Flag::SawItem[%team] = true;
+		else if ( $Team::Flag::SawItem[%team] ) {
+			Team::Flag::diag( "NoFlagItem", %team, %loc, "home" );
+			$Team::Flag::SawItem[%team] = false;
+			$Team::Flag::Location[%team] = "home";
+			return "home";
+		}
+	}
+	return %loc;
 }
 
 function Team::Flag::Timer( %team ) {
@@ -122,6 +138,7 @@ function Team::Flag::Taken( %team, %cl ) {
 		$Team::Flag::TimerTag[%team]++;
 	
 	$Team::Flag::Location[%team] = %cl;
+	$Team::Flag::SawItem[%team] = false;   // backstop re-arms per carry (Team::Flag::Location)
 }
 
 function Team::Flag::Captured( %team, %cl ) {

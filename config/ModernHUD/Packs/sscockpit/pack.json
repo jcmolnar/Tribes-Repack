@@ -1,0 +1,96 @@
+{
+ "format": 2,
+ "framework": 2,
+ "id": "sscockpit",
+ "name": "Starsiege Cockpit",
+ "category": "original",
+ "releaseState": "partial",
+ "authoring": "manual",
+ "reference": {
+  "width": 1920,
+  "height": 1080
+ },
+ "assets": {
+  "reticle":       { "path": "Assets/Packs/sscockpit/retical_000.png",   "shared": false },
+  "reticleTarget": { "path": "Assets/Packs/sscockpit/retical_001.png",   "shared": false },
+  "reticleLock":   { "path": "Assets/Packs/sscockpit/retical_002.png",   "shared": false },
+  "radar":         { "path": "Assets/Packs/sscockpit/radar_high_001.png", "shared": false },
+  "blipFriend":    { "path": "Assets/Packs/sscockpit/hud_circle_o.png",  "shared": false },
+  "blipFoe":       { "path": "Assets/Packs/sscockpit/hud_circle_f.png",  "shared": false },
+  "damSelf":       { "path": "Assets/Packs/sscockpit/dam_self.png",      "shared": false },
+  "damTarget":     { "path": "Assets/Packs/sscockpit/dam_tar.png",       "shared": false },
+  "shields":       { "path": "Assets/Packs/sscockpit/shields.png",       "shared": false },
+  "shieldsSolid":  { "path": "Assets/Packs/sscockpit/shields_solid.png", "shared": false },
+  "lead":          { "path": "Assets/Packs/sscockpit/lead_000.png",      "shared": false },
+  "leadDim":       { "path": "Assets/Packs/sscockpit/lead_001.png",      "shared": false },
+  "radarOpaque":   { "path": "Assets/Packs/sscockpit/radar_high_002.png", "shared": false }
+ },
+ "prefs": [],
+ "stockHuds": [
+  { "name": "crosshairHud",   "class": "FearGui::Crosshair",          "visible": true },
+  { "name": "chatDisplayHud", "class": "FearGui::FearGuiChatDisplay", "visible": true },
+  { "name": "Minimap",        "class": "FearGui::Minimap",            "visible": true },
+  { "name": "clockHud",       "class": "FearGui::ClockHud",           "visible": true },
+  { "name": "healthHud",      "class": "FearGui::HealthHud",          "visible": false },
+  { "name": "jetPackHud",     "class": "FearGui::JetHud",             "visible": false },
+  { "name": "weaponHud",      "class": "FearGui::WeaponHud",          "visible": false },
+  { "name": "compassHud",     "class": "FearGui::CompassHud",         "visible": false },
+  { "name": "sensorHUD",      "class": "FearGui::SensorHud",          "visible": false }
+ ],
+ "parts": [
+  {
+   "id": "Status",
+   "slot": "healthenergy",
+   "handle": "ModernHUD::SSStatus",
+   "anchor": "top-left",
+   "offset": [60, 25],
+   "size": [120, 100],
+   "elements": [ { "type": "script", "at": [0, 0], "from": "ModernHUDPack::draw",
+                   "body": [ "// own-HERC status display (drawn in ModernHUDPack::draw)" ] } ]
+  },
+  {
+   "id": "Target",
+   "slot": "items",
+   "handle": "ModernHUD::SSTarget",
+   "anchor": "top-right",
+   "offset": [-60, 25],
+   "size": [120, 100],
+   "elements": [ { "type": "script", "at": [0, 0], "from": "ModernHUDPack::draw",
+                   "body": [ "// target damage display" ] } ]
+  },
+  {
+   "id": "Weapons",
+   "slot": "weapon",
+   "handle": "ModernHUD::SSWeapons",
+   "anchor": "center-left",
+   "offset": [85, -170],
+   "size": [200, 80],
+   "elements": [ { "type": "script", "at": [0, 0], "from": "ModernHUDPack::draw",
+                   "body": [ "// weapons + equipment panel" ] } ]
+  },
+  {
+   "id": "Shields",
+   "slot": "healthenergy",
+   "handle": "ModernHUD::SSShields",
+   "anchor": "bottom-left",
+   "offset": [190, -40],
+   "size": [130, 130],
+   "elements": [ { "type": "script", "at": [0, 0], "from": "ModernHUDPack::draw",
+                   "body": [ "// shields gauge" ] } ]
+  },
+  {
+   "id": "Radar",
+   "slot": "ctf",
+   "handle": "ModernHUD::SSRadar",
+   "anchor": "bottom-right",
+   "offset": [-90, -20],
+   "size": [270, 150],
+   "elements": [ { "type": "script", "at": [0, 0], "from": "ModernHUDPack::draw",
+                   "body": [ "// radar ring, speed, energy" ] } ]
+  }
+ ],
+ "adapters": [],
+ "requires": {
+  "globals": [ "$health", "$energy", "$speed" ]
+ }
+}

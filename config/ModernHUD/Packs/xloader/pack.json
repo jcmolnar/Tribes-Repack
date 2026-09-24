@@ -7,6 +7,7 @@
  "category": "conversion",
  "releaseState": "partial",
  "authoring": "generated",
+ "componentSplit": {"namespace": "xloader", "splitInit": true},
  "reference": {
   "width": 800,
   "height": 600
@@ -244,6 +245,11 @@
    "body": [
     "%x = $ModernHUD::PartX;",
     "%y = $ModernHUD::PartY;",
+    "// The legacy container was HUD::New::Shaded (FearGui::ShadedHudCtrl, 170x40): a",
+    "// backdrop in alpha-palette entry 254, the stock clock's. The converter dropped the",
+    "// flag, so the rows drew bare. Black at 110 is that entry (stock2026's clock backdrop).",
+    "glColor4ub(0, 0, 0, 110);",
+    "glRectangle(%x, %y, 170, 40);",
     "// friendly on top, enemy below -- the legacy slot order.",
     "CtfHUD::Row(%x, %y, 0, Team::Friendly());",
     "CtfHUD::Row(%x, %y + 20, 1, Team::Enemy());"
@@ -330,17 +336,7 @@
    ]
   }
  ],
- "adapters": [
-  {
-   "part": "CtfHUD_Container",
-   "status": "manual",
-   "reason": "CtfHUD::Status0: nothing writes it with Control::SetValue; CtfHUD::Status1: nothing writes it with Control::SetValue",
-   "legacyFiles": [
-    "Modules/CTFHud/CTFHud.acs.cs"
-   ],
-   "signals": []
-  }
- ],
+ "adapters": [],
  "requires": {
   "globals": [
    "$itemhud::kits",

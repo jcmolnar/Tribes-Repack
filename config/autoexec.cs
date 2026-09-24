@@ -14,6 +14,10 @@ if(getWord($modList, 0) == "base" && getWord($modList, 1) == -1)
 exec("nativeDefaults.cs");
 exec("SinConnect.cs");
 exec("presto\\install.cs");
+// Presto just replaced Event::Attach/Trigger with its script versions, so nativeDefaults.cs's
+// hooks (autokit, demo namer, music panel, tagged messages) must attach AGAIN, into Presto's
+// table -- the attaches it made at exec time went to the engine map nothing reads any more.
+NativeDefaults::attachEvents();
 // CustomConfigs v2: CmdHUD is an in-game hud -- yielded to an active config overlay too.
 if($Config::Name == "")
 	Include("cowboy\\CmdHUD.cs");

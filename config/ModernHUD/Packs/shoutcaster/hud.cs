@@ -37,6 +37,8 @@ exec("ModernHUD/Framework.cs");
 $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "Shoutcaster";
 $ModernHUD::PackId = "shoutcaster";
+// Options > CONFIGS/HUDS says this on the empty preview, so it does not read as broken.
+$ModernHUD::PreviewNote = "A caster HUD: it draws the telestrator while you observe a match.";
 
 // Draws only the telestrator overlay, which is not a canonical HUD slot.
 function ModernHUDPack::ownsSlot(%value)

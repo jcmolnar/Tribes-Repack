@@ -317,6 +317,16 @@ function Team::ParseFlagMessage(%action)
 		Team::MoveFlag(%teamFlag, $Trak::locationHome);
 		Event::Trigger(eventFlagReturned, %teamFlag, %client);
 		}
+	else if (%action == oob)
+		{
+		// NATIVE-PORT (2026-09-23): "%p left the mission area while carrying the %t flag!".
+		// Stock CTF (objectives.cs Flag::playerLeaveMissionArea) warps a TEAM flag straight
+		// back to its stand at this moment, so this is a return. It was never parsed, and the
+		// carrier's HUD kept showing them holding the flag (player report on Rosco's).
+		%teamFlag = Team::Enemy(%client);
+		Team::MoveFlag(%teamFlag, $Trak::locationHome);
+		Event::Trigger(eventFlagReturned, %teamFlag, 0);
+		}
 	else if (%action == captured)
 		{
 		%teamFlag = Team::Enemy(%client);
@@ -403,6 +413,16 @@ function TeamTrak::FlagEventDropped (%client, %msg)
 		}
 }
 
+function TeamTrak::FlagEventOOB (%client, %msg)
+{
+	if (%client != 0)
+		return;
+	if (Match::ParamString(%msg, "%p left the mission area while carrying the %t flag!")) {
+		Team::ParseFlagMessage(oob);
+		return;
+		}
+}
+
 function TeamTrak::Return(%client, %msg)
 {
 	if (%client != 0)
@@ -416,7 +436,10 @@ function TeamTrak::Return(%client, %msg)
 			%teamFlag = Team::GetByName(%teamName);
 			}
 		else	return;
-		if (%teamFlag != -1) {
+		// NATIVE-PORT (2026-09-23): Team::GetByName returns "" (not -1) for a team name it
+		// has not learned, and "" passed this test -- the return was then recorded for team
+		// "" and the real flag stayed marked as carried. Only a real team number moves a flag.
+		if (%teamFlag != -1 && %teamFlag != "") {
 			Team::MoveFlag(%teamFlag, $Trak::locationHome);
 			Event::Trigger(eventFlagReturned, %teamFlag, 0);
 			}
@@ -469,6 +492,7 @@ msg::onMatch ("returned the * flag!", "TeamTrak::FlagEventReturned(%client,%msg)
 msg::onMatch ("captured the * flag!", "TeamTrak::FlagEventCaptured(%client,%msg);");
 msg::onMatch ("dropped the * flag!", "TeamTrak::FlagEventDropped(%client,%msg);");
 msg::onMatch ("flag was returned to base.", "TeamTrak::Return(%client,%msg);");
+msg::onMatch ("left the mission area while carrying the", "TeamTrak::FlagEventOOB(%client,%msg);");
 
 // Here are the events I listen to.  For instance, when you change servers or
 // missions you have to reset the Team database.

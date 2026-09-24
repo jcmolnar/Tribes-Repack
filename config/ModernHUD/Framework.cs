@@ -342,6 +342,12 @@ function ModernHUD::unload()
 //     spec    enum: "Label|value;Label|value;..."   int: "min|max|step"
 //             bool: unused
 //     apply   console command run whenever the value CHANGES (may be "")
+//     part    OPTIONAL (HUD designer, stage 4): the part this setting belongs to --
+//             a part name as given to ModernHUD::part, with or without the
+//             "ModernHUD::<Pack>" prefix ("Vitals" or "ModernHUD::AscendVitals"), or a
+//             retained control ("chatDisplayHud", "Minimap"). Options > CONFIGS/HUDS
+//             lists the row under that part when it is selected on the preview.
+//             Omitted = the whole HUD. The K menu ignores it.
 //
 // ★Declared from script, not from pack.json.★ The client's manifest reader
 // (modernHudPacks.cpp:69) is deliberately a strstr scan for four scalars, and
@@ -359,7 +365,7 @@ function ModernHUD::unload()
 // One namespace, so a swapped-in pack cannot inherit the last pack's rows:
 // ModernHUD::unload() clears the whole registry.
 //------------------------------------------------------------------------------
-function ModernHUD::setting(%type, %key, %label, %default, %spec, %apply)
+function ModernHUD::setting(%type, %key, %label, %default, %spec, %apply, %part)
 {
    %i = $ModernHUD::SettingCount;
    if(%i == "") %i = 0;
@@ -370,6 +376,7 @@ function ModernHUD::setting(%type, %key, %label, %default, %spec, %apply)
    $ModernHUD::Setting[%i, dflt]    = %default;
    $ModernHUD::Setting[%i, spec]    = %spec;
    $ModernHUD::Setting[%i, apply]   = %apply;
+   $ModernHUD::Setting[%i, part]    = %part;
 
    $ModernHUD::SettingCount = %i + 1;
 
@@ -534,7 +541,7 @@ function ModernHUD::commonSettings()
    if(!ModernHUD::hasSetting("pref::ChatVisibilityMode"))
    {
       ModernHUD::setting("enum", "pref::ChatVisibilityMode", "Chat visibility",
-                         "0", "HUD default|0;Keep visible|1;Hide when idle|2", "");
+                         "0", "HUD default|0;Keep visible|1;Hide when idle|2", "", "chatDisplayHud");
    }
 
    // The delay is consulted only in mode 2. The K panel walks a flat row registry and
@@ -545,24 +552,24 @@ function ModernHUD::commonSettings()
    if(!ModernHUD::hasSetting("pref::ChatIdleSeconds"))
    {
       ModernHUD::setting("int", "pref::ChatIdleSeconds", "Hide chat after (sec)",
-                         "15", "5|120|5", "");
+                         "15", "5|120|5", "", "chatDisplayHud");
    }
 
    %cfSpec = ModernHUD::ttfSpec();
    if(%cfSpec != "" && !ModernHUD::hasSetting("pref::ChatFont"))
    {
       ModernHUD::setting("enum", "pref::ChatFont", "Chat font", "Segoe UI",
-                         %cfSpec, "");
+                         %cfSpec, "", "chatDisplayHud");
    }
    if(!ModernHUD::hasSetting("pref::ChatFontSize"))
    {
       ModernHUD::setting("int", "pref::ChatFontSize", "Chat font size (px, 0 = auto)",
-                         "0", "0|48|1", "");
+                         "0", "0|48|1", "", "chatDisplayHud");
    }
    if(!ModernHUD::hasSetting("pref::ChatFontBold"))
    {
       ModernHUD::setting("enum", "pref::ChatFontBold", "Chat font weight", "1",
-                         "Semibold|1;Regular|0", "");
+                         "Semibold|1;Regular|0", "", "chatDisplayHud");
    }
 }
 
@@ -691,8 +698,10 @@ function ModernHUD::stock(%ctrl, %default)
    // and reseed its cache mid-session.
    if(!ModernHUD::hasSetting(%key))
    {
+      // Tagged with the control itself, so the HUD designer lists it under that part
+      // (chatDisplayHud, Minimap) when the part is on the preview.
       ModernHUD::setting("bool", %key, ModernHUD::stockLabel(%ctrl), %dflt, "",
-                         "ModernHUDPack::stockHuds();");
+                         "ModernHUDPack::stockHuds();", %ctrl);
    }
 
    // ModernHUD::setting seeded the default when the pref was unset, so a read
@@ -753,8 +762,11 @@ function ModernHUD::clearSettings()
       $ModernHUD::Setting[%i, dflt]    = "";
       $ModernHUD::Setting[%i, spec]    = "";
       $ModernHUD::Setting[%i, apply]   = "";
+      $ModernHUD::Setting[%i, part]    = "";
    }
    $ModernHUD::SettingCount = 0;
+   // The HUD designer's one-line note for this pack's preview (set in a pack's hud.cs).
+   $ModernHUD::PreviewNote = "";
 
    // Hand K back to the stock hud list, and drop this pack's menu look, so the
    // next pack starts from the framework defaults rather than inheriting a
@@ -912,7 +924,23 @@ function ModernHUD::rowShown(%i)
       }
       return %cur;
    }
-   return %cur;
+   return ModernHUD::trimNum(%cur);
+}
+
+// "1.000000" -> "1", "0.300000" -> "0.3". Engine Unit/Float prefs read back with six
+// decimals (seen on OPS's "Shadow detail scale" row, 2026-09-24); display only.
+function ModernHUD::trimNum(%v)
+{
+   if(String::findSubStr(%v, ".") == -1)
+      return %v;
+   // String::ICompare, never ==: the console compares "." and "0" as the NUMBER 0,
+   // so == would eat the decimal point and then the integer's own zeros ("10.0" -> "1").
+   %n = String::len(%v);
+   for(%g = 0; %g < 16 && %n > 0 && String::ICompare(String::getSubStr(%v, %n - 1, 1), "0") == 0; %g++)
+      %n--;
+   if(%n > 0 && String::ICompare(String::getSubStr(%v, %n - 1, 1), ".") == 0)
+      %n--;
+   return String::getSubStr(%v, 0, %n);
 }
 
 // Step a row by %dir (-1 / +1). Enums and bools WRAP -- with one stepper pair and
@@ -1193,7 +1221,13 @@ function ModernHUD::menu(%screen)
    ModernHUD::mText(%x + 14, %y + 8, 200, $ModernHUD::MenuPrimary, %title, 255, 16, "l");
    ModernHUD::mText(%x + 14 + %tw + 10, %y + 13, 200, "120 135 150",
                     "HUD SETTINGS", 210, 10, "l");
-   ModernHUD::mText(%x - 14, %y + 13, %w, "120 135 150", "K to close", 200, 10, "r");
+   // The hint names the player's OWN key (opsayo: "bound to single quote, but it still says
+   // k to close"). getBindKey is native (FearGuiCFGButton.cpp) and ships with this file; do NOT
+   // guard it with isFunction() -- that only sees SCRIPT functions and returned False for it,
+   // pinning the hint to "K" forever. Unbound -> "" -> Esc, which always closes this panel.
+   %key = getBindKey("IDACTION_MENU_PAGE", 2);
+   if(%key != "") { %hint = %key @ " to close"; } else { %hint = "Esc to close"; }
+   ModernHUD::mText(%x - 14, %y + 13, %w, "120 135 150", %hint, 200, 10, "r");
 
    %ry = %y + %head + 1;
    for(%r = 0; %r < %count; %r++)
@@ -1460,6 +1494,13 @@ function ModernHUD::restorePos(%i)
 // K moving the newest while Control::GetPosition resolved an older one.
 function ModernHUD::handle(%name, %defaultPos, %w, %h)
 {
+   // HUD DESIGNER: a preview pass READS positions and never writes one -- see
+   // ModernHUD::previewPos. Everything below creates, resizes, resets and fit-checks the
+   // retained handle, which in a preview would happen in PREVIEW coordinates (a
+   // 2560x1440 stage on a 1080p screen) and corrupt the real layout.
+   if($ModernHUD::Preview)
+      return ModernHUD::previewPos(%name, %defaultPos, %w, %h);
+
    $ModernHUD::DefaultPos[%name] = %defaultPos;
 
    %handle = $ModernHUD::Handle[%name];
@@ -1543,6 +1584,13 @@ function ModernHUD::handle(%name, %defaultPos, %w, %h)
    {
       Hud::setSessionPos(%handle, getWord(%defaultPos, 0), getWord(%defaultPos, 1));
       $ModernHUD::AppliedReset[%name] = $ModernHUD::ResetGeneration;
+   }
+   // One part's reset (the HUD designer's Anchor pick or "Reset this part"): same move,
+   // for this part alone, on its first real draw.
+   if($ModernHUD::ResetPending[%name] != "")
+   {
+      Hud::setSessionPos(%handle, getWord(%defaultPos, 0), getWord(%defaultPos, 1));
+      $ModernHUD::ResetPending[%name] = "";
    }
 
    // The armed fits-check, run on the first draw where the control answers with a
@@ -1721,6 +1769,11 @@ function ModernHUD::attach(%event, %fn)
 {
    if($ModernHUD::AttachSeen[%event, %fn])
       return;
+   // ★Unset count is "", and $x[""] is a different variable from $x[0].★ The session's
+   // FIRST attach landed at index "" while detachAll walks 0..count-1, so it was never
+   // revoked on unload (measured: entry 0 blank, count 20, 19 listed).
+   if($ModernHUD::AttachCount == "")
+      $ModernHUD::AttachCount = 0;
    $ModernHUD::AttachSeen[%event, %fn] = true;
    $ModernHUD::AttachEvent[$ModernHUD::AttachCount] = %event;
    $ModernHUD::AttachFn[$ModernHUD::AttachCount] = %fn;
@@ -1759,9 +1812,29 @@ function ModernHUD::require(%file)
 // makes before drawing its elements.
 function ModernHUD::part(%name, %anchor, %offsetX, %offsetY, %w, %h, %screen)
 {
+   // HUD DESIGNER: the player's anchor for this part (Options -> CONFIGS/HUDS), else the
+   // pack's. It moves the part's AUTHORED spot to that screen point, keeping the pack's
+   // offsets; a dragged part keeps its pixels (setting the anchor resets the position).
+   $ModernHUD::PvAuthoredAnchor[%name] = %anchor;
+   %pa = $pref::ModernHUD::PartAnchor[ModernHUD::qualify(%name)];
+   if(%pa != "")
+      %anchor = %pa;
    %at = ModernHUD::place(%anchor, %offsetX, %offsetY, %w, %h, %screen);
    %at = ModernHUD::handle(%name, %at, %w, %h);
+   %scale = ModernHUD::partStyle(%name, %at);
 
+   // Where the part drew, for the designer's click / drag / resize hit boxes.
+   ModernHUD::pvRecord(%name, %at, %w * %scale, %h * %scale, %anchor);
+   return %at;
+}
+
+// A placed part's draw state: its size as a draw scale about %at, and its own visibility
+// and opacity. Returns the scale. ModernHUD::part calls it; a pack with its own placement
+// helper (Overstep::handle) must call it too, right before that part's draws -- otherwise
+// the designer's Size / Opacity / Hide rows do nothing to its parts (measured: Overstep's
+// RepKit stayed fully opaque at opacity 0).
+function ModernHUD::partStyle(%name, %at)
+{
    // Apply the handle's saved resize as a DRAW scale about the part origin.
    // The retained handle already scales its own grab box (HudCtrl
    // cfgApplyUserExtent); without this the content ignored the resize -- "it
@@ -1774,7 +1847,50 @@ function ModernHUD::part(%name, %anchor, %offsetX, %offsetY, %w, %h, %screen)
    // one control scales every part while a per-part drag still adjusts one.
    %scale = ModernHUD::scaleOf(%scale);
    glPartScale(getWord(%at, 0), getWord(%at, 1), %scale);
-   return %at;
+
+   // HUD DESIGNER: the part's own visibility and opacity (Options -> CONFIGS/HUDS),
+   // pack-qualified like its position. Issued for EVERY part, so one part's style
+   // never carries into the next. In the preview a hidden part draws faint instead,
+   // so it can still be found and switched back on.
+   %q = ModernHUD::qualify(%name);
+   %op = $pref::ModernHUD::PartAlpha[%q];
+   if(%op == "")
+      %op = 100;
+   if($pref::ModernHUD::PartHide[%q])
+   {
+      if($ModernHUD::Preview)
+         glPartStyle(0, 0.2);
+      else
+         glPartStyle(1, 1);
+   }
+   else
+      glPartStyle(0, %op / 100);
+   return %scale;
+}
+
+// HUD DESIGNER: record one part the preview pass drew. ModernHUD::part calls it; a pack
+// with its own placement helper (Overstep::handle) calls it too, so its parts can be
+// selected. Also records what the Provider and Anchor rows need:
+//   PvSlot  the slot(s) the part answers -- the slot a borrowed component was drawn for,
+//           else the pack's own declaration ($ModernHUD::PartSlots, from pack.json)
+//   PvProv  the pack that drew it ("" = the base)
+//   PvAnchor the anchor in effect
+function ModernHUD::pvRecord(%name, %at, %w, %h, %anchor)
+{
+   if(!$ModernHUD::Preview)
+      return;
+   %i = $ModernHUD::PvCount;
+   if(%i == "")
+      %i = 0;
+   $ModernHUD::PvName[%i] = %name;
+   $ModernHUD::PvRect[%i] = %at @ " " @ %w @ " " @ %h;
+   %sl = $ModernHUD::DrawSlot;
+   if(%sl == "")
+      %sl = $ModernHUD::PartSlots[%name];
+   $ModernHUD::PvSlot[%i]   = %sl;
+   $ModernHUD::PvProv[%i]   = $ModernHUD::DrawPack;
+   $ModernHUD::PvAnchor[%i] = %anchor;
+   $ModernHUD::PvCount = %i + 1;
 }
 
 // A part that DOCKS to another control instead of to a screen anchor.
@@ -1801,7 +1917,8 @@ function ModernHUD::dockTo(%name, %target, %dx, %dy, %fallback, %partW, %partH)
    %y = getWord(%pos, 1) + %dy;
 
    %handle = $ModernHUD::Handle[%name];
-   if(isObject(%handle))
+   // A preview pass never moves a retained handle (see ModernHUD::handle).
+   if((isObject(%handle)) && (!$ModernHUD::Preview))
    {
       Hud::setSessionPos(%handle, %x, %y);
 
@@ -2107,6 +2224,13 @@ function ModernHUD::drawSlot(%slot, %screen)
    if(%sel == "")
       return false;
 
+   // HUD DESIGNER (mix and match): a component from a pack that is NOT the base is
+   // loaded on first use -- Packs/<provider>/components.cs defines only that pack's own
+   // namespace (tools/modernhud_components.py split it out), so it can sit beside any
+   // base. Tried once per provider per base load; clearComponents re-arms it.
+   if($ModernHUD::Comp[%sel, fn] == "")
+      ModernHUD::loadProvider(ModernHUD::providerOf(%sel));
+
    %fn = $ModernHUD::Comp[%sel, fn];
    if(%fn == "")
    {
@@ -2128,8 +2252,50 @@ function ModernHUD::drawSlot(%slot, %screen)
    if($ModernHUD::Provider[%prov, refs] == "")
       return false;
 
+   // The base pack's own component, while the base still draws the slot itself
+   // (Stock 2026 names its own components "stock2026/<slot>"): drawing it here too
+   // would put the part on screen twice.
+   if(%prov == $ModernHUD::PackId && ModernHUDPack::ownsSlot(getVariable("pref::HudSlot::" @ %slot)))
+      return false;
+
+   // ★Draw it as ITS pack.★ Images, markup fonts and part records resolve against the
+   // provider while its component runs: $ModernHUD::DrawPack makes glDrawImage probe
+   // the provider's asset folder first (scriptGL.cpp sglGetImage), $ModernHUD::AssetRoot
+   // points markup .pft fonts at it, and ModernHUD::part records the slot and provider
+   // so the designer can offer this part's Provider choice.
+   %root = $ModernHUD::AssetRoot;
+   $ModernHUD::DrawPack = %prov;
+   $ModernHUD::DrawSlot = %slot;
+   if(%prov != $ModernHUD::PackId)
+      $ModernHUD::AssetRoot = "config\\ModernHUD\\Assets\\Packs\\" @ %prov;
    *%fn(%screen);
+   $ModernHUD::AssetRoot = %root;
+   $ModernHUD::DrawPack = "";
+   $ModernHUD::DrawSlot = "";
    return true;
+}
+
+// "overstep/weapon" -> "overstep"
+function ModernHUD::providerOf(%sel)
+{
+   %n = String::Explode(%sel, "/", "mhProv");
+   if(%n < 2)
+      return "";
+   return $mhProv[0];
+}
+
+// Exec a provider pack's components.cs once. The base pack's own components come in
+// with its hud.cs, so it is never re-exec'd here.
+function ModernHUD::loadProvider(%prov)
+{
+   if(%prov == "" || %prov == $ModernHUD::PackId)
+      return;
+   if($ModernHUD::ProviderTried[%prov] != "")
+      return;
+   $ModernHUD::ProviderTried[%prov] = 1;
+   $ModernHUD::ProviderTriedList = $ModernHUD::ProviderTriedList @ %prov @ " ";
+   echo("[MODERNHUD] loading components from '" @ %prov @ "' for a borrowed part");
+   exec("ModernHUD/Packs/" @ %prov @ "/components.cs");
 }
 
 // True when the BASE pack should draw this slot itself: nothing borrowed, or the
@@ -2188,6 +2354,17 @@ function ModernHUD::clearComponents()
       $ModernHUD::CompKey[%i] = "";
    }
    $ModernHUD::CompCount = 0;
+
+   // Providers loaded for borrowed parts: forget them with the registry, so the next
+   // base loads them again (bounded walk -- getWord answers "-1" past the end).
+   for(%i = 0; %i < 32; %i++)
+   {
+      %p = getWord($ModernHUD::ProviderTriedList, %i);
+      if(%p == "" || %p == "-1")
+         break;
+      $ModernHUD::ProviderTried[%p] = "";
+   }
+   $ModernHUD::ProviderTriedList = "";
 }
 
 // NETCODE-150 NETHUD: one-line link readout, framework-level so every pack gets it.
@@ -2390,7 +2567,10 @@ function ModernHUD::musicPanel(%screen)
    ModernHUD::mFrame(%x, %y, %w, %h, %head);
    ModernHUD::mText(%x + 14, %y + 8, 200, $ModernHUD::MenuPrimary, "MUSIC", 255, 16, "l");
    ModernHUD::mText(%x + 78, %y + 13, 200, "120 135 150", "SOUNDTRACK", 210, 10, "l");
-   ModernHUD::mText(%x - 14, %y + 13, %w, "120 135 150", "J / Esc to close", 200, 10, "r");
+   // Same rule as the HUD mover's hint: name the key the player actually bound.
+   %key = getBindKey("MusicHud::toggle();");
+   if(%key != "") { %hint = %key @ " / Esc to close"; } else { %hint = "Esc to close"; }
+   ModernHUD::mText(%x - 14, %y + 13, %w, "120 135 150", %hint, 200, 10, "r");
 
    %cur = 0;
    %state = "none";
@@ -2711,6 +2891,30 @@ function ModernHUD::onDraw(%screen)
    if(!$ModernHUD::Enabled)
       return;
 
+   // HUD DESIGNER STAGE: the Options page is drawing this pack into its preview
+   // (scriptGL.cpp ScriptGL_renderStage sets $ModernHUD::Preview for exactly that
+   // call). Draw the HUD itself and nothing else -- the K panel, music panel, net
+   // stats and toasts are interactive or transient overlays, not part of the design,
+   // and the toast clock must not be advanced by a pass that is not a game frame.
+   if($ModernHUD::Preview)
+   {
+      // Demo data unless the player asked for the live game (only meaningful connected).
+      %demo = true;
+      if(($pref::hudStageLive) && ($ConnectedToServer))
+         %demo = false;
+      // Set by ModernHUD::previewPos when a part had to use its authored spot; the
+      // Options page turns it into a one-line hint.
+      $ModernHUD::PreviewDefaultLayout = 0;
+      $ModernHUD::PvCount = 0;   // ModernHUD::part lists the parts this pass drew
+      if(%demo)
+         ModernHUD::previewBegin($pref::hudStageScenario);
+      ModernHUDPack::draw(%screen);
+      ModernHUD::drawBorrowed(%screen);
+      if(%demo)
+         ModernHUD::previewEnd();
+      return;
+   }
+
    // TOAST CLOCK: every toast ends when getSimTime() has gone backwards since the last
    // frame (see ModernHUD::toastClock). First, so nothing below draws against an end time
    // from before a clock reset.
@@ -2741,6 +2945,251 @@ function ModernHUD::onDraw(%screen)
    // furniture and must not be occluded by the HUD it configures. No-ops when the
    // K panel is closed or the pack registered no settings.
    ModernHUD::menu(%screen);
+}
+
+//------------------------------------------------------------------------------
+// HUD DESIGNER DEMO DATA -- what the Options preview feeds a pack when there is no
+// live game to read (HUD-DESIGNER-SCOPE-2026-09-23.md section 3.3).
+//
+// The live values are exported every frame by CfgSyncHudVars_now, so the fixture
+// SAVES them, overwrites them for the one preview draw, and puts them back -- a
+// preview pass never leaves demo numbers behind for the real HUD, in the lobby or
+// anywhere else. Scenarios: 0 full health, 1 low health, 2 flag carried, 3 no ammo
+// (the Options "Demo" row, $pref::hudStageScenario).
+//
+// Stage 5: what a pack asks the ENGINE for is covered too. While $ModernHUD::PvDemo is set
+// (and only inside the preview pass -- ScriptGL_stageDemo), getItemCount, getMountedItem,
+// getItemDesc, getItemType, getManagerId, Client::getName and Client::getTeam answer from
+// the inventory and clients below (FearPlugin.cpp, the block above c_getPlayerName). The
+// team layer (Core/Data/Team.cs) is plain globals, so it is saved and swapped like the
+// exports. Every pack gets this without routing its reads through anything.
+//------------------------------------------------------------------------------
+function ModernHUD::previewBegin(%scenario)
+{
+   $ModernHUD::PvHealth = $health;
+   $ModernHUD::PvEnergy = $energy;
+   $ModernHUD::PvAmmo   = $Weapon::Ammo;
+   $ModernHUD::PvSpeed  = $speed;
+   $ModernHUD::PvFlash  = $damageFlash;
+   $ModernHUD::PvCHead  = $compassHeading;
+   $ModernHUD::PvCSin   = $compassSin;
+   $ModernHUD::PvCCos   = $compassCos;
+   $ModernHUD::PvPing   = $sensorPing;
+   for(%t = 0; %t < 2; %t++)
+   {
+      $ModernHUD::PvTScore[%t] = $Team::Score[%t];
+      $ModernHUD::PvTLoc[%t]   = $Team::Flag::Location[%t];
+      $ModernHUD::PvTTimer[%t] = $Team::Flag::Timer[%t];
+      $ModernHUD::PvTSaw[%t]   = $Team::Flag::SawItem[%t];
+      $ModernHUD::PvTName[%t]  = $Team::Name[%t];
+   }
+
+   $health = 100; $energy = 100; $Weapon::Ammo = 15; $speed = 0; $damageFlash = 0;
+   // Facing a little east of north, sensor clear.
+   $compassHeading = 0.5236; $compassSin = 0.5; $compassCos = 0.866; $sensorPing = 0;
+
+   // Clients: you (team 0), an enemy and a teammate. 9001+ are ids no live client has.
+   %me = $PCFG::Name;
+   if(%me == "") %me = "You";
+   $ModernHUD::PvMe = 9001;
+   $ModernHUD::PvClientName9001 = %me;         $ModernHUD::PvClientTeam9001 = 0;
+   $ModernHUD::PvClientName9002 = "Enemy Heavy"; $ModernHUD::PvClientTeam9002 = 1;
+   $ModernHUD::PvClientName9003 = "Teammate";  $ModernHUD::PvClientTeam9003 = 0;
+   $Team::Name[0] = "Blood Eagle";
+   $Team::Name[1] = "Diamond Sword";
+
+   // Inventory: a medium's CTF loadout, disc launcher up.
+   $ModernHUD::PvItemCount = 0;
+   ModernHUD::pvItem("Disc Launcher", 1);
+   ModernHUD::pvItem("Chaingun", 1);
+   ModernHUD::pvItem("Grenade Launcher", 1);
+   ModernHUD::pvItem("Blaster", 1);
+   ModernHUD::pvItem("Disc", 15);
+   ModernHUD::pvItem("Bullet", 150);
+   ModernHUD::pvItem("Grenade Ammo", 10);
+   ModernHUD::pvItem("Grenade", 5);
+   ModernHUD::pvItem("Mine", 3);
+   ModernHUD::pvItem("Beacon", 3);
+   ModernHUD::pvItem("Repair Kit", 1);
+   ModernHUD::pvItem("Energy Pack", 1);
+   $ModernHUD::PvMounted = "Disc Launcher";
+
+   // Flags home, 2-1 up.
+   $Team::Score[0] = 2; $Team::Score[1] = 1;
+   $Team::Flag::Location[0] = "home"; $Team::Flag::Location[1] = "home";
+   $Team::Flag::Timer[0] = 0; $Team::Flag::Timer[1] = 0;
+   $Team::Flag::SawItem[0] = false; $Team::Flag::SawItem[1] = false;
+
+   if(%scenario == 1)
+   {
+      // Low health: running dry, and your flag is lying in the field.
+      $health = 18; $energy = 42; $damageFlash = 0.35; $Weapon::Ammo = 4;
+      ModernHUD::pvItem("Disc", 4);
+      ModernHUD::pvItem("Bullet", 40);
+      ModernHUD::pvItem("Grenade", 1);
+      ModernHUD::pvItem("Repair Kit", 0);
+      $sensorPing = 1;
+      $Team::Score[0] = 1; $Team::Score[1] = 3;
+      $Team::Flag::Location[0] = "field"; $Team::Flag::Timer[0] = 234;
+   }
+   else if(%scenario == 2)
+   {
+      // Flag carried: you have theirs, their heavy has yours.
+      $health = 74; $energy = 36; $Weapon::Ammo = 9; $speed = 140;
+      ModernHUD::pvItem("Disc", 9);
+      ModernHUD::pvItem("Flag", 1);
+      $Team::Score[0] = 2; $Team::Score[1] = 2;
+      $Team::Flag::Location[1] = 9001;
+      $Team::Flag::Location[0] = 9002;
+   }
+   else if(%scenario == 3)
+   {
+      // No ammo: every ammo item empty, the chaingun up.
+      $health = 88; $Weapon::Ammo = 0;
+      ModernHUD::pvItem("Disc", 0);
+      ModernHUD::pvItem("Bullet", 0);
+      ModernHUD::pvItem("Grenade Ammo", 0);
+      ModernHUD::pvItem("Grenade", 0);
+      ModernHUD::pvItem("Mine", 0);
+      $ModernHUD::PvMounted = "Chaingun";
+   }
+
+   $ModernHUD::PvDemo = 1;
+}
+
+// Set a demo inventory count (adds the item the first time). Descriptions, as getItemCount
+// takes them.
+function ModernHUD::pvItem(%desc, %count)
+{
+   %n = $ModernHUD::PvItemCount;
+   for(%k = 0; %k < %n; %k++)
+   {
+      if($ModernHUD::PvItemName[%k] == %desc)
+      {
+         $ModernHUD::PvItemNum[%k] = %count;
+         return;
+      }
+   }
+   $ModernHUD::PvItemName[%n] = %desc;
+   $ModernHUD::PvItemNum[%n]  = %count;
+   $ModernHUD::PvItemCount = %n + 1;
+}
+
+// Where a part sits in the preview, with no side effects on its retained handle.
+//
+// ★A handle's position only means something once playGui has been laid out at the real
+// screen size.★ At the main menu, before the first game of the session, playGui still
+// has its saved extent and the handles have never been re-anchored to this screen --
+// Stage 0/1 harness runs showed a top-centre strip drawn off-centre and a bottom-left
+// cluster drawn at the top. Until then the preview uses the pack's authored anchor
+// position (%defaultPos, computed for the preview screen by ModernHUD::place).
+//
+// $ModernHUD::PreviewReal = the real screen "w h", $ModernHUD::PreviewScreen = the
+// preview's; both set by ScriptGL_renderStage. When they differ the live position is
+// mapped with the same edge/centre rule ModernHudHandle::responsiveAxis applies on a real
+// resize (fearGuiHudCtrl.cpp), so the preview shows what that screen would really get.
+function ModernHUD::previewPos(%name, %defaultPos, %w, %h)
+{
+   %rw = getWord($ModernHUD::PreviewReal, 0);
+   %rh = getWord($ModernHUD::PreviewReal, 1);
+   // The authored spot, for "has the player moved this part?" (configModules.cpp
+   // CfgModules_factoryModified). Only when the preview IS the real screen -- at any
+   // other size %defaultPos is in the wrong units. ModernHUD::handle records the same
+   // value in game.
+   if((getWord($ModernHUD::PreviewScreen, 0) == %rw) && (getWord($ModernHUD::PreviewScreen, 1) == %rh))
+      $ModernHUD::DefaultPos[%name] = %defaultPos;
+   %handle = $ModernHUD::Handle[%name];
+   %pos = "";
+   %live = false;
+   // A part reset from the designer goes to its authored spot on the next real draw
+   // (ModernHUD::handle); show it there now rather than at the stale handle.
+   if($ModernHUD::ResetPending[%name] != "")
+      return %defaultPos;
+   if(isObject(%handle))
+   {
+      %pg = Control::getExtent(playGui);
+      %live = (getWord(%pg, 0) == %rw) && (getWord(%pg, 1) == %rh);
+   }
+   if(%live)
+   {
+      // The live control first: the designer moves it with cfgSetSessionPos while the
+      // play screen is not rendered, so the render-time HandlePos would still be stale.
+      %pos = Control::GetPosition(%handle);
+      if(%pos == "")
+         %pos = $ModernHUD::HandlePos[%name];
+   }
+   else
+   {
+      // No placed handle yet (main menu before a first game): the SAVED position, which
+      // is in real-screen pixels -- what the handle will restore to when it is created.
+      // "x y||fx fy fz" -- split on the "||" first (getWord would read "y||fx" as y).
+      %saved = ModernHUD::posOf(%name);
+      if((%saved != "") && !ModernHUD::isEmptyLayout(%saved))
+      {
+         if(String::Explode(%saved, "||", "pvFields") == 2)
+            %pos = getWord($pvFields[0], 0) @ " " @ getWord($pvFields[0], 1);
+      }
+   }
+   if(%pos == "")
+   {
+      $ModernHUD::PreviewDefaultLayout = 1;
+      return %defaultPos;
+   }
+   // ★On screen, as the game would put it.★ A position saved on a bigger screen (2560x1440 prefs
+   // on a 1774x978 window) is off the edge; the live handle clamps it back into view when it
+   // restores (HudCtrl::cfgSetSessionPos), and the preview must show THAT, not an empty stage.
+   // Only when it does not fit -- a placement that fits is used untouched, same rule.
+   %px = getWord(%pos, 0);
+   %py = getWord(%pos, 1);
+   if((%rw - %w) >= 0)
+   {
+      if(%px > (%rw - %w)) %px = %rw - %w;
+      if(%px < 0) %px = 0;
+   }
+   if((%rh - %h) >= 0)
+   {
+      if(%py > (%rh - %h)) %py = %rh - %h;
+      if(%py < 0) %py = 0;
+   }
+   %sw = getWord($ModernHUD::PreviewScreen, 0);
+   %sh = getWord($ModernHUD::PreviewScreen, 1);
+   %x = ModernHUD::previewAxis(%px, %w, %rw, %sw);
+   %y = ModernHUD::previewAxis(%py, %h, %rh, %sh);
+   return %x @ " " @ %y;
+}
+
+function ModernHUD::previewAxis(%pos, %size, %old, %new)
+{
+   if((%old <= 0) || (%old == %new))
+      return %pos;
+   %c = %pos + (%size / 2);
+   if((%c * 3) < %old)
+      return %pos;
+   if((%c * 3) > (%old * 2))
+      return %pos + (%new - %old);
+   return %pos + floor((%new - %old) / 2);
+}
+
+function ModernHUD::previewEnd()
+{
+   $ModernHUD::PvDemo = 0;
+   $health       = $ModernHUD::PvHealth;
+   $energy       = $ModernHUD::PvEnergy;
+   $Weapon::Ammo = $ModernHUD::PvAmmo;
+   $speed        = $ModernHUD::PvSpeed;
+   $damageFlash  = $ModernHUD::PvFlash;
+   $compassHeading = $ModernHUD::PvCHead;
+   $compassSin     = $ModernHUD::PvCSin;
+   $compassCos     = $ModernHUD::PvCCos;
+   $sensorPing     = $ModernHUD::PvPing;
+   for(%t = 0; %t < 2; %t++)
+   {
+      $Team::Score[%t]          = $ModernHUD::PvTScore[%t];
+      $Team::Flag::Location[%t] = $ModernHUD::PvTLoc[%t];
+      $Team::Flag::Timer[%t]    = $ModernHUD::PvTTimer[%t];
+      $Team::Flag::SawItem[%t]  = $ModernHUD::PvTSaw[%t];
+      $Team::Name[%t]           = $ModernHUD::PvTName[%t];
+   }
 }
 
 // Seed the menu palette at framework load, so the globals exist before any pack

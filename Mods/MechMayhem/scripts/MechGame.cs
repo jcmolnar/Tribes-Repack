@@ -12,6 +12,9 @@
 // (survives the ConsoleScheduler recreation at mission load).
 //----------------------------------------------------------------------------
 exec(dm);
+// Mission tails set $MM::Mode AFTER exec(MechGame); clear the previous map's
+// value here so an incursion/groundwar mode never leaks into the next mission.
+$MM::Mode = "";
 exec(MechHeat);
 exec(MechDamage);
 exec(MechWaves);

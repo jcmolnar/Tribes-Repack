@@ -404,6 +404,19 @@ BindSet::report();
 //              A user's existing binding always wins; keys are never stolen.
 //====================================================================================
 
+// DEFAULT UI SKIN FOR FRESH INSTALLS (Joe 2026-09-23): "Tribes 1998 Modern" (config\UI\Themes\
+// tribesmodern.json). ★FRESH INSTALLS ONLY.★ An empty $pref::uiTheme also means "an existing
+// player on Native who never picked a skin", and flipping those players' look under them is not
+// wanted -- so the signal is config\ClientPrefs.cs being ABSENT: it is user state, it never
+// ships, and the first clean exit or autosave writes it (with this skin in it, so the choice
+// then persists like any other). This file runs from autoexec after ClientPrefs has loaded and
+// before main.cpp applies the boot theme, so the first frame is already drawn in this skin.
+if($pref::uiTheme == "" && !isFile("config\\ClientPrefs.cs"))
+{
+   $pref::uiTheme = "tribesmodern";
+   echo("[THEME] fresh install -- default skin set to tribesmodern");
+}
+
 //====================================================================================
 // DIAGNOSTIC-PREF RESET.
 //
@@ -1277,6 +1290,21 @@ function remoteMMTurn(%server, %slow, %fast)
 //====================================================================================
 if($pref::scriptAutokit == "")
 	$pref::scriptAutokit = 0;
+// Trigger level (player request 2026-09-23). Was a fixed 65; seeded here so the Options
+// slider never reads an unset pref as 0.
+if($pref::scriptAutokitHealth == "")
+	$pref::scriptAutokitHealth = 65;
+
+// $Autokit::diag = 1; in the console prints one [AUTOKIT] line per state change (why it
+// is holding, or that it fired). Not a pref: never persisted, never ships on.
+function Autokit::state(%s)
+{
+	if(String::ICompare(%s, $Autokit::lastState) == 0)
+		return;
+	$Autokit::lastState = %s;
+	if($Autokit::diag)
+		echo("[AUTOKIT] " @ %s @ "  health=" @ $Health @ " kits=" @ getItemCount("Repair Kit") @ " below=" @ $pref::scriptAutokitHealth @ " invMode=" @ $Mode::InventoryMode @ " station=" @ $Station::Type);
+}
 
 function Autokit::tick(%gen)
 {
@@ -1284,27 +1312,46 @@ function Autokit::tick(%gen)
 		return;
 	schedule("Autokit::tick(" @ %gen @ ");", 0.1);
 	if($pref::scriptAutokit != 1)
-		return;
+		return Autokit::state("off");
 	if($Station::Type != "" || $Mode::InventoryMode)
 	{
 		$Autokit::holdUntil = getSimTime() + 9;
-		return;
+		return Autokit::state("hold: at station");
 	}
+	// getSimTime() restarts on a mission load, so a hold armed near the end of the last
+	// mission would otherwise block for that whole stretch; never hold longer than 9 s.
+	if($Autokit::holdUntil - getSimTime() > 9)
+		$Autokit::holdUntil = 0;
 	if(getSimTime() < $Autokit::holdUntil)
+		return Autokit::state("hold: left station");
+	%below = $pref::scriptAutokitHealth;
+	if(%below <= 0 || %below > 100)
+		%below = 65;
+	if($Health <= 0 || $Health >= %below)
+		return Autokit::state("idle");
+	if(getItemCount("Repair Kit") <= 0)
+		return Autokit::state("no kits");
+	// One kit per second at most: $Health only updates when the server's reply lands, so
+	// without this the very next tick (0.1 s) would spend a second kit on the same wound.
+	if($Autokit::nextFire - getSimTime() > 1)
+		$Autokit::nextFire = 0;
+	if(getSimTime() < $Autokit::nextFire)
 		return;
-	if($Health <= 0 || $Health >= 65)
-		return;
-	if(getItemCount("Repair Kit") > 0)
-		useItem(getItemType("Repair Kit"));
+	$Autokit::nextFire = getSimTime() + 1;
+	$Autokit::lastState = "";
+	Autokit::state("fire");
+	useItem(getItemType("Repair Kit"));
 }
 
 function Autokit::start()
 {
 	$Autokit::gen = $Autokit::gen + 1;
 	$Autokit::holdUntil = 0;
+	$Autokit::nextFire = 0;
+	$Autokit::lastState = "";
 	Autokit::tick($Autokit::gen);
 }
-Event::Attach(eventConnected, Autokit::start);
+// (event hook: NativeDefaults::attachEvents, end of this file)
 
 //====================================================================================
 // DEMO NAMER (port of DemoNamer.acs.cs, replaces stock base\scripts\client.cs
@@ -1350,8 +1397,7 @@ function DemoNamer::rearm()
 		return;
 	setupRecorderFile();
 }
-Event::Attach(eventConnected, DemoNamer::rearm);
-Event::Attach(eventLeaveServer, DemoNamer::rearm);
+// (event hooks: NativeDefaults::attachEvents, end of this file)
 
 //------------------------------------------------------------------------------
 // FILE MUSIC (2026-09-04). The soundtrack now plays from base\music through the stock
@@ -1553,7 +1599,7 @@ function MusicHud::close()
 	if($Config::HudListVisible != 1)
 		cursorOff(MainWindow);
 }
-Event::Attach(eventLeaveServer, MusicHud::close);
+// (event hook: NativeDefaults::attachEvents, end of this file)
 
 // Default keys, BASE ONLY and only if free: J is Presto's autofire toggle under a mod
 // (autoexec.cs binds it after this file), and bindCommandDefault leaves a key the player
@@ -1588,15 +1634,18 @@ if($KV::isBase)
 //------------------------------------------------------------------------------
 function KillPop::onKill(%victim, %weapon)
 {
-	if($pref::killPop != "" && !$pref::killPop)
-		return;
-	%t = $pref::killPopTime;
-	if(%t == "" || %t <= 0)
-		%t = 2.5;
-	$KillPop::ToastVictim = %victim;
-	$KillPop::ToastWeapon = %weapon;
-	$KillPop::ToastUntil = getSimTime() + %t;
-	$KillPop::Count++;
+	// The toast and the sound are independent switches (Interface > HUD and Sound tabs since
+	// 2026-09-23), so turning the popup off no longer silences the sound, or vice versa.
+	if($pref::killPop == "" || $pref::killPop)
+	{
+		%t = $pref::killPopTime;
+		if(%t == "" || %t <= 0)
+			%t = 2.5;
+		$KillPop::ToastVictim = %victim;
+		$KillPop::ToastWeapon = %weapon;
+		$KillPop::ToastUntil = getSimTime() + %t;
+		$KillPop::Count++;
+	}
 	if($pref::killPopSound == "" || $pref::killPopSound)
 	{
 		%f = $pref::killPopSoundFile;
@@ -1621,8 +1670,8 @@ function KillPop::onKill(%victim, %weapon)
 // with their formatting characters stripped. Only the presentation changes. A TP / CP / BP
 // (top / centre / bottom) print becomes a banner under the kill toast (ModernHUD::tagToast,
 // hud\Framework.cs) while a ModernHUD pack is active, and the stock centre print otherwise.
-// RPC, ST and KD (station hooks and the mods' stat HUD) have no consumer in this client, so
-// they are only registered.
+// RPC (station hooks) has no consumer in this client, so it is only registered. ST and KD
+// (the mods' stat RPCs) go to the OPS stats script when it is loaded (2026-09-24).
 // The template comes from the server, so it never goes near the C++ sprintf, which has no
 // bounds checks and never advances past a '%' that is not followed by a digit. TagMsg::fill
 // and TagMsg::runs substitute %1-%6 in script instead.
@@ -1633,8 +1682,7 @@ function TagMsg::reset()
 	deleteVariables("$TagMsg::Tag*");
 	$TagMsg::Count = 0;
 }
-Event::Attach(eventConnectionAccepted, TagMsg::reset);
-Event::Attach(eventLeaveServer, TagMsg::reset);
+// (event hooks: NativeDefaults::attachEvents, end of this file)
 
 // A client id in a print's parameters becomes that player's name with its formatting characters
 // stripped, as TagString.cs does. Anything that is not a known client (a damage number, a word)
@@ -1773,6 +1821,10 @@ function remoteT(%sv, %cmd, %tagValue, %p0, %p1, %p2, %p3, %p4, %p5, %p6)
 
 	if(%type == "TP" || %type == "CP" || %type == "BP")
 		TagMsg::print(%type, %tag, %p0, TagMsg::name(%p1), TagMsg::name(%p2), TagMsg::name(%p3), TagMsg::name(%p4), TagMsg::name(%p5), TagMsg::name(%p6));
+	// ST / KD (stat RPCs) now have a consumer: the OPS stats script, when it is loaded.
+	// Raw client ids, not names -- the stat handlers resolve them themselves.
+	else if((%type == "ST" || %type == "KD") && isFunction("OpsStats::onTagged"))
+		OpsStats::onTagged(%type, %tag, %p0, %p1, %p2, %p3, %p4, %p5, %p6);
 }
 
 //------------------------------------------------------------------------------
@@ -1820,3 +1872,91 @@ function GrenadeToss::throw(%strength)
 //------------------------------------------------------------------------------
 if($pref::ChatVisibilityMode == "") { $pref::ChatVisibilityMode = 0; }
 if($pref::ChatIdleSeconds == "")    { $pref::ChatIdleSeconds = 15; }
+
+//------------------------------------------------------------------------------
+// TEAM FX (2026-09-20). Projectile trails, smoke and blasts wear the shooter's team
+// colour -- opsayo's request: Blood Eagle red discs and nades, Diamond Sword blue.
+// Entirely client-side and entirely cosmetic; it works on a stock 1.40 server too
+// (the colour comes from the shooter's own ghost). See program\inc\teamFx.h.
+//
+//   $pref::teamFx          0 = stock colours everywhere. Absent = ON.
+//   $pref::teamFxStrength  0..1 blend toward the team colour. Absent = 1.
+//   $pref::teamFxColor<N>  "r g b" (0..1, or 0..255 if any component exceeds 1) to
+//                          override team N. Unset = the built-in colour for that
+//                          team index -- 0 Blood Eagle red, 1 Diamond Sword blue,
+//                          2 Children of the Phoenix gold, 3 Starwolf green, then
+//                          violet / cyan / yellow / white for the four generics.
+//
+// SEEDED, not assigned, so a player who turns it off keeps it off. The seeds exist so
+// the two Options rows read the shipped state instead of inferring it from an empty
+// variable -- the engine treats absent as on/1.0 either way.
+//------------------------------------------------------------------------------
+if($pref::teamFx == "")         { $pref::teamFx = 1; }
+if($pref::teamFxStrength == "") { $pref::teamFxStrength = 1.0; }
+
+// OPS EFFECTS (2026-09-24, Opsaya's config; Joe chose the defaults). Graphics > Effects rows;
+// client-side swaps in explosion.cpp / projBullet.cpp / projectile.cpp; art in base\
+// (tools\gen_ops_fx.py). Tracer and grenade ship ON, the rocket disc OFF.
+if($pref::cgTracer == "")         { $pref::cgTracer = 1; }
+if($pref::grenadeExplosion == "") { $pref::grenadeExplosion = 1; }
+if($pref::discRocket == "")       { $pref::discRocket = 0; }
+// Chain sparks default to Plasma (style 6). ONE-TIME for existing installs: a player whose
+// pref still says Stock (0 -- the old default every Options visit wrote back) moves to
+// Plasma once; switching back to Stock after that sticks.
+if($pref::fxOpsDefaults == "")
+{
+	$pref::fxOpsDefaults = 1;
+	if($pref::chainSparks == "" || $pref::chainSparks == 0)
+		$pref::chainSparks = 6;
+}
+
+//------------------------------------------------------------------------------
+// OPS CONFIG SCRIPTS (2026-09-24) -- Opsaya's config modules beyond the HUD (the HUD itself
+// is the OPS ModernHUD pack): the stat collector + held stat sheet, the Quake-style
+// announcer, and flag-return sounds. Each is its own file under config\ModernHUD\Scripts
+// (it ships and deploys with the ModernHUD tree), gated by a Scripts-tab pref, all OFF.
+// The announcer reads the stats script's tallies, so the stats bridge runs whenever
+// either pref is on. Their Event::Attach calls live in NativeDefaults::attachEvents below.
+//   $pref::scriptStats        stat sheet (hold the "Show stat sheet" key)
+//   $pref::scriptAnnouncer    announcer
+//   $pref::scriptFlagSounds   flag-return cues
+//------------------------------------------------------------------------------
+if($pref::scriptStats == "")      { $pref::scriptStats = 0; }
+if($pref::scriptAnnouncer == "")  { $pref::scriptAnnouncer = 0; }
+if($pref::scriptFlagSounds == "") { $pref::scriptFlagSounds = 0; }
+exec("ModernHUD/Scripts/opsStats.cs");
+exec("ModernHUD/Scripts/opsAnnouncer.cs");
+exec("ModernHUD/Scripts/opsFlagSounds.cs");
+
+//------------------------------------------------------------------------------
+// EVENT HOOKS -- every Event::Attach this file needs, in ONE place (2026-09-23).
+//
+// ★Attaching here, at exec time, was silently dead.★ autoexec.cs execs this file BEFORE
+// presto\install.cs, so these attaches went into the ENGINE's native event map -- and
+// Presto then redefines Event::Attach/Event::Trigger in script (its own $Event::* arrays),
+// which is what events.cs dataFinished fires eventConnected through. Nothing ever read the
+// native map again (kronosNativeCmds.cpp "THE NATIVE EVENT MAP (g_events) IS DEAD").
+// Proven headless: after exec(nativeDefaults.cs) + Include(presto\Event.cs),
+// $Event::isAttached[eventConnected, "Autokit::start"] was EMPTY. So autokit never started
+// (player report "autokit still not working"; Joe's log: $Autokit::diag=1 then a connect
+// printed nothing), and the demo-namer re-arm, music-panel close and tagged-message reset
+// never ran either.
+//
+// So: called once here (a boot without Presto still gets the native map) and AGAIN from
+// autoexec.cs right after presto\install.cs, which is the call that counts. Presto's
+// Event::Attach ignores an already-attached (event, function) pair, so twice is safe.
+//------------------------------------------------------------------------------
+function NativeDefaults::attachEvents()
+{
+	Event::Attach(eventConnected, Autokit::start);
+	Event::Attach(eventConnected, DemoNamer::rearm);
+	Event::Attach(eventLeaveServer, DemoNamer::rearm);
+	Event::Attach(eventLeaveServer, MusicHud::close);
+	Event::Attach(eventConnectionAccepted, TagMsg::reset);
+	Event::Attach(eventLeaveServer, TagMsg::reset);
+	// OPS config scripts (guarded: a tree without config\ModernHUD\Scripts just skips them)
+	if(isFunction("OpsStats::attach"))      OpsStats::attach();
+	if(isFunction("OpsAnn::attach"))        OpsAnn::attach();
+	if(isFunction("OpsFlagSounds::attach")) OpsFlagSounds::attach();
+}
+NativeDefaults::attachEvents();

@@ -7,6 +7,7 @@
  "category": "conversion",
  "releaseState": "partial",
  "authoring": "generated",
+ "componentSplit": {"namespace": "vodka", "splitInit": true},
  "reference": {
   "width": 1920,
   "height": 1080
@@ -240,6 +241,23 @@
   "$pref::miniMapWidth = \"300\";",
   "$pref::miniMapZoom = \"1.75\";"
  ],
+ "mj": {
+  "greenlines": "false",
+  "showhpbars": "False",
+  "showjetbars": "False",
+  "barscrouch": "false",
+  "passhelper": "true",
+  "passhelpermm": "true",
+  "shownames": "true",
+  "showhptext": "true",
+  "fontdefault": "sf_white_10b.pft",
+  "fontpass": "if_g_10b.pft",
+  "bar_width": "20",
+  "bar_height": "5",
+  "bar_border_width": "1",
+  "DrawWeapon": "1",
+  "WeaponAlpha": "2"
+ },
  "stockHuds": [
   {
    "name": "crosshairHud",
@@ -446,11 +464,23 @@
    "name": "clock::UpdateTime",
    "args": "%min, %sec",
    "from": "Modules/gameclock.acs.cs",
+   "note": [
+    "(2026-09-01) The eventUpdateTime bridge (Presto events.cs remoteSetTime) assumes every",
+    "setTime is a countdown and negates it; an unlimited match now syncs a POSITIVE count-up",
+    "clock (objectives.cs Game::timeLimitTick), which arrived here as negative minutes and",
+    "ran the private timer below zero. Read the engine clock directly instead: sign = direction."
+   ],
    "body": [
-    "$clock::Hour = floor(%min / 60);",
-    "$clock::Min = %min % 60;",
-    "$clock::Sec = %sec;",
-    "$clock::CountingDown = true;",
+    "%t = getHudTimer();",
+    "if(%t == \"\")",
+    "   %t = 0;",
+    "$clock::CountingDown = (%t < 0);",
+    "if(%t < 0)",
+    "   %t = -%t;",
+    "%t = floor(%t);",
+    "$clock::Hour = floor(%t / 3600);",
+    "$clock::Min = floor((%t - $clock::Hour * 3600) / 60);",
+    "$clock::Sec = %t % 60;",
     "Schedule::Add(\"clock::Iterate();\", 1);"
    ]
   },

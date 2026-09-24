@@ -259,7 +259,7 @@ THE OLD WAY (still works)
 
   InfiniteSpawn restarts a crashed server, but silently --
   a crash-looping server can look like a healthy one, so
-  check its restart counter and console.log before calling
+  check its restart counter and console_server.log before calling
   a test clean. TribesHost edits the same files as this
   path, so the two stay in sync.
 
@@ -289,7 +289,7 @@ allows it, and "Allow in Windows Firewall" opens the port
 locally. Your server announces itself to the public Tribes
 master list unless you untick "Public server".
 
-Console output goes to console.log in this folder (also
+Console output goes to console_server.log in this folder (also
 shown live at the bottom of TribesHost).
 
 

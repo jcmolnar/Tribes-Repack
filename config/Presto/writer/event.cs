@@ -73,8 +73,22 @@ function Event::Detach(%event, %function)
     // Move the last function in the event's function array into
     // the empty array element left behind by the detached function
     // Note that this does NOT preserve the order of the attached functions!
-    $Event::function[%event, $Event::index[%event, %function]] = $Event::function[%event, $Event::count[%event]];
-    
+    //
+    // NATIVE-PORT (2026-09-23): the 1999 version moved only the NAME. The moved function's
+    // $Event::index still pointed at its old (last) slot and its isStatement flag stayed
+    // behind, so a later Detach of THAT function overwrote the wrong slot: it kept firing
+    // after being detached and silently dropped whichever handler was last at the time.
+    // Every HUD config swap detaches its pack's handlers (ModernHUD::detachAll), and packs
+    // share events with core features (eventConnected: autokit, demo namer), so a swap
+    // could drop one. Move the whole slot and repoint the moved function's index.
+    %hole = $Event::index[%event, %function];
+    %last = $Event::count[%event];
+    %moved = $Event::function[%event, %last];
+    $Event::function[%event, %hole] = %moved;
+    $Event::isStatement[%event, %hole] = $Event::isStatement[%event, %last];
+    $Event::index[%event, %moved] = %hole;
+    $Event::function[%event, %last] = "";
+
     // Decrement the count of functions attached to this event
     $Event::count[%event]--;
 

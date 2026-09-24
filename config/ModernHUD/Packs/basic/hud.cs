@@ -9,6 +9,7 @@
 // "authoring" to "manual" -- the generator then refuses to overwrite.
 
 exec("ModernHUD/Framework.cs");
+exec("ModernHUD/Packs/basic/components.cs");   // borrowable parts (HUD designer mix-and-match)
 
 $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "Basic";
@@ -72,6 +73,68 @@ function ModernHUDPack::prefs()
    $pref::miniMapZoom = "1.75";
 }
 
+// The legacy config's config\Modules\guistuff_prefs.acs.cs values. Borrowed
+// client-wide globals: snapshot once, put back by restore() on unload.
+function ModernHUDPack::mj()
+{
+   if($ModernHUD::MjSaved != "basic")
+   {
+      $ModernHUD::MjSaved = "basic";
+      $ModernHUD::MjSav::greenlines = $mj::greenlines;
+      $ModernHUD::MjSav::shownames = $mj::shownames;
+      $ModernHUD::MjSav::showhpbars = $mj::showhpbars;
+      $ModernHUD::MjSav::showjetbars = $mj::showjetbars;
+      $ModernHUD::MjSav::showhptext = $mj::showhptext;
+      $ModernHUD::MjSav::barscrouch = $mj::barscrouch;
+      $ModernHUD::MjSav::passhelper = $mj::passhelper;
+      $ModernHUD::MjSav::passhelpermm = $mj::passhelpermm;
+      $ModernHUD::MjSav::fontdefault = $mj::fontdefault;
+      $ModernHUD::MjSav::fontpass = $mj::fontpass;
+      $ModernHUD::MjSav::bar_width = $mj::bar_width;
+      $ModernHUD::MjSav::bar_height = $mj::bar_height;
+      $ModernHUD::MjSav::bar_border_width = $mj::bar_border_width;
+      $ModernHUD::MjSav::DrawWeapon = $mj::DrawWeapon;
+      $ModernHUD::MjSav::WeaponAlpha = $mj::WeaponAlpha;
+   }
+   $mj::greenlines = "false";
+   $mj::shownames = "true";
+   $mj::showhpbars = "False";
+   $mj::showjetbars = "False";
+   $mj::showhptext = "true";
+   $mj::barscrouch = "false";
+   $mj::passhelper = "true";
+   $mj::passhelpermm = "true";
+   $mj::fontdefault = "sf_white_10b.pft";
+   $mj::fontpass = "if_g_10b.pft";
+   $mj::bar_width = "20";
+   $mj::bar_height = "5";
+   $mj::bar_border_width = "1";
+   $mj::DrawWeapon = "1";
+   $mj::WeaponAlpha = "2";
+}
+
+function ModernHUDPack::restore()
+{
+   if($ModernHUD::MjSaved != "basic")
+      return;
+   $mj::greenlines = $ModernHUD::MjSav::greenlines;
+   $mj::shownames = $ModernHUD::MjSav::shownames;
+   $mj::showhpbars = $ModernHUD::MjSav::showhpbars;
+   $mj::showjetbars = $ModernHUD::MjSav::showjetbars;
+   $mj::showhptext = $ModernHUD::MjSav::showhptext;
+   $mj::barscrouch = $ModernHUD::MjSav::barscrouch;
+   $mj::passhelper = $ModernHUD::MjSav::passhelper;
+   $mj::passhelpermm = $ModernHUD::MjSav::passhelpermm;
+   $mj::fontdefault = $ModernHUD::MjSav::fontdefault;
+   $mj::fontpass = $ModernHUD::MjSav::fontpass;
+   $mj::bar_width = $ModernHUD::MjSav::bar_width;
+   $mj::bar_height = $ModernHUD::MjSav::bar_height;
+   $mj::bar_border_width = $ModernHUD::MjSav::bar_border_width;
+   $mj::DrawWeapon = $ModernHUD::MjSav::DrawWeapon;
+   $mj::WeaponAlpha = $ModernHUD::MjSav::WeaponAlpha;
+   $ModernHUD::MjSaved = "";
+}
+
 function ModernHUDPack::stockHuds()
 {
    // Visibility only -- placement rides the stock huds' own
@@ -95,351 +158,9 @@ function ModernHUDPack::stockHuds()
 
 ModernHUD::require("ModernHUD/Core/Data/Team.cs");
 ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
-
-// ---- helpers carried from the legacy pack -------------------------
-// A lifted body calls these; the converted pack does not execute the
-// legacy module, so they have to come along or the call resolves to
-// nothing and the part renders wrong without erroring.
-//
-// ★Prefixed with the pack id.★ Five packs define CTFHUD::Update; the
-// console has one namespace and a definition outlives the pack that made
-// it, so under the original names a leftover handler from a pack that is
-// no longer loaded would call OUR body. The originals are recorded below
-// each definition.
-// from Modules/CTFHud/CTFHud.acs.cs  (originally CTFHUD::EnemyTeamValue)
-function basic::CTFHUD::EnemyTeamValue(%team, %score1)
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-       %team = Team::Enemy();
-   %loc = Team::Flag::Location(Team::Enemy());
-
-   basic::FlagFlash(%team);
-
-   switch ( %loc ) {
-       case "home":
-           %loc = "<f:small-black-stroke.pft:FFFFFFFF:000000ff:1,1>Home";
-           %bmp = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:ff0000ff";
-           break;
-       case "field":
-           %loc = $FlagDropFont ~ Team::Flag::Timer(%team);
-           %bmp = $FlagDropIcon1;
-           break;
-       default:
-           %loc = String::escapeFormatting(Client::GetName(%loc));
-           %bmp = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:00d2ffff";
-           break;
-   }
-   ModernHUD::markup(%x + 55, %y + 32, 445, "<f:font-nostroke.pft:006880ff:006880ff:1,1>" ~ %loc, 255);
-   ModernHUD::markup(%x + 55, %y + 32, 445, "<f:font-stroke.pft:00cfff>" ~ %loc, 255);
-
-   ModernHUD::markup(%x + 0, %y + 25, 500, "<b3,3:"~%bmp~">", 255);
-}
-
-// from Modules/CTFHud/CTFHud.acs.cs  (originally CTFHUD::FriendlyTeamValue)
-function basic::CTFHUD::FriendlyTeamValue(%team, %score0)
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-       %team = Team::Friendly();
-   %loc = Team::Flag::Location(Team::Friendly());
-
-   basic::FlagFlash(%team);
-
-   switch ( %loc ) {
-       case "home":
-           %loc = "<f:small-black-stroke.pft:FFFFFFFF:000000ff:1,1>Home";
-           %bmp = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:00ff02ff";
-           break;
-       case "field":
-           %loc = $FlagDropFont ~ Team::Flag::Timer(%team);
-           %bmp = $FlagDropIcon0;
-           break;
-       default:
-           %loc = String::escapeFormatting(Client::GetName(%loc));
-           %bmp = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:fdff00ff";
-           break;
-   }
-   ModernHUD::markup(%x + 55, %y + 8, 445, "<f:font-nostroke.pft:807b00ff:807b00ff:1,1>" ~ %loc, 255);
-   ModernHUD::markup(%x + 55, %y + 8, 445, "<f:font-stroke.pft:fff500ff>" ~ %loc, 255);
-
-   ModernHUD::markup(%x + 0, %y + 1, 500, "<b3,3:"~%bmp~">", 255);
-}
-
-// from Modules/CTFHud/CTFHud.acs.cs  (originally CTFHUD::Update)
-function basic::CTFHUD::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-       %score0 = Team::Score(Team::Friendly());
-       %score1 = Team::Score(Team::Enemy());
-   basic::CTFHUD::FriendlyTeamValue(%team);
-   basic::CTFHUD::EnemyTeamValue(%team);
-   ModernHUD::markup(%x + 33, %y + 8, 467, "<f:small-black-stroke.pft:228b01FF:000000ff:1,1>" ~%score0, 255);
-
-   ModernHUD::markup(%x + 33, %y + 32, 467, "<f:small-black-stroke.pft:ff0000FF:000000ff:1,1>" ~%score1, 255);
-}
-
-// from Modules/CTFHud/CTFHud.acs.cs  (originally FlagFlash)
-function basic::FlagFlash(%team)
-{
-   if (Team::Flag::Timer(%team) < 10) {
-       $FlagDropIcon0 = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:00ff02"~$CTFTimerDrop~"";
-       $FlagDropIcon1 = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:ff0000"~$CTFTimerDrop~"";
-     } else {
-       $FlagDropIcon0 = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:ffffff";
-       $FlagDropIcon1 = "Assets/Packs/basic/modules/ctfhud/flag-icon.png:ffffff";
-     }
-}
-
-// from Modules/AmmoHud.acs.cs  (originally GAmmo::Update)
-function basic::GAmmo::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-   if($Weapon::Ammo < 1) {
-       %display = " ";
-   } else {
-       %display = $Weapon::Ammo;
-   }
-
-   if($health == 0 || $playingdemo || Client::GetTeam(getManagerId()) == -1) {
-       %display = "";
-   }
-
-
-
-   ModernHUD::markup(%x + 0, %y + 0, 100, "<jc><f:white-default.pft:00cfffff:006880c8:2,2>" @ %display, 255);
-}
-
-// from Modules/aHENum/Energy.acs.cs  (originally GEnergy::Update)
-function basic::GEnergy::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-       if ( $energy < 35 ) {
-           ModernHUD::markup(%x + 0, %y + 0, 100, "<jc><f:small-black-stroke.pft:ff0000ff:000000ff:1,1>" @ $energy, 255);
-       } else {
-           ModernHUD::markup(%x + 0, %y + 0, 100, "<jc><f:small-black-stroke.pft:ffffffff:000000ff:1,1>" @ $energy, 255);
-       }
-
-
-}
-
-// from Modules/aHENum/Health.acs.cs  (originally GHealth::Update)
-function basic::GHealth::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-       if ( $health > 66 ) {
-           ModernHUD::markup(%x + 0, %y + 0, 100, "<jc><f:small-black-stroke.pft:ffffffff:000000ff:1,1>" @ $health, 255);
-       } else if ( $health > 32 ) {
-           ModernHUD::markup(%x + 0, %y + 0, 100, "<jc><f:small-black-stroke.pft:fff000ff:000000ff:1,1>" @ $health, 255);
-       } else {
-           ModernHUD::markup(%x + 0, %y + 0, 100, "<jc><f:small-black-stroke.pft:ff0000:000000ff:1,1>" @ $health, 255);
-       }
-
-
-}
-
-// from Modules/aHENum/Speed.acs.cs  (originally GSpeed::Update)
-function basic::GSpeed::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-   ModernHUD::markup(%x + 0, %y + 0, 50, "<f8>" @ $speed, 255);
-}
-
-// from Modules/ItemHUD/ItemHUD.acs.cs  (originally ItemHUD::Update)
-function basic::ItemHUD::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-
-
-
-   %text = "";
-   %kits = getItemCount("Repair Kit");
-   %Grenades = getItemCount("Grenade");
-
-
-
-   $ItemHUD::Kits = %kits;
-   $ItemHUD::Grenades = %Grenades;
-
-   %kits = ( %kits > 0 ) ? "Assets/Packs/basic/modules/itemhud/kitdot.png" : "Assets/Packs/basic/modules/itemhud/blankdot.png";
-
-   %text = "<B0,0:" @ %kits @ ">";
-   for ( %i = 0; %i < %Grenades; %i++ )
-       %text = %text @ "<B0,0:Assets/Packs/basic/modules/itemhud/grendot.png>";
-
-   ModernHUD::markup(%x + 0, %y + 0, 100, %text, 255);
-}
-
-// from Modules/fpsHUD/LegendzFPSHUD.acs.cs  (originally TimeFPS::Update)
-function basic::TimeFPS::Update()
-{
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-   %fps ="<f2> FPS:<f3> " @ floor($ConsoleWorld::FrameRate)@"";
-   ModernHUD::markup(%x + 0, %y + 1, 100, %fps, 255);
-}
-
-// from Modules/ToastyHUD.acs.cs  (originally ToastyHUD::GetImageAndSound)
-function basic::ToastyHUD::GetImageAndSound()
-{
-   // ★Gated.★ Legacy parked this 405x405 art off the right edge and slid it in;
-   // drawing it unconditionally puts a permanent Dan Forden on the HUD, and
-   // parking it offscreen cannot work because fitOnScreen pulls parts back on.
-   if($ToastyHUD::ShowUntil == "" || getSimTime() > $ToastyHUD::ShowUntil)
-      return;
-   %x = $ModernHUD::PartX;
-   %y = $ModernHUD::PartY;
-   if(!$pref::ToastyCustomMode) {
-
-       if($IMAGE_NAME == "")
-           $IMAGE_NAME = "Assets/Packs/basic/modules/toastyhud/toasty.png";
-
-
-       if($SND_NAME == "")
-           $SND_NAME = "mk.toasty.ogg";
-   }
-
-
-   // A custom $IMAGE_NAME (pref::ToastyCustomMode) is still a bare filename
-   // relative to Modules/ToastyHUD/; the pack default is already a full path.
-   if(String::findSubStr($IMAGE_NAME, "Assets/Packs/") == 0)
-       %img = $IMAGE_NAME;
-   else
-       %img = "Modules/ToastyHUD/" @ $IMAGE_NAME;
-   ModernHUD::markup(%x + 0, %y + 0, 405, "<B0,0:" @ %img @ ">", 255);
-}
-
-// from Modules/ToastyHUD.acs.cs  (originally ToastyHUD::Trigger)
-function basic::ToastyHUD::Trigger(%msg)
-{
-   if($playingDemo)
-      return;
-   if(String::findSubStr(%msg, "mid-air") == -1)
-      return;
-   // Legacy walked words until one was numeric; getWord past the end returns
-   // the literal "-1", which is what ends the walk.
-   %meters = -1;
-   for(%i = 0; String::Trim(getWord(%msg, %i)) != -1; %i++)
-   {
-      %w = getWord(%msg, %i);
-      if(chr(%w) == "")
-      {
-         %meters = %w;
-         break;
-      }
-   }
-   if(%meters < 50)
-      return;
-   $ToastyHUD::ShowUntil = getSimTime() + 1400;
-   $ToastyHUD::PTotal++;
-}
-
-// Constants the legacy module's Init assigned and its Update reads.
 function ModernHUDPack::init()
 {
-   $ItemHUD::Awake = true;
-}
-
-function ModernHUDPack::draw_CTFHUD_Container(%screen)
-{
-   %partW = 500;
-   %at = ModernHUD::part("ModernHUD::CTFHUD_Container", "top-left", 41, 61, 500, 72, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::CTFHUD::EnemyTeamValue, basic::CTFHUD::FriendlyTeamValue, basic::CTFHUD::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::CTFHUD::Update();
-}
-
-function ModernHUDPack::draw_GAmmo_Container(%screen)
-{
-   %partW = 100;
-   %at = ModernHUD::part("ModernHUD::GAmmo_Container", "bottom-center", 29, 67, 100, 50, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::GAmmo::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::GAmmo::Update();
-}
-
-function ModernHUDPack::draw_GEnergy_Container(%screen)
-{
-   %partW = 100;
-   %at = ModernHUD::part("ModernHUD::GEnergy_Container", "top-left", 38, 34, 100, 20, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::GEnergy::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::GEnergy::Update();
-}
-
-function ModernHUDPack::draw_GHealth_Container(%screen)
-{
-   %partW = 100;
-   %at = ModernHUD::part("ModernHUD::GHealth_Container", "top-left", 38, 11, 100, 20, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::GHealth::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::GHealth::Update();
-}
-
-function ModernHUDPack::draw_GSpeed_Container(%screen)
-{
-   %partW = 50;
-   %at = ModernHUD::part("ModernHUD::GSpeed_Container", "bottom-right", 74, 27, 50, 20, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::GSpeed::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::GSpeed::Update();
-}
-
-function ModernHUDPack::draw_ItemHUD_Container(%screen)
-{
-   %partW = 100;
-   %at = ModernHUD::part("ModernHUD::ItemHUD_Container", "bottom-center", 24, 132, 100, 50, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::ItemHUD::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::ItemHUD::Update();
-}
-
-function ModernHUDPack::draw_LegendzFPSHUD_Container(%screen)
-{
-   %partW = 106;
-   %at = ModernHUD::part("ModernHUD::LegendzFPSHUD_Container", "top-right", 0, 4, 106, 26, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::TimeFPS::Update
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::TimeFPS::Update();
-}
-
-function ModernHUDPack::draw_ToastyHUD_Container(%screen)
-{
-   %partW = 405;
-   %at = ModernHUD::part("ModernHUD::ToastyHUD_Container", "bottom-right", 0, 40, 405, 405, %screen);
-   %x = getWord(%at, 0);
-   %y = getWord(%at, 1);
-   // lifted verbatim from basic::ToastyHUD::GetImageAndSound
-   $ModernHUD::PartX = %x;
-   $ModernHUD::PartY = %y;
-   basic::ToastyHUD::GetImageAndSound();
+   basic::compInit();
 }
 
 function ModernHUDPack::draw(%screen)
@@ -447,35 +168,35 @@ function ModernHUDPack::draw(%screen)
    ModernHUDPack::detachRetained();
 
    if(ModernHUDPack::ownsSlot($pref::HudSlot::ctf))
-      ModernHUDPack::draw_CTFHUD_Container(%screen);
+      basic::draw_CTFHUD_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::CTFHUD_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::weapon))
-      ModernHUDPack::draw_GAmmo_Container(%screen);
+      basic::draw_GAmmo_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::GAmmo_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::healthenergy))
-      ModernHUDPack::draw_GEnergy_Container(%screen);
+      basic::draw_GEnergy_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::GEnergy_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::healthenergy))
-      ModernHUDPack::draw_GHealth_Container(%screen);
+      basic::draw_GHealth_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::GHealth_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::healthenergy))
-      ModernHUDPack::draw_GSpeed_Container(%screen);
+      basic::draw_GSpeed_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::GSpeed_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::items))
-      ModernHUDPack::draw_ItemHUD_Container(%screen);
+      basic::draw_ItemHUD_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::ItemHUD_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::fps))
-      ModernHUDPack::draw_LegendzFPSHUD_Container(%screen);
+      basic::draw_LegendzFPSHUD_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::LegendzFPSHUD_Container");
    if(ModernHUDPack::ownsSlot($pref::HudSlot::toasty))
-      ModernHUDPack::draw_ToastyHUD_Container(%screen);
+      basic::draw_ToastyHUD_Container(%screen);
    else
       ModernHUD::hide("ModernHUD::ToastyHUD_Container");
 }
@@ -487,9 +208,9 @@ function ModernHUDPack::onPlayGuiOpen()
 }
 
 ModernHUD::attach("eventGuiOpen_PlayGui", "ModernHUDPack::onPlayGuiOpen");
-ModernHUD::attach("eventServerMessage", "basic::ToastyHUD::Trigger");
 ModernHUDPack::prefs();
+ModernHUDPack::mj();
 ModernHUDPack::stockHuds();
-ModernHUDPack::init();
+basic::compInit();
 ModernHUDPack::detachRetained();
 $ModernHUD::LoadComplete = "basic";

@@ -83,8 +83,35 @@ function Team::onTeamAdd( %team, %name ) {
 	$Team::Name[ %team - 1 ] = %name;
 }
 
+// Backstop (2026-09-23, player report: "let the flag return standing oob and the config
+// still says i have it"). The tracker only knows what chat lines it recognises, so a
+// return it misses leaves US shown as the carrier forever. The server's inventory is the
+// truth for our own carry: stock CTF gives the carrier the Flag item (objectives.cs
+// setItemCount(%object, Flag, 1)) and takes it away on every drop/return/capture. Only
+// trusted once we have SEEN the item during this carry -- a mod that never uses the item
+// would otherwise have its real carries cleared.
 function Team::Flag::Location( %team ) {
-	return $Team::Flag::Location[%team];
+	// Picking this HUD mid-match: the reset events above already fired before this
+	// file loaded, so nothing ever initialised the state -- the rows drew "()" and a
+	// carrier icon with no name until the next map. "" is never a tracked location
+	// (home / field / a client id), so it means exactly "never initialised". Done here,
+	// at first read, not at load: Timer.cs (Timer::New) is required AFTER this file.
+	// String::len, not == "": the console compares "" and "0" as the NUMBER 0, and a
+	// carrier can be client 0 when Presto could not resolve the name.
+	if ( String::len($Team::Flag::Location[%team]) == 0 )
+		Team::Init();
+	%loc = $Team::Flag::Location[%team];
+	if ( %loc != "" && %loc == getManagerId() ) {
+		if ( getItemCount("Flag") > 0 )
+			$Team::Flag::SawItem[%team] = true;
+		else if ( $Team::Flag::SawItem[%team] ) {
+			Team::Flag::diag( "NoFlagItem", %team, %loc, "home" );
+			$Team::Flag::SawItem[%team] = false;
+			$Team::Flag::Location[%team] = "home";
+			return "home";
+		}
+	}
+	return %loc;
 }
 
 function Team::Flag::Timer( %team ) {
@@ -122,6 +149,7 @@ function Team::Flag::Taken( %team, %cl ) {
 		$Team::Flag::TimerTag[%team]++;
 	
 	$Team::Flag::Location[%team] = %cl;
+	$Team::Flag::SawItem[%team] = false;   // backstop re-arms per carry (Team::Flag::Location)
 }
 
 function Team::Flag::Captured( %team, %cl ) {

@@ -110,8 +110,12 @@ function EvalSearchPath()
    }
    for(%i = 0; (%word = getWord($modList, %i)) != -1; %i++)
    {
-      %addPath = %word @ ";" @ %word @ "\\missions;" @ %word @ 
-         "\\fonts;" @ %word @ "\\skins;" @ %word @ "\\voices;" @ %word @ "\\scripts";
+      // <word>\Starsiege (Herc Havoc, 2026-09-20): a mod may keep the Starsiege art it
+      // uses in its own subfolder instead of base\ (search paths are not recursive, so
+      // the folder needs its own entry). Absent folder = no files = no effect.
+      %addPath = %word @ ";" @ %word @ "\\missions;" @ %word @
+         "\\fonts;" @ %word @ "\\skins;" @ %word @ "\\voices;" @ %word @ "\\scripts;" @
+         %word @ "\\Starsiege";
       %searchPath = %searchPath @ ";" @ %addPath;
    }
    %searchPath = %searchPath @ ";recordings;temp";

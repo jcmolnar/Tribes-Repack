@@ -19,14 +19,19 @@ a short one.
 
 ```
 config/ModernHUD/Packs/<id>/
-  pack.json     manifest -- identity, parts, anchors, asset map
-  hud.cs        the script the client executes
+  pack.json       manifest -- identity, parts, anchors, asset map
+  hud.cs          the script the client executes
+  components.cs   (optional, recommended) the parts OTHER packs may borrow -- §11
 ```
 
-Two files. Nothing else. A pack may reference shared art under
-`config/ModernHUD/Assets/` and carried data layers under
-`config/ModernHUD/Core/Data/`, but it owns only those two files — which is what
-makes uninstalling one safe.
+A pack may reference shared art under `config/ModernHUD/Assets/` and carried data
+layers under `config/ModernHUD/Core/Data/`, but it owns only its own folder —
+which is what makes uninstalling one safe.
+
+**Read §11 before you ship.** Options → **CONFIGS/HUDS** (the HUD designer) draws
+your pack inside the Options page, at other screen sizes, with demo data, and lets
+players move, resize, hide, re-anchor and *swap* your parts for other packs'. A pack
+that ignores §11 still works in game but shows up broken there.
 
 `"authoring": "manual"` in the manifest means you wrote `hud.cs` by hand and the
 generator must never overwrite it. `"generated"` means it was produced from the
@@ -179,7 +184,7 @@ continuous control does not mint an atlas per step.
 | command | notes |
 |---|---|
 | `glTicks()` | milliseconds, wall clock. Use for animation; it is frame-rate independent |
-| `glPartScale(originX, originY, sx [, sy])` | scale subsequent draws about a point. Scale 1 = identity reset |
+| `glPartScale(originX, originY, sx [, sy])` | scale subsequent draws about a point. Scale 1 = identity reset, and it also drops the part style (`glPartStyle` hide/opacity) |
 
 ★`glPartScale` persists to the END of the whole ScriptGL pass.★ `ModernHUD::part`
 pushes one per part, so anything you draw after your last part call inherits the
@@ -248,7 +253,7 @@ framework exists to remove.
 ### Settings — the part most authors will want
 
 ```
-ModernHUD::setting(type, prefKey, label, default, spec, apply)
+ModernHUD::setting(type, prefKey, label, default, spec, apply [, part])
 ```
 
 | arg | meaning |
@@ -259,6 +264,7 @@ ModernHUD::setting(type, prefKey, label, default, spec, apply)
 | `default` | seeded only if the pref has never been set |
 | `spec` | enum: `"Label\|value;Label\|value;..."` · int: `"min\|max\|step"` · bool: unused |
 | `apply` | console command run whenever the value CHANGES (may be `""`) |
+| `part` | *optional* — the part this setting belongs to (§11.4). Omit for whole-HUD settings |
 
 Declaring a setting gives you a row on **Options → Configs → `<Pack>` Settings**,
 **and** a row in the in-game **K menu** (§8) — one declaration, both surfaces, and
@@ -351,6 +357,18 @@ cannot uninstall.
 | `$pref::miniMapWidth`, `Zoom`, `Rotate`, `Square`, `Compass`, `miniMapAlpha` | the minimap control |
 | `$pref::hideCrosshairArt` | suppress the stock reticle bitmap |
 | `$xChat::*`, `$pref::ChatDisplay*` | chat placement and fade |
+
+★Your `$mj::` values are the "Pack" default, not the last word.★ Options has a
+Pack / On / Off row for names, health bars, jet bars, health % text, crouch-only bars,
+both pass helpers, HUD brackets and the first-person weapon (`$pref::mj::<knob>`,
+`$pref::hudBrackets`). Pack (the default) shows whatever your pack wrote; On/Off win
+over it on every pack. Keep writing `$mj::` exactly as before.
+
+★`$mj::eyesight` / `eyesightbars` are NOT pack knobs.★ They drop the sensor gate on
+nameplates, which is a base-game advantage, so the engine honours them only under our own
+cockpit packs (`kEyesightPacks` in fearGuiCrosshair.cpp) while the server is streaming mech
+state. A pack that sets them anywhere else gets stock plates. A generated pack's `mj` block
+refuses them outright (tools/modernhud_pack.py `MJ_PACK_KNOBS`).
 
 ★Two minimap traps.★ `$pref::miniMapVisible` is the **legacy canvas overlay**, a
 second undraggable minimap — not "show the minimap". The real control is shown
@@ -529,3 +547,231 @@ look.
 - [ ] No pref appears in both the `prefs` block and a `ModernHUD::setting`
 - [ ] A `defaults()` exists so shipped defaults can be re-applied later
 - [ ] Tested at two resolutions and after a pack swap away and back
+- [ ] **HUD designer (§11):** every part goes through `ModernHUD::part` (or records itself
+      with `ModernHUD::pvRecord`), and is listed in `pack.json` `parts[]` with its `handle`
+      and `slot`
+- [ ] Nothing in `draw()` writes a pref, creates/moves a handle, or schedules anything
+      while `$ModernHUD::Preview` is set
+- [ ] Game state is read through the getters the demo answers (§11.2), or the pack has a
+      demo branch on `$ModernHUD::PvDemo`, or declares `$ModernHUD::PreviewNote`
+- [ ] Borrowable parts live in `components.cs` under your own namespace, with a
+      `ModernHUD::component` line each (§11.3) — `python tools/modernhud_components.py`
+      splits an existing pack and verifies the result
+- [ ] Part-specific settings carry their `part` tag (§11.4)
+- [ ] Checked on Options → CONFIGS/HUDS: main menu, all four Demo scenarios, Screen at
+      1280x720 and 4K, and each of your components borrowed into another pack
+
+---
+
+## 11. The HUD designer — making a pack work in Options → CONFIGS/HUDS
+
+The designer (`program/code/fearGuiModernOptions.cpp`, scope doc
+`HUD-DESIGNER-SCOPE-2026-09-23.md`) draws the loaded pack **inside the Options page**
+through `ScriptGL_renderStage`. Your `ModernHUDPack::draw(%screen)` runs exactly as in
+game, with four differences that each broke a shipped pack before this section existed.
+
+### 11.1 The preview pass — rules for `draw()`
+
+`$ModernHUD::Preview` is `1` for the duration of the pass.
+
+- **`%screen` is the PREVIEW's screen**, not the window's: a player can preview 1280x720
+  or 3840x2160 on a 1080p monitor. Lay out only from `%screen` (`ModernHUD::place` /
+  `ModernHUD::part` do). Never read the window size another way.
+- **Place parts with `ModernHUD::part`.** In a preview it is side-effect free: it never
+  creates, moves, resets or fit-checks a retained handle (`ModernHUD::previewPos` answers
+  instead — the live spot, else the saved pref, else your authored spot, clamped onto the
+  screen the way the handle clamps in game). It also records the part for the designer's
+  hit boxes (`ModernHUD::pvRecord`).
+  ★**A pack with its own placement helper must do all three itself.**★ Overstep keeps its
+  own `handle()`; until it deferred to `ModernHUD::handle` in preview, every Options frame
+  created and moved LIVE handles from preview coordinates, and none of its parts could be
+  selected. And until it called `ModernHUD::partStyle`, the designer's Size / Opacity / Hide
+  rows did nothing to its parts, in the preview AND in game (measured: RepKit stayed fully
+  opaque at opacity 22). The pattern (Overstep's `components.cs`):
+  ```
+  if($ModernHUD::Preview)
+  {
+     %at = ModernHUD::handle(%name, %defaultPos, %w, %h);   // side-effect free here
+     %s  = ModernHUD::partStyle(%name, %at);                  // size, hide, opacity
+     ModernHUD::pvRecord(%name, %at, %w * %s, %h * %s, "");   // selectable in the designer
+     return %at;
+  }
+  ...live placement...
+  ModernHUD::partStyle(%name, %published);                    // the same in game
+  return %published;
+  ```
+  A caller that fetches several handles before drawing (Overstep's three status plates)
+  must re-issue `ModernHUD::partStyle(name, at)` before each part's own draws — otherwise
+  all of them draw in the style of the LAST handle fetched.
+  ★Retrofitting `partStyle` into a pack that never had it makes old saved sizes take
+  effect.★ Sizes a player saved while they did nothing visible are usually junk (someone
+  scrolled a part down to the 0.25 floor waiting for it to change). Clear them once, and set
+  the legacy claim marker so the unqualified value is not re-claimed — see
+  `Overstep::forgetInvisibleSizes` in `Packs/overstep/hud.cs`.
+- **No side effects.** Do not write prefs, swap client-wide settings, `schedule()`, or
+  enter/leave a mode from `draw()` while previewing. Starsiege Cockpit's `SSC::enter()`
+  rewrites the crosshair/IFF/nameplate prefs; calling it from a preview pass changed the
+  player's live game from the Options page. Guard mode switches with
+  `if(!$ModernHUD::Preview)`.
+- **The K panel, toasts, music panel and net stats are NOT drawn** in a preview, and
+  `glMousePos()` returns `""` — the Options cursor is not aimed at your HUD.
+- **`.pft` markup, `glDrawImage` and TrueType all work** — the pass re-syncs the GFX
+  texture cache the Options page's own drawing leaves stale (`GFX_forgetGLState`). If a
+  new draw path renders as solid blocks or white boxes ONLY in the designer, that cache is
+  the first suspect.
+
+### 11.2 Demo data — what the preview can show out of game
+
+At the main menu there is no player, inventory or team. While a **demo** preview draws
+(`$ModernHUD::PvDemo`, set by `ModernHUD::previewBegin`), the framework answers:
+
+| read | demo answer |
+|---|---|
+| `$health` `$energy` `$Weapon::Ammo` `$speed` `$damageFlash` | per scenario (Full health / Low health / Flag carried / No ammo) |
+| `$compassHeading` `$compassSin` `$compassCos` `$sensorPing` | a heading, a ping in Low health |
+| `getItemCount(desc)` | a medium CTF loadout (disc/chain/GL/blaster, ammo, grenades, mines, beacons, kit, energy pack) |
+| `getMountedItem(0)` → `getItemDesc(...)`, `getItemType(desc)` | the mounted weapon (fixture ids ≥ 30000 round-trip) |
+| `getManagerId()`, `Client::getName(id)`, `Client::getTeam(id)` | you (team 0), "Enemy Heavy", "Teammate" |
+| `Team::Score`, `Team::Flag::Location/Timer`, `$Team::Name` | scores, flag home/field/carried per scenario |
+
+So **read game state through those getters** and the preview fills in for free (the
+native side is `ScriptGL_stageDemo` + the fixture block in `FearPlugin.cpp`).
+State that arrives any other way — a server push (`$MMC::*`), a `remoteEval` cache, an
+object walk — is empty in demo. Then either:
+
+- add a demo branch: `if($ModernHUD::PvDemo) { ...placeholder values... }` (Starsiege
+  Cockpit's `SSC::demo()` also honours its own `$pref::ssHudDemo`), or
+- declare a note the stage shows instead of an unexplained empty backdrop:
+  ```
+  $ModernHUD::PreviewNote = "A caster HUD: it draws the telestrator while you observe a match.";
+  ```
+  (cleared on unload). A pack that makes **no draw call** at all gets a general note
+  automatically; one that draws nothing on purpose (Observer) should say why.
+
+Caches keyed on `glTicks()` (Ascend's 300 ms weapon scan) are shared by the preview and
+the live HUD — keep them short, or key them on `$ModernHUD::PvDemo` too.
+
+### 11.3 Parts, slots and mix-and-match (`components.cs`)
+
+Players can hand any **slot** (`healthenergy`, `weapon`, `ctf`, `items`, `clock`,
+`minimap`, `chat`, … — `s_slots[]` in `configModules.cpp`) to another pack's part: the
+selected part's **"Drawn by"** row writes `$pref::HudSlot::<slot> = "<pack>/<component>"`.
+
+**Your manifest.** Every part in `pack.json` `parts[]` needs its `handle` and `slot`
+(a string or a list — the first is the one it is borrowed for). That map is how the
+designer knows which slots a selected part answers (`MHPacks_publishPartSlots` →
+`$ModernHUD::PartSlots<handle>`). A part with no slot cannot be swapped.
+
+**As the BASE pack** — yield every slot you do not own:
+```
+if(ModernHUDPack::ownsSlot($pref::HudSlot::weapon))
+   <draw your weapon part>
+else
+   ModernHUD::hide("ModernHUD::<YourWeaponHandle>");
+```
+`ownsSlot("")` must be true, `ownsSlot("off")` false, and any `"<otherpack>/..."` false.
+A part answering several slots yields if ANY of them is borrowed.
+
+**As a PROVIDER** — the framework loads `Packs/<id>/components.cs` on its own, next to
+whatever pack is the base (`ModernHUD::loadProvider`), and calls your component function
+from `ModernHUD::drawSlot`. So `components.cs` must:
+
+1. **Define only your own namespace** (`Ascend::`, `S26::`, `Overstep::`). Nothing in
+   `ModernHUDPack::` — that namespace belongs to the base, and defining it would replace the
+   base's functions. Do not call `ModernHUDPack::*` either: when borrowed it is the BASE's.
+2. **Not depend on your `hud.cs`.** A borrowed part never runs your `init()` or `draw()`.
+   Anything they set up per frame (palette, opacity/scale globals, lookup tables) goes in a
+   `<NS>::compPrep()` the component calls — and your own `draw()` calls it too, so it exists
+   once. Base-only work (pref swaps like `Vector::apply`) stays in `hud.cs`.
+3. **Register each component on ONE line**, four quoted arguments — the client lists
+   providers by reading this file as text, without executing it:
+   ```
+   ModernHUD::component("vector", "ctf", "ctf", "Vector::comp_ctf");
+   ```
+4. **Name your art relative to your own asset folder** (`Modules/HeEnHUD/Hring.png` for
+   `Assets/Packs/overstep/Modules/...`). While your component draws, `$ModernHUD::DrawPack`
+   names your pack and `glDrawImage` probes your folder first; `$ModernHUD::AssetRoot` points
+   `.pft` markup at your fonts. Do not rely on your art being on the search path — only the
+   base pack's is.
+5. **Remember `$ModernHUD::PackId` is the BASE's id** while you are borrowed. Your part's
+   position/size prefs are qualified by it on purpose (a part placed in Ascend and the same
+   part placed in Basic are different layouts).
+
+`hud.cs` execs `components.cs` right after `Framework.cs`, so the pack's own draw uses the
+same code. **To split an existing pack:**
+```
+python tools/modernhud_components.py <id> --ns <NS> [--init] [--keep apply,defaults] [--move fnA,fnB]
+```
+It moves `function <NS>::*` and the `ModernHUDPack::draw_<partId>` wrappers, generates one
+`<NS>::comp_<slot>` per slot, and refuses to write unless every function is still defined
+exactly once, nothing left in `components.cs` touches `ModernHUDPack::`, nothing it calls
+stayed behind in `hud.cs`, and braces balance.
+★**A GENERATED pack (`"authoring": "generated"`) is split by the generator, not by hand.**★
+Put the same options in its `pack.json` and regenerate:
+```
+"componentSplit": {"namespace": "basic", "splitInit": true}
+```
+(`move`, `keep`: comma-separated names; `renameGlobals`: true/false.)
+`tools/modernhud_pack.py --generate` then writes `hud.cs` AND `components.cs`, the release
+gate (`tools/modernhud_release_gate.py`) compares both, and `modernhud_convert.py` keeps the
+key across a re-conversion. Splitting a generated pack with the tool alone fails the gate
+and the next regenerate would undo it. ★It splits on `\n` only: these files hold
+UTF-8 read as latin-1, and a `★` contains byte `0x85` (NEL), which Python's `splitlines()`
+treats as a line break.★
+
+### 11.4 Settings for one part
+
+The optional 7th argument of `ModernHUD::setting` tags a setting to a part; the designer
+lists it on that part's panel instead of under **Whole HUD**:
+```
+ModernHUD::setting("enum", "pref::Ascend::Health", "Health readout", "0",
+   "Real (0-100)|0;Ascend scale (x15)|1", "", "ModernHUD::AscendVitals");
+```
+The tag is the part's handle name, or its tail (`"Vitals"`), or a 1.40 control
+(`"chatDisplayHud"`, `"Minimap"`). A setting tagged to a part that is not on the preview
+right now (switched off, or a mode the demo does not show) falls back to Whole HUD, so a
+tag can never hide a setting. The K menu ignores the tag.
+
+### 11.5 What the player can change, and where it is stored
+
+| edit | pref (pack-qualified `<pack>::<handle>`) | read by |
+|---|---|---|
+| move | `$pref::hudPositions…` `"x y‖fx fy"` | `ModernHUD::handle` / `previewPos` |
+| size (grip, wheel, slider) | `$pref::hudScale…` | `ModernHUD::part` → `glPartScale` |
+| hide / opacity | `$pref::ModernHUD::PartHide…` / `PartAlpha…` | `ModernHUD::part` → `glPartStyle` |
+| anchor | `$pref::ModernHUD::PartAnchor…` (a `ModernHUD::place` anchor name) | `ModernHUD::part` replaces your anchor, keeping your offsets |
+| provider | `$pref::HudSlot::<slot>` | `ownsSlot` / `ModernHUD::drawSlot` |
+
+All of them are captured by presets. `glPartStyle` hides and fades everything drawn
+between one `ModernHUD::part` call and the next — so draw a part's content right after its
+`part()` call, and do not draw another part's content before the next `part()`.
+★Freehand drawing after a part inherits that part's style.★ Something that is not a part
+(a frame around the native minimap, a centred cluster) drawn after the last `part()` is
+hidden when THAT part is hidden. Call `glPartScale(0, 0, 1)` first — it resets the scale
+and the style (Overstep's `drawMinimapFrame` draws right after Toasty and does this).
+Something that deliberately never moves (Vector's reticle cluster) should say so with a
+`PreviewNote`, or players will click it and wonder why nothing selects.
+
+Resets: **Reset this part** clears that part's five prefs; **Reset all parts** and **Reset to
+default** clear every `hudPositions` / `hudScale` / `PartHide` / `PartAlpha` / `PartAnchor` pref
+qualified by your pack id — found by name, not by live handle, because the preview never
+creates handles.
+
+### 11.6 How to check a pack
+
+1. Options → **08 CONFIGS/HUDS** at the MAIN MENU (no game yet): pick your pack; step
+   through the four Demo scenarios. Anything empty should either fill in (§11.2) or say
+   why (`PreviewNote`). The console prints one line per state:
+   `[HUDSTAGE] ... scenario=<n> parts=<placed parts> draws=<draw calls> freehand=<draws before any part>`.
+   `parts=0` with `draws>0` means nothing is selectable (§11.1); a large `freehand` is
+   drawing that is not a part. The harness reads the stage as data from `$mcp::hudStage`
+   (selected part, every part's rect/slots/provider, the preset list) while
+   `$mcp::optionsRowsWant = 1`.
+2. **Screen** at 1280x720 and 3840x2160: parts stay on screen and keep their corners.
+3. Click each part: it selects, drags, resizes by grip and wheel, hides, fades, re-anchors.
+   A part that cannot be clicked is not recorded (§11.1). Hide the LAST part your `draw()`
+   places: nothing else may disappear with it (§11.5).
+4. For each component, pick another pack as the base and choose yours in **Drawn by**;
+   then do the reverse with your pack as the base. Your art and fonts must appear, and the
+   base's own part for that slot must disappear.
+5. Join a game: everything you changed in the designer is where you left it.

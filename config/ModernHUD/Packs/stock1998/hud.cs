@@ -30,6 +30,9 @@ exec("ModernHUD/Framework.cs");
 $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "Stock (1998)";
 $ModernHUD::PackId = "stock1998";
+// Options > CONFIGS/HUDS says this on the preview: the 1998 controls are the game's own, so the
+// preview shows each as a box (move or resize it there; it looks like itself in game).
+$ModernHUD::PreviewNote = "The 1998 HUD is the game's own controls: each shows as a box you can move or resize.";
 
 // This pack draws nothing, so it owns no slot.
 function ModernHUDPack::ownsSlot(%value)

@@ -89,6 +89,36 @@ function MechCockpit::active()
    return (getSimTime() - $MMC::stamp) < 3;
 }
 
+// Herc Havoc channel (Mods\HercHavoc\scripts\MechGame.cs HHHUD::push), once a
+// second next to MMState. While it is fresh the cockpit runs in Herc Havoc mode:
+// a REACTOR bar (the battery, draining) instead of HEAT, the Starsiege special
+// components, mines and the pack key, and the CTF flag score. Mech Mayhem never
+// sends it, so its cockpit draws exactly as before.
+function remoteHHState(%server, %energy, %rsv, %c0, %c1, %c2, %c3, %pack,
+                       %mine, %mines, %mode, %f0, %f1)
+{
+   $HHC::energy = %energy;
+   $HHC::rsv = %rsv;
+   $HHC::c0 = %c0;
+   $HHC::c1 = %c1;
+   $HHC::c2 = %c2;
+   $HHC::c3 = %c3;
+   $HHC::pack = %pack;
+   $HHC::mine = %mine;
+   $HHC::mines = %mines;
+   $HHC::mode = %mode;
+   $HHC::f0 = %f0;
+   $HHC::f1 = %f1;
+   $HHC::stamp = getSimTime();
+}
+
+function MechCockpit::herc()
+{
+   if ($HHC::stamp == "")
+      return false;
+   return (getSimTime() - $HHC::stamp) < 3;
+}
+
 //--- drawing helpers ----------------------------------------------------------
 
 function MechCockpit::hex2(%v)
@@ -132,6 +162,17 @@ function MechCockpit::bar(%x, %y, %w, %h, %frac, %rgb)
    glRectangle(%x + 2, %y + 2, floor((%w - 4) * %frac), %h - 4);
 }
 
+// Herc Havoc component line colour: active (ON / BURN) bright, inert grey,
+// everything else the normal readout colour
+function MechCockpit::compCol(%line)
+{
+   if (String::findSubStr(%line, "  ON") != -1 || String::findSubStr(%line, " BURN") != -1)
+      return "120 255 160";
+   if (String::findSubStr(%line, "(inert)") != -1)
+      return "120 130 135";
+   return "200 210 215";
+}
+
 // component lamp: label + state colour (0 ok, 1 degraded, 2 out)
 function MechCockpit::lamp(%x, %y, %label, %state)
 {
@@ -156,6 +197,7 @@ function ModernHUDPack::draw(%screen)
          $mj::showhpbars = $MMC::mjSaveHp;
          $mj::showshieldbars = "";
          $mj::eyesight = $MMC::mjSaveEye;
+         $mj::eyesightbars = "";
          $MMC::shields = "";
          $MMC::mjOn = 0;
       }
@@ -172,6 +214,7 @@ function ModernHUDPack::draw(%screen)
       $mj::showhpbars = true;
       $mj::showshieldbars = true;
       $mj::eyesight = true;
+      $mj::eyesightbars = true;   // a mech's own sensors: bars on anything in sight
       $MMC::mjOn = 1;
    }
 
@@ -183,6 +226,24 @@ function ModernHUDPack::draw(%screen)
    %bx = floor((%w - %bw) / 2);
    %by = %h - 88;
 
+   %herc = MechCockpit::herc();
+   if (%herc) {
+      // Herc Havoc: no heat -- the bar IS the reactor battery, draining as you fire
+      %pwr = $HHC::energy;
+      if (%pwr < 0.15)
+         %pwrCol = "255 60 40";
+      else if (%pwr < 0.4)
+         %pwrCol = "255 170 40";
+      else
+         %pwrCol = "80 200 255";
+      MechCockpit::bar(%bx, %by, %bw, 16, %pwr, %pwrCol);
+      MechCockpit::text(%bx - 52, %by + 1, "200 210 215", "PWR", 12);
+      // reserve (Extra Battery / Reactor Capacitor) as a thin strip above it
+      if ($HHC::rsv != "")
+         MechCockpit::bar(%bx, %by - 8, %bw, 6, $HHC::rsv, "140 120 255");
+      %heat = 0;
+   }
+   else {
    // heat (inverted energy): redline past 85%
    %heat = $MMC::heat;
    if (%heat > 0.85 || $MMC::down == 1)
@@ -193,6 +254,7 @@ function ModernHUDPack::draw(%screen)
       %heatCol = "80 200 255";
    MechCockpit::bar(%bx, %by, %bw, 16, %heat, %heatCol);
    MechCockpit::text(%bx - 52, %by + 1, "200 210 215", "HEAT", 12);
+   }
 
    // shield
    %sfrac = 0;
@@ -205,8 +267,16 @@ function ModernHUDPack::draw(%screen)
    MechCockpit::bar(%bx, %by + 36, %bw, 12, $health / 100, "120 230 120");
    MechCockpit::text(%bx - 52, %by + 35, "200 210 215", "HULL", 12);
 
-   // shutdown banner
-   if ($MMC::down == 1) {
+   // shutdown banner (Mech Mayhem) / reactor-low warning (Herc Havoc)
+   if (%herc) {
+      if ($HHC::energy < 0.15) {
+         glSetFont("Verdana", 20);
+         %msg = "REACTOR LOW";
+         %mw = getWord(glGetStringDimensions(%msg), 0);
+         glDrawString(floor((%w - %mw) / 2), %by - 30, "<ff9628ff>" @ %msg);
+      }
+   }
+   else if ($MMC::down == 1) {
       glSetFont("Verdana", 30);
       %msg = "REACTOR OFFLINE";
       %mw = getWord(glGetStringDimensions(%msg), 0);
@@ -229,9 +299,29 @@ function ModernHUDPack::draw(%screen)
    MechCockpit::lamp(%px, %py + 44, "SENS", $MMC::sens);
    MechCockpit::lamp(%px, %py + 66, "RCTR", $MMC::rctr);
 
-   // ---- top-center: CV ticket pools (escalation) or wave status (incursion) ----
+   // ---- right panel, Herc Havoc: Starsiege special components ----
+   if (%herc) {
+      %cy = %py + 96;
+      MechCockpit::text(%px, %cy, "140 170 190", "SYSTEMS", 13);
+      %cy = %cy + 18;
+      if ($HHC::c0 != "") { MechCockpit::text(%px, %cy, MechCockpit::compCol($HHC::c0), $HHC::c0, 12); %cy = %cy + 16; }
+      if ($HHC::c1 != "") { MechCockpit::text(%px, %cy, MechCockpit::compCol($HHC::c1), $HHC::c1, 12); %cy = %cy + 16; }
+      if ($HHC::c2 != "") { MechCockpit::text(%px, %cy, MechCockpit::compCol($HHC::c2), $HHC::c2, 12); %cy = %cy + 16; }
+      if ($HHC::c3 != "") { MechCockpit::text(%px, %cy, MechCockpit::compCol($HHC::c3), $HHC::c3, 12); %cy = %cy + 16; }
+      if ($HHC::c0 == "")
+         MechCockpit::text(%px, %cy, "120 130 135", "(none fitted)", 12);
+   }
+
+   // ---- top-center: CV ticket pools (escalation), wave status (incursion),
+   //      or flag captures (Herc Havoc CTF) ----
    glSetFont("Verdana", 16);
-   if ($MMC::wave != "")
+   %hf0 = $HHC::f0;  if (%hf0 == "") %hf0 = 0;
+   %hf1 = $HHC::f1;  if (%hf1 == "") %hf1 = 0;
+   if (%herc && $HHC::mode == "ctf")
+      %tmsg = "FLAGS  " @ %hf0 @ "  -  " @ %hf1;
+   else if (%herc && $HHC::mode == "dm")     // f0 = the leader's kills, f1 = yours
+      %tmsg = "KILLS  " @ %hf1 @ "     LEADER  " @ %hf0;
+   else if ($MMC::wave != "")
       %tmsg = "WAVE " @ $MMC::wave @ "   SALVAGE " @ $MMC::salv;
    else
       %tmsg = $MMC::t0 @ "  CV  " @ $MMC::t1;
@@ -251,6 +341,17 @@ function ModernHUDPack::draw(%screen)
    // Chained fire means every listed weapon IS live on its pod; the highlighted
    // row is the slot-0 weapon (what next/prev-weapon cycles). Reactor-fed: no
    // ammo counts exist -- the HEAT bar is the ammo gauge.
+   // (Herc Havoc: the PWR bar is the ammo gauge the same way -- reactor-fed.)
+   // Herc Havoc: mines (mine key) and what the pack key does, under the rack title
+   if (%herc) {
+      %my = %h - 72;
+      if ($HHC::mine != "")
+         MechCockpit::text(20, %my, "200 210 215", "MINES  " @ $HHC::mines @ "  " @ $HHC::mine, 13);
+      if ($HHC::pack == "cloak")
+         MechCockpit::text(20, %my + 17, "140 170 190", "PACK KEY  cloak", 12);
+      else if ($HHC::pack == "boost")
+         MechCockpit::text(20, %my + 17, "140 170 190", "PACK KEY  booster", 12);
+   }
    if ($MMC::rackN != "" && $MMC::rackN > 0) {
       %sel = getItemDesc(getMountedItem(0));
       %ry = %h - 88 - ($MMC::rackN * 17);

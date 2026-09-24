@@ -575,6 +575,10 @@ function KronosMenu::render(%dimensions)
 				%maxText = %tw;
 		}
 		$KM::menuTextW = %maxText;
+		// the TITLE counts too: a mod's long prompt ("X is LOCKED. Unlock for N
+		// salvage?") ran off the right edge of a panel sized for its two short rows
+		glSetFont("Verdana", %fontTitle, $GLEX_SMOOTH, 1);
+		$KM::titleTextW = getword(glGetStringDimensions($KM::title), 0);
 		$KM::measuredFont = %fontItem;
 		$KM::measureDirty = false;
 	}
@@ -585,9 +589,21 @@ function KronosMenu::render(%dimensions)
 	%wm = %w;
 	if(%needW > %wm)
 		%wm = %needW;
+	%needT = (%pad * 2) + $KM::titleTextW;
+	if(%needT > %wm)
+		%wm = %needT;
 	if(%wm > %wMax)
 		%wm = %wMax;
 	$KML::wMenu = %wm;
+
+	// a title wider than the widest allowed panel shrinks to fit, like the rows do
+	%fontTitleM = %fontTitle;
+	if(%needT > %wMax && $KM::titleTextW > 0)
+	{
+		%fontTitleM = floor(%fontTitle * (%wMax - (%pad * 2)) / $KM::titleTextW);
+		if(%fontTitleM < 9)
+			%fontTitleM = 9;
+	}
 
 	%fontItemM = %fontItem;
 	if(%needW > %wMax && $KM::menuTextW > 0)
@@ -821,8 +837,8 @@ function KronosMenu::render(%dimensions)
 	// ---- Pass 2: all text ----
 	// menu title + items
 	glColor4ub(235, 240, 255, 245);
-	glSetFont("Verdana", %fontTitle, $GLEX_SMOOTH, 1);
-	glDrawString($KML::mx + %pad, %y + floor(%titleH * 0.16), $KM::title);
+	glSetFont("Verdana", %fontTitleM, $GLEX_SMOOTH, 1);
+	glDrawString($KML::mx + %pad, %y + floor(%titleH * 0.16) + floor((%fontTitle - %fontTitleM) / 2), $KM::title);
 
 	glSetFont("Verdana", %fontItemM, $GLEX_SMOOTH, 0);
 	%iy = $KML::rowY0;
