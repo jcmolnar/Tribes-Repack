@@ -292,6 +292,60 @@ master list unless you untick "Public server".
 Console output goes to console_server.log in this folder (also
 shown live at the bottom of TribesHost).
 
+HOSTING ON LINUX (no desktop needed)
+  tribes-server is a command-line host for Linux boxes and
+  VPSes: no window, no X server, no client. It installs a
+  server-only copy of the game (about 4 GB instead of 7.5 --
+  HD packs, skins, video and music are left out), keeps it
+  updated from the same update feed the game uses, and runs
+  the dedicated server under Wine with the same crash-restart
+  and crash-loop protection as TribesHost.
+
+  1. Install Python 3 and 32-bit Wine. Debian / Ubuntu:
+       sudo dpkg --add-architecture i386
+       sudo apt update
+       sudo apt install --no-install-recommends python3 wine wine32:i386
+  2. Download the installer and install a server:
+       wget https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/main/tribes-server
+       python3 tribes-server install ~/tribes
+  3. Edit ~/tribes/server.ini (name, profile, passwords, map
+     rotation, bots), then start it:
+       cd ~/tribes
+       ./tribes-server run          (foreground; Ctrl-C stops)
+     or as a service that starts at boot:
+       ./tribes-server systemd | sudo tee /etc/systemd/system/tribes-server.service
+       sudo systemctl enable --now tribes-server
+
+  Everyday commands (run in the install folder):
+    ./tribes-server tui            full-screen control screen: live
+                                   console, players (kick/ban), maps,
+                                   settings, store -- all of the below
+    ./tribes-server status         players, map, version, uptime
+    ./tribes-server console        type server console commands
+    ./tribes-server logs -f        follow console_server.log
+    ./tribes-server restart        re-reads server.ini
+    ./tribes-server update         download the latest version
+    ./tribes-server store          Red Moon, Annihilation & other
+                                   Asset Store mods
+    ./tribes-server netcheck       join address + firewall help
+    ./tribes-server doctor         check Wine, disk and ports
+
+  Updates: "update" fetches only changed files and verifies
+  every one. On a running server it waits until nobody is
+  playing, then restarts into the new version (add --now to
+  skip the wait). Set  auto_update = true  in server.ini to
+  have the server check on its own and update itself while
+  empty. Your server.ini, ServerPrefs.cs, rpgserv.cs and
+  rmrpgserv.cs are never overwritten.
+
+  Open the game port (UDP 28001 by default) and the voice
+  port (game port + 2) in your firewall / router.
+
+  THE FULL GUIDE -- every setting, running it as a service,
+  bots, several servers, troubleshooting -- is
+  LINUX-SERVER-GUIDE.md in this folder, also online at
+  github.com/jcmolnar/Tribes-Repack/blob/main/LINUX-SERVER-GUIDE.md
+
 
 -------------------------------------------------------------
  SHOUTCASTING & FILMING

@@ -1,0 +1,3569 @@
+#!/usr/bin/env python3
+# tribes-server -- headless dedicated-server host + updater for the Modern Tribes repack.
+#
+# Linux-first, command line only, Python 3.8+ standard library only. Runs the Windows
+# server exe (ModernTribes.exe -dedicated) under Wine with no display, supervises it
+# (crash restart, crash-loop breaker, hang detection), gives it a console you can type
+# into from any shell, and keeps the install current from the SAME manifest the in-game
+# updater reads -- no client launch needed.
+#
+#   python3 tribes-server install ~/tribes      first install (server-only file set)
+#   ./tribes-server config                      write/show server.ini
+#   ./tribes-server run                         foreground (systemd / docker / tmux)
+#   ./tribes-server start | stop | restart | status | logs -f
+#   ./tribes-server tui                         full-screen terminal UI (console, players, maps,
+#                                               settings, store) -- closing it never stops the server
+#   ./tribes-server console ["say(0, \"hi\");"] send a command, or attach interactively
+#   ./tribes-server update [--check]            delta-update (stops/restarts if running)
+#   ./tribes-server systemd                     print a systemd unit for this install
+#   ./tribes-server doctor                      check wine, disk, ports, files
+#
+# Mirrors, deliberately and by name, the Windows pieces it replaces:
+#   updater.cpp      manifest format, https-only fetch, sha256 verify, staging in _update\,
+#                    updver.txt, SEED-ONLY files (updSeedOnly), devtree.txt guard, channel.txt
+#   hostgui.cpp      profiles, -nomodlist launch line, config\hostgui.cs writer
+#                    (writeHostguiCs), rpgserv.cs/rmrpgserv.cs surgical edit, crash-loop rule,
+#                    GameSpyQuery1 (0x62) status probe
+# Keep them in step: a change to one of those rules belongs here too.
+
+import argparse
+import configparser
+import concurrent.futures
+import hashlib
+import json
+import os
+import random
+import re
+import shlex
+import shutil
+import signal
+import socket
+import subprocess
+import sys
+import textwrap
+import threading
+import time
+import urllib.parse
+import urllib.request
+from collections import deque
+
+try:
+    import curses            # `tui` only; absent on Windows Pythons
+except ImportError:
+    curses = None
+
+TOOL_VERSION = 1
+
+OFFICIAL_REPO = "https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/"
+MANIFEST_CAP = 32 * 1024 * 1024          # updater.cpp UPD_MANIFEST_CAP
+FILE_SIZE_CAP = 4 * 1024 * 1024 * 1024   # sanity ceiling per file
+USER_AGENT = "TribesServerUpdater/%d" % TOOL_VERSION
+
+STATE_DIR = ".tribes-server"
+CONFIG_NAME = "server.ini"
+STAGING = "_update"                      # same staging folder name as the client
+VERSION_FILE = "updver.txt"
+VERIFIED_FILE = "updok.txt"
+RECOVER_FILE = "updrecover.txt"
+SERVER_LOG = "console_server.log"        # main.cpp: -dedicated claims its own log
+EXE_NAMES = ("ModernTribes.exe", "TribesNative.exe", "NativeTribes.exe")
+
+# ---------------------------------------------------------------------------------------
+# Server-only file set. Paths here are CLIENT-ONLY content a dedicated server never opens:
+# render packs, skins, video, music, sky art, GUI fonts, animated textures. Everything
+# else ships, including config\nav (bots) and every mod's scripts/missions/volumes.
+# Prefix match, case-insensitive; "*" matches one path segment. `--full` ignores this.
+# ---------------------------------------------------------------------------------------
+CLIENT_ONLY = (
+    "config/HDNormals/",
+    "config/HDTerrain/",
+    "config/xSky/",
+    "config/Fonts/",
+    "base/Skins/",
+    "base/Videos/",
+    "base/music/",
+    "Mods/*/Skins/",
+    "Plugins/anim_textures/",
+)
+
+# updater.cpp updSeedOnly: shipped so a fresh install has one; once present it is USER
+# STATE (operator passwords, quit-time exports) and is never "repaired".
+def seed_only(rel):
+    low = rel.lower()
+    if low.startswith("config/hudlayout_") and "/" not in low[17:] and low.endswith(".cs"):
+        return True
+    return low in ("modlist.txt", "config/serverprefs.cs", "config/play.gui",
+                   "config/rpgserv.cs", "config/rmrpgserv.cs")
+
+
+def matches_rules(rel, rules):
+    parts = rel.lower().split("/")
+    for rule in rules:
+        rp = rule.lower().rstrip("/").split("/")
+        if len(parts) > len(rp) and all(r == "*" or r == p for r, p in zip(rp, parts)):
+            return True
+    return False
+
+
+def client_only(rel):
+    return matches_rules(rel, CLIENT_ONLY)
+
+
+# ---------------------------------------------------------------------------------------
+# small utilities
+# ---------------------------------------------------------------------------------------
+def say(msg):
+    print(msg, flush=True)
+
+
+def die(msg, code=1):
+    print("tribes-server: " + msg, file=sys.stderr, flush=True)
+    sys.exit(code)
+
+
+def human(n):
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return ("%.1f %s" % (n, unit)) if unit != "B" else ("%d B" % n)
+        n /= 1024.0
+
+
+def ci_join(root, *parts):
+    """Join path parts, matching each segment case-insensitively on disk (Linux file
+    systems are case-sensitive; the game and its manifest are not)."""
+    cur = root
+    for part in parts:
+        cand = os.path.join(cur, part)
+        if os.path.exists(cand):
+            cur = cand
+            continue
+        low = part.lower()
+        try:
+            hit = next((e for e in os.listdir(cur) if e.lower() == low), None)
+        except OSError:
+            hit = None
+        cur = os.path.join(cur, hit if hit else part)
+    return cur
+
+
+def write_atomic(path, data, mode="w", newline=None):
+    tmp = path + ".tmp"
+    if "b" in mode:
+        with open(tmp, mode) as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+    else:
+        with open(tmp, mode, newline=newline, encoding="latin-1") as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+    os.replace(tmp, path)
+
+
+def read_int(path):
+    try:
+        with open(path, "r", encoding="latin-1") as f:
+            return int((f.read().split() or ["0"])[0])
+    except (OSError, ValueError):
+        return 0
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def safe_rel(p):
+    # updpath.h upd_safeRelPath: relative, forward slashes, no drive, no ".." segment
+    if not p or p.startswith("/") or "\\" in p or ":" in p or "\0" in p:
+        return False
+    return all(seg not in ("", ".", "..") for seg in p.split("/"))
+
+
+# ---------------------------------------------------------------------------------------
+# install layout
+# ---------------------------------------------------------------------------------------
+class Install:
+    def __init__(self, root):
+        self.root = os.path.abspath(root)
+        self.state = os.path.join(self.root, STATE_DIR)
+
+    def path(self, rel):
+        return os.path.join(self.root, *rel.split("/"))
+
+    def ensure_state(self):
+        os.makedirs(self.state, exist_ok=True)
+        try:
+            os.chmod(self.state, 0o700)
+        except OSError:
+            pass
+
+    def exe(self):
+        for n in EXE_NAMES:
+            p = os.path.join(self.root, n)
+            if os.path.isfile(p):
+                return n
+        return None
+
+    @property
+    def config_path(self):
+        return os.path.join(self.root, CONFIG_NAME)
+
+    def channel(self):
+        # updater.cpp readChannel: one [A-Za-z0-9_-] token; main/release = default
+        try:
+            with open(os.path.join(self.root, "channel.txt"), "r", encoding="latin-1") as f:
+                tok = re.sub(r"[^A-Za-z0-9_-].*", "", f.read().strip(), flags=re.S)[:39]
+        except OSError:
+            return ""
+        return "" if tok.lower() in ("main", "release") else tok
+
+    def is_dev_tree(self):
+        return os.path.exists(os.path.join(self.root, "devtree.txt"))
+
+
+def find_root(arg_dir):
+    if arg_dir:
+        return Install(arg_dir)
+    here = os.path.dirname(os.path.abspath(__file__))
+    for cand in (here, os.getcwd()):
+        if any(os.path.isfile(os.path.join(cand, n)) for n in EXE_NAMES):
+            return Install(cand)
+    return Install(os.getcwd())
+
+
+# ---------------------------------------------------------------------------------------
+# config (server.ini)
+# ---------------------------------------------------------------------------------------
+DEFAULT_INI = """\
+# server.ini -- tribes-server settings. Edit, then `tribes-server restart` (or `run`).
+# Written into config/hostgui.cs (and config/rpgserv.cs / rmrpgserv.cs for the RPG
+# profiles) on every launch, exactly like TribesHost.exe does on Windows.
+
+[server]
+# Profile: base | rpg | rmrpg | mechmayhem | any mod folder under Mods/ with scripts.
+# `tribes-server mods` lists them; `tribes-server missions` lists maps for this profile.
+profile = base
+# Optional launch -mod chain override, e.g. "rpg rmrpg". A "+word" is launched but not
+# advertised (a mod-of-a-mod advertises only its parent). Blank = profile default.
+mods =
+name = TRIBES Server
+# Blank = profile default (base: raindance, rpg: rpgmap6, rmrpg: RMR, mechmayhem: MechArena1)
+mission =
+# Blank = profile default (28001; Red Moon 28002; Mech Mayhem 28004). UDP. Voice = port+2.
+port =
+max_players = 8
+join_password =
+admin_password =
+# true = list on the public master servers
+public = false
+# Server info / join message. Use \\n for a line break.
+info =
+motd =
+# Custom map rotation, cycle order, comma separated (needs 2 or more maps).
+rotation =
+# Bots (BotBrain CTF bots, base Tribes): true / false. Blank = whatever config/ServerPrefs.cs
+# says -- but the game saves its current value back into that file on every quit, so blank
+# keeps whatever the last run used. Bots need the map's nav graph in config/nav.
+bots = false
+# Per-team bot caps; blank = full roster.
+bots_team0 =
+bots_team1 =
+mixed_types = false
+voice_chat = true
+# legacy = every client can join; modern150 = 1.50 clients only (enables the options below)
+netcode = legacy
+lag_comp = false
+fire_from_view = false
+require_current_client = false
+cheat_observe = true
+# Blank = automatic (on for modern150 + an RPG mod)
+rpg_limits =
+# true forces modern150 + lag comp + current client + cheat observation
+competitive = false
+
+[supervisor]
+# Seconds to wait before restarting a server that exited.
+restart_delay = 5
+# Stop restarting after this many exits in a row that each lasted under a minute.
+crash_loop_restarts = 5
+# Restart a server that stops answering status queries for this many seconds
+# (after it has answered once). 0 = off.
+hang_timeout = 180
+
+[update]
+# true = `run` checks for updates and restarts into them, ONLY while no players are on.
+auto_update = false
+check_minutes = 30
+# server = skip client-only content (~3 GB less); full = everything the client gets.
+mode = server
+# Extra folders to skip, comma separated, e.g. "config/nav/" (bot nav graphs, 1.7 GB --
+# only if you never run bots) or "Mods/War40k/". "*" matches one folder level.
+exclude =
+# Blank = the official manifest (channel.txt honoured).
+manifest_url =
+# Asset Store catalog for `tribes-server store` (Red Moon RPG, Annihilation, Shifter, ...).
+# Blank = the official store; 0 = never contact the store.
+store_url =
+
+[network]
+# Optional UDP reachability service (the same protocol as TribesHost's ProbeUrl):
+# GET <url>?port=N -> {"status": "open|closed|inconclusive", "detail": "..."}.
+probe_url =
+
+[wine]
+wine = wine
+# Blank = .tribes-server/wine inside this install (private prefix, created on first run).
+prefix =
+arch = win32
+debug = -all
+"""
+
+BOOL_TRUE = ("1", "true", "yes", "on")
+
+
+class Config:
+    def __init__(self, inst):
+        self.inst = inst
+        self.cp = configparser.ConfigParser(interpolation=None, inline_comment_prefixes=None)
+        self.cp.read_string(DEFAULT_INI)
+        if os.path.isfile(inst.config_path):
+            with open(inst.config_path, "r", encoding="utf-8") as f:
+                self.cp.read_file(f)
+
+    def get(self, sec, key):
+        return self.cp.get(sec, key, fallback="").strip()
+
+    def bool(self, sec, key, default=False):
+        v = self.get(sec, key).lower()
+        return default if v == "" else v in BOOL_TRUE
+
+    def int(self, sec, key, default):
+        try:
+            return int(self.get(sec, key))
+        except ValueError:
+            return default
+
+
+def ensure_config(inst):
+    if not os.path.isfile(inst.config_path):
+        write_atomic(inst.config_path, DEFAULT_INI, newline="\n")
+        try:
+            os.chmod(inst.config_path, 0o600)   # holds passwords
+        except OSError:
+            pass
+        say("wrote default %s -- edit it, then start the server" % inst.config_path)
+    return Config(inst)
+
+
+# ---------------------------------------------------------------------------------------
+# profiles (hostgui.cpp loadProfiles / effectiveMods / advertisedMods / rpgModSelected)
+# ---------------------------------------------------------------------------------------
+class Profile:
+    def __init__(self, label, mods, serv_file, def_mission, def_port, mission_dirs):
+        self.label = label
+        self.mods = [m.lower() for m in mods]
+        self.serv_file = serv_file
+        self.def_mission = def_mission
+        self.def_port = def_port
+        self.mission_dirs = mission_dirs
+
+    @property
+    def key(self):
+        return self.mods[-1] if self.mods else "base"
+
+
+SAFE_WORD = re.compile(r"^[A-Za-z0-9_.-]+$")
+
+
+def mod_has_code(d):
+    # hostgui.cpp modFolderHasCode (wider than the in-game picker on purpose)
+    def any_glob(sub, exts):
+        p = os.path.join(d, sub) if sub else d
+        try:
+            return any(e.lower().endswith(exts) and os.path.isfile(os.path.join(p, e)) for e in os.listdir(p))
+        except OSError:
+            return False
+    if any_glob("", (".cs", ".vol", ".zip")) or any_glob("scripts", (".cs",)):
+        return True
+    if any_glob(ci_join(d, "missions"), (".mis",)):
+        return True
+    sd = ci_join(d, "scripts")
+    try:
+        return any(os.path.isdir(os.path.join(sd, s)) and any_glob(os.path.join(sd, s), (".cs",))
+                   for s in os.listdir(sd))
+    except OSError:
+        return False
+
+
+def load_profiles(inst):
+    profs = [
+        Profile("Base Tribes", [], None, "raindance", 28001, ["base"]),
+        Profile("Tribes RPG", ["rpg"], "rpgserv.cs", "rpgmap6", 28001, ["RPG", "base"]),
+        Profile("Red Moon RPG", ["rpg", "rmrpg"], "rmrpgserv.cs", "RMR", 28002, ["RMRPG", "RPG", "base"]),
+        Profile("Mech Mayhem", ["mechmayhem"], None, "MechArena1", 28004, ["MechMayhem", "base"]),
+    ]
+    keys = {p.key for p in profs}
+    extra = []
+    try:
+        with open(os.path.join(inst.root, "TribesHostMods.txt"), "r", encoding="latin-1") as f:
+            for line in f:
+                w = re.split(r"[#;]", line, 1)[0].strip()
+                if SAFE_WORD.match(w) and w.lower() != "base":
+                    extra.append(w)
+    except OSError:
+        pass
+    mods_dir = ci_join(inst.root, "Mods")
+    try:
+        for name in sorted(os.listdir(mods_dir)):
+            if SAFE_WORD.match(name) and name.lower() != "base" and os.path.isdir(os.path.join(mods_dir, name)) \
+               and mod_has_code(os.path.join(mods_dir, name)):
+                extra.append(name)
+    except OSError:
+        pass
+    for name in extra:
+        if name.lower() not in keys:
+            keys.add(name.lower())
+            profs.append(Profile(name, [name], None, "", 28001, [name, "base"]))
+    return profs
+
+
+def parse_mod_words(text):
+    words = []
+    for w in re.split(r"[\s,]+", text.strip().lower()):
+        if not w or w == "-mod":
+            continue
+        bare = w[1:] if w.startswith("+") else w
+        if not SAFE_WORD.match(bare) or bare.startswith("-"):
+            die("server.ini [server] mods: '%s' is not a mod folder name" % w)
+        if bare != "base":
+            words.append(w)
+    return words
+
+
+def mod_dir(inst, name):
+    # hostgui.cpp modDirPath: legacy root folder first, then Mods/<name>
+    root = ci_join(inst.root, name)
+    if os.path.isdir(root):
+        return root
+    m = ci_join(inst.root, "Mods", name)
+    return m if os.path.isdir(m) else root
+
+
+class Settings:
+    pass
+
+
+def resolve(inst, cfg):
+    profs = load_profiles(inst)
+    want = (cfg.get("server", "profile") or "base").lower()
+    prof = next((p for p in profs if p.key == want), None)
+    if not prof:
+        die("unknown profile '%s' -- `tribes-server mods` lists the installed ones" % want)
+    s = Settings()
+    s.profile = prof
+    override = parse_mod_words(cfg.get("server", "mods"))
+    s.launch_mods = [w.lstrip("+") for w in override] if override else list(prof.mods)
+    s.advertised = " ".join(w for w in override if not w.startswith("+")) \
+        if any(w.startswith("+") for w in override) else ""
+    if override:
+        s.mission_dirs = [w for w in reversed(s.launch_mods)] + ["base"]
+    else:
+        s.mission_dirs = prof.mission_dirs
+    s.rpg = prof.key in ("rpg", "rmrpg") or any("rpg" in w for w in s.launch_mods)
+
+    def text(key):
+        v = cfg.get("server", key)
+        if '"' in v or "\n" in v or "\r" in v:
+            die("server.ini [server] %s: double quotes and raw line breaks are not allowed" % key)
+        return v
+
+    s.name = text("name") or "TRIBES Server"
+    s.mission = text("mission") or prof.def_mission
+    s.port = cfg.int("server", "port", prof.def_port)
+    if not 0 < s.port < 65536:
+        s.port = prof.def_port
+    s.max_players = min(max(cfg.int("server", "max_players", 8), 1), 128)
+    s.join_pw = text("join_password")
+    s.admin_pw = text("admin_password")
+    s.public = cfg.bool("server", "public", False)
+    s.info = text("info")
+    s.motd = text("motd")
+    s.rotation = [m.strip() for m in text("rotation").split(",") if m.strip()]
+    b0, b1 = cfg.get("server", "bots_team0"), cfg.get("server", "bots_team1")
+    s.bot0 = int(b0) if b0.lstrip("-").isdigit() else -1
+    s.bot1 = int(b1) if b1.lstrip("-").isdigit() else -1
+    b = cfg.get("server", "bots").lower()
+    s.bots = None if b == "" else b in BOOL_TRUE
+    s.mixed = cfg.bool("server", "mixed_types", False)
+    s.voice = cfg.bool("server", "voice_chat", True)
+    s.competitive = cfg.bool("server", "competitive", False)
+    s.modern = cfg.get("server", "netcode").lower() == "modern150"
+    s.lag_comp = cfg.bool("server", "lag_comp", False)
+    s.fire_view = cfg.bool("server", "fire_from_view", False)
+    s.req_current = cfg.bool("server", "require_current_client", False)
+    s.ac_observe = cfg.bool("server", "cheat_observe", True)
+    if s.competitive:   # hostgui.cpp applyCompetitive
+        s.modern = s.lag_comp = s.req_current = s.ac_observe = True
+    s.rpg_limits = cfg.bool("server", "rpg_limits", s.modern and s.rpg)
+    if not s.mission:
+        s.mission = default_mission(inst, s)
+    for m in [s.mission] + s.rotation:
+        if m and not find_mission(inst, s, m):
+            say("warning: mission '%s' not found under %s" % (m, ", ".join(s.mission_dirs)))
+    return s
+
+
+def list_missions(inst, s):
+    seen, out = set(), []
+    for d in s.mission_dirs:
+        md = ci_join(mod_dir(inst, d), "missions")
+        try:
+            names = sorted(os.listdir(md), key=str.lower)
+        except OSError:
+            continue
+        for n in names:
+            if n.lower().endswith(".mis") and n[:-4].lower() not in seen:
+                seen.add(n[:-4].lower())
+                out.append((n[:-4], d))
+    return out
+
+
+def default_mission(inst, s):
+    """A profile with no built-in default map (every discovered / store mod). Writing an empty
+    $pref::LastMission boots the server with "Error: no mission provided." TribesHost never
+    does: loadEffectiveSettings falls back to ServerPrefs.cs's $pref::LastMission and its map
+    list always has a selection. Same order here, then the mod's own first map."""
+    last = ""
+    try:
+        with open(ci_join(inst.root, "config", "ServerPrefs.cs"), "r", encoding="latin-1") as f:
+            for line in f:
+                pa = _parse_assignment(line.rstrip("\r\n"))
+                if pa and pa[0].lower() == "pref::lastmission":
+                    last = pa[1]
+    except OSError:
+        pass
+    maps = list_missions(inst, s)
+    if last and any(n.lower() == last.lower() for n, _ in maps):
+        pick = last
+    else:
+        own = [n for n, d in maps if d.lower() != "base"]
+        pick = (own or [n for n, _ in maps] or [""])[0]
+    if pick:
+        say("no mission set for profile %s; using %s (set server.mission to choose)" % (s.profile.key, pick))
+    return pick
+
+
+def find_mission(inst, s, name):
+    return any(n.lower() == name.lower() for n, _ in list_missions(inst, s))
+
+
+# hostgui.cpp writeHostguiCs, line for line.
+def hostgui_cs(s):
+    t = []
+    a = t.append
+    a("// Written by tribes-server -- do not hand-edit; overwritten on every launch.")
+    a("// Comments in this file are always on their own line (never after a statement).")
+    if not s.profile.serv_file:
+        a('$Server::HostName = "%s";' % s.name)
+        a('$Server::Port = "%d";' % s.port)
+        a('$Server::MaxPlayers = "%d";' % s.max_players)
+        a('$Server::Password = "%s";' % s.join_pw)
+        a('$Server::JoinPassword = "%s";' % s.join_pw)
+        a('$Server::HostPublicGame = "%s";' % ("true" if s.public else "false"))
+        a('$Server::Info = "%s";' % s.info)
+        a('$Server::JoinMOTD = "%s";' % s.motd)
+        a('$AdminPassword = "%s";' % s.admin_pw)
+        a('$pref::LastMission = "%s";' % s.mission)
+    else:
+        a("// RPG / Red Moon settings live in config\\rpgserv.cs / rmrpgserv.cs (the")
+        a("// mod execs those AFTER this file, so they are authoritative there).")
+        # DEVIATION from TribesHost, on purpose: the same core values are written here too.
+        # Red Moon store packs up to v9 carry an OLD Server.cs (no exec(rmrpgserv)) in the
+        # mod-root scripts.zip, and the mod-archive rank (7a220f0) puts that archive ahead of
+        # the mod's own scripts\ folder (a later search root) -- so rmrpgserv.cs is never read
+        # and the server boots the shared $pref::LastMission/port. Store rmrpg v10 drops those
+        # copies from the zip; this stays for installs still on v9. Identical values, so when
+        # the serv file IS read nothing changes.
+        a('$Server::HostName = "%s";' % s.name)
+        a('$Server::Port = "%d";' % s.port)
+        a('$Server::MaxPlayers = "%d";' % s.max_players)
+        a('$Server::Password = "%s";' % s.join_pw)
+        a('$Server::JoinPassword = "%s";' % s.join_pw)
+        a('$Server::HostPublicGame = "%s";' % ("true" if s.public else "false"))
+        a('$pref::LastMission = "%s";' % s.mission)
+    if s.bots is not None:   # TribesHost has no switch for this; hand-editing ServerPrefs.cs was the way
+        a('$Server::BotBrain = "%s";' % ("1" if s.bots else "0"))
+    if s.bot0 >= 0:
+        a('$pref::botMaxTeam0 = "%d";' % s.bot0)
+    if s.bot1 >= 0:
+        a('$pref::botMaxTeam1 = "%d";' % s.bot1)
+    a('$HostGUI::MixedTypes = "%s";' % ("true" if s.mixed else "false"))
+    a('$Host::voiceChat = "%s";' % ("true" if s.voice else "false"))
+    a('$Server::NetcodeMode = "%s";' % ("modern150" if s.modern else "legacy"))
+    a('$Server::AdvertisedMods = "%s";' % s.advertised)
+    a('$Server::acObserve = "%s";' % ("1" if s.ac_observe else "0"))
+    a('$Server::requireCurrentClient = "%s";' % ("1" if s.req_current else "0"))
+    a('$Server::lagComp = "%s";' % ("1" if (s.lag_comp and s.modern) else "0"))
+    a('$Server::fireFromView = "%s";' % ("1" if (s.fire_view and s.modern) else "0"))
+    a('$Server::RpgLimits = "%s";' % ("1" if (s.rpg_limits and s.modern) else "0"))
+    a('$HostGUI::Competitive = "%s";' % ("true" if s.competitive else "false"))
+    a('$Server::ObsZoomMax = "%s";' % ("20" if s.competitive else ""))
+    a('$Server::HitSoundsFriendly = "%s";' % ("0" if s.competitive else ""))
+    a("$Console::logMode = 2;")
+    if len(s.rotation) >= 2:
+        a("// Custom map rotation (circular):")
+        for i, frm in enumerate(s.rotation):
+            a('$nextMission["%s"] = "%s";' % (frm, s.rotation[(i + 1) % len(s.rotation)]))
+    return "\r\n".join(t) + "\r\n"
+
+
+# --- hostgui.cpp surgicalEdit, for config/rpgserv.cs and rmrpgserv.cs --------------------
+def _comment_pos(line):
+    in_q, i = False, 0
+    while i < len(line):
+        c = line[i]
+        if in_q:
+            if c == "\\":
+                i += 2
+                continue
+            if c == '"':
+                in_q = False
+        elif c == '"':
+            in_q = True
+        elif c == "/" and line[i + 1:i + 2] == "/":
+            return i
+        i += 1
+    return -1
+
+
+def _parse_assignment(line_in):
+    cp = _comment_pos(line_in)
+    line = line_in if cp < 0 else line_in[:cp]
+    i = len(line) - len(line.lstrip(" \t"))
+    if i >= len(line) or line[i] != "$":
+        return None
+    i += 1
+    start = i
+    while i < len(line):
+        c = line[i]
+        if c == "[":
+            close = line.find("]", i)
+            if close < 0:
+                return None
+            i = close + 1
+            continue
+        if c in " \t=":
+            break
+        i += 1
+    if i == start:
+        return None
+    name = line[start:i]
+    eq = line.find("=", i)
+    if eq < 0:
+        return None
+    rest = line[eq + 1:]
+    v = eq + 1 + (len(rest) - len(rest.lstrip(" \t")))
+    if v >= len(line):
+        return None
+    if line[v] == '"':
+        val, j = "", v + 1
+        while j < len(line):
+            c = line[j]
+            if c == "\\" and j + 1 < len(line):
+                val += line[j:j + 2]
+                j += 2
+                continue
+            if c == '"':
+                break
+            val += c
+            j += 1
+        return name, val
+    sc = line.find(";", v)
+    return name, (line[v:] if sc < 0 else line[v:sc]).strip()
+
+
+def surgical_edit(path, sets):
+    with open(path, "rb") as f:
+        text = f.read().decode("latin-1")
+    eol = "\r\n" if "\r\n" in text else "\n"
+    lines = [l[:-1] if l.endswith("\r") else l for l in text.split("\n")]
+    if text.endswith("\n") and lines and lines[-1] == "":
+        lines.pop()
+    changed = False
+    for canonical, new in sets:
+        want, found, cur = canonical.lower(), -1, None
+        for li, l in enumerate(lines):
+            pa = _parse_assignment(l)
+            if pa and pa[0].lower() == want:
+                found, cur = li, pa[1]
+        if found < 0:
+            entry = '$%s = "%s";' % (canonical, new)
+            if lines and not lines[-1].strip():
+                lines.insert(len(lines) - 1, entry)
+            else:
+                lines.append(entry)
+            changed = True
+            continue
+        if cur == new:
+            continue
+        line = lines[found]
+        cp = _comment_pos(line)
+        code = line if cp < 0 else line[:cp]
+        eq = code.find("=")
+        v = eq + 1
+        while v < len(code) and code[v] in " \t":
+            v += 1
+        if code[v] == '"':
+            j = v + 1
+            while j < len(code):
+                if code[j] == "\\" and j + 1 < len(code):
+                    j += 2
+                    continue
+                if code[j] == '"':
+                    break
+                j += 1
+            end = j + 1 if j < len(code) else len(code)
+            rep = '"%s"' % new
+        else:
+            sc = code.find(";", v)
+            end = len(code) if sc < 0 else sc
+            while end > v and code[end - 1] in " \t":
+                end -= 1
+            rep = new if (new and re.fullmatch(r"[0-9.\-]+", new)) else '"%s"' % new
+        lines[found] = line[:v] + rep + line[end:]
+        changed = True
+    if not changed:
+        return
+    bak = path + ".hostgui.bak"       # same durable first-original backup as TribesHost
+    if not os.path.exists(bak):
+        shutil.copyfile(path, bak)
+    out = eol.join(lines) + (eol if text.endswith("\n") else "")
+    write_atomic(path, out.encode("latin-1"), mode="wb")
+
+
+def apply_settings(inst, s):
+    write_atomic(ci_join(inst.root, "config", "hostgui.cs"), hostgui_cs(s).encode("latin-1"), mode="wb")
+    if s.profile.serv_file:
+        p = ci_join(inst.root, "config", s.profile.serv_file)
+        if not os.path.isfile(p):
+            die("missing config/%s -- is the %s mod installed?" % (s.profile.serv_file, s.profile.label))
+        sets = [("Server::HostName", s.name), ("Server::Port", str(s.port)),
+                ("Server::MaxPlayers", str(s.max_players)), ("Server::Password", s.join_pw),
+                ("Server::JoinPassword", s.join_pw),
+                ("Server::HostPublicGame", "true" if s.public else "false"),
+                ("pref::LastMission", s.mission)]
+        sets += [("AdminPassword[%d]" % i, s.admin_pw) for i in range(1, 6)]
+        sets.append(("extrainfo", s.info))
+        if s.profile.key == "rpg":
+            sets.append(("loginmsg", s.motd))
+        sets.append(("console::logmode", "2"))
+        surgical_edit(p, sets)
+
+
+def launch_args(inst, s):
+    exe = inst.exe()
+    if not exe:
+        die("no ModernTribes.exe in %s -- run `tribes-server install %s` first" % (inst.root, inst.root))
+    args = [exe, "-nomodlist"]
+    for m in s.launch_mods:
+        args += ["-mod", m]
+    return args + ["-dedicated", "+exec", "hostgui.cs"]
+
+
+# ---------------------------------------------------------------------------------------
+# updater
+# ---------------------------------------------------------------------------------------
+def manifest_url(inst, cfg):
+    u = cfg.get("update", "manifest_url")
+    if u:
+        return u
+    return OFFICIAL_REPO + (inst.channel() or "main") + "/manifest.json"
+
+
+def http_open(url, timeout=30):
+    p = urllib.parse.urlsplit(url)
+    local = p.hostname in ("localhost", "127.0.0.1")
+    if p.scheme != "https" and not (p.scheme == "http" and local):
+        raise ValueError("refusing non-https URL: " + url)
+    if p.username or p.password:
+        raise ValueError("refusing URL with embedded credentials")
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Cache-Control": "no-cache"})
+    return urllib.request.urlopen(req, timeout=timeout)
+
+
+def fetch_manifest(url):
+    with http_open(url) as r:
+        data = r.read(MANIFEST_CAP + 1)
+    if len(data) > MANIFEST_CAP:
+        raise ValueError("manifest larger than %s" % human(MANIFEST_CAP))
+    m = json.loads(data.decode("utf-8"))
+    ver, base, files = m.get("version"), m.get("baseUrl", ""), m.get("files")
+    if not isinstance(ver, int) or ver <= 0 or not base or not isinstance(files, list) or not files:
+        raise ValueError("manifest is missing version/baseUrl/files")
+    out, seen = [], set()
+    for e in files:
+        p, sha, size = e.get("path"), str(e.get("sha256", "")).lower(), e.get("size")
+        if not safe_rel(p) or not re.fullmatch(r"[0-9a-f]{64}", sha) \
+           or not isinstance(size, int) or not 0 <= size <= FILE_SIZE_CAP:
+            raise ValueError("bad manifest entry: %r" % (e,))
+        if p.lower() in seen:
+            raise ValueError("duplicate manifest path: " + p)
+        seen.add(p.lower())
+        out.append({"path": p, "sha256": sha, "size": size, "url": e.get("url")})
+    return {"version": ver, "baseUrl": base, "files": out, "notes": m.get("notes", "")}
+
+
+class HashCache:
+    def __init__(self, inst):
+        self.path = os.path.join(inst.state, "hashcache.json")
+        try:
+            with open(self.path, "r", encoding="utf-8") as f:
+                self.d = json.load(f)
+        except (OSError, ValueError):
+            self.d = {}
+        self.lock = threading.Lock()
+
+    def lookup(self, rel, st):
+        e = self.d.get(rel)
+        return e[2] if e and e[0] == st.st_size and e[1] == st.st_mtime_ns else None
+
+    def put(self, rel, st, sha):
+        with self.lock:
+            self.d[rel] = [st.st_size, st.st_mtime_ns, sha]
+
+    def save(self):
+        write_atomic(self.path, json.dumps(self.d, separators=(",", ":")), newline="\n")
+
+
+def load_state(inst):
+    try:
+        with open(os.path.join(inst.state, "state.json"), "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+def save_state(inst, st):
+    inst.ensure_state()
+    write_atomic(os.path.join(inst.state, "state.json"), json.dumps(st, indent=1), newline="\n")
+
+
+class Progress:
+    def __init__(self, label, total):
+        self.label, self.total, self.done, self.last = label, total, 0, 0.0
+        self.lock = threading.Lock()
+
+    def add(self, n, force=False):
+        with self.lock:
+            self.done += n
+            now = time.time()
+            if force or now - self.last >= 5:
+                self.last = now
+                pct = 100.0 * self.done / self.total if self.total else 100.0
+                say("  %s %s / %s (%.0f%%)" % (self.label, human(self.done), human(self.total), pct))
+
+
+def exclude_rules(cfg):
+    """[update] exclude: operator-chosen prefixes to skip, e.g. "config/nav/, Mods/War40k/"."""
+    return tuple(r.strip().replace("\\", "/").rstrip("/") + "/"
+                 for r in re.split(r"[,\n]", cfg.get("update", "exclude")) if r.strip())
+
+
+def plan_update(inst, man, full, verify, exclude=()):
+    """Return (needed entries, seed-skipped count, skipped count)."""
+    cache = HashCache(inst)
+    files = man["files"]
+    skipped_client = 0
+    todo = []
+    rules = tuple(exclude) if full else tuple(CLIENT_ONLY) + tuple(exclude)
+    for e in files:
+        if matches_rules(e["path"], rules):
+            skipped_client += 1
+            continue
+        todo.append(e)
+    need, seed = [], 0
+    hash_bytes = [0]
+    prog = Progress("checked", sum(e["size"] for e in todo))
+
+    def check(e):
+        p = inst.path(e["path"])
+        try:
+            st = os.stat(p)
+        except OSError:
+            return e
+        if seed_only(e["path"]):
+            return "seed"
+        if st.st_size != e["size"]:
+            return e
+        if not verify:
+            hit = cache.lookup(e["path"], st)
+            if hit is not None:
+                prog.add(e["size"])
+                return None if hit == e["sha256"] else e
+        sha = sha256_file(p)
+        cache.put(e["path"], st, sha)
+        hash_bytes[0] += e["size"]
+        prog.add(e["size"])
+        return None if sha == e["sha256"] else e
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+        for r in ex.map(check, todo):
+            if r == "seed":
+                seed += 1
+            elif r is not None:
+                need.append(r)
+    if hash_bytes[0]:
+        prog.add(0, force=True)
+    inst.ensure_state()
+    cache.save()
+    return need, seed, skipped_client
+
+
+_tls = threading.local()
+
+
+class _KeepAlive:
+    """One persistent HTTPS connection per worker thread and host. Thousands of small files
+    each paying a fresh TLS handshake made a first install ~23 files/s; a redirect (GitHub
+    release assets) or any connection error falls back to a plain one-shot urlopen."""
+
+    def __init__(self, url, timeout):
+        import http.client
+        p = urllib.parse.urlsplit(url)
+        if p.scheme != "https" or p.username or p.password:
+            raise _NoKeepAlive()
+        conns = getattr(_tls, "conns", None)
+        if conns is None:
+            conns = _tls.conns = {}
+        key = (p.hostname, p.port or 443)
+        self.conns, self.key = conns, key
+        path = p.path + ("?" + p.query if p.query else "")
+        for fresh in (False, True):
+            conn = None if fresh else conns.get(key)
+            if conn is None:
+                conn = conns[key] = http.client.HTTPSConnection(p.hostname, p.port or 443, timeout=timeout)
+            try:
+                conn.request("GET", path, headers={"User-Agent": USER_AGENT})
+                self.resp = conn.getresponse()
+                break
+            except Exception:   # noqa: BLE001 -- a stale kept-alive socket; retry once on a new one
+                conn.close()
+                conns.pop(key, None)
+                if fresh:
+                    raise
+        if self.resp.status != 200:
+            self.resp.read()
+            if self.resp.status in (301, 302, 303, 307, 308):
+                raise _NoKeepAlive()
+            raise urllib.error.HTTPError(url, self.resp.status, self.resp.reason, self.resp.headers, None)
+
+    def read(self, n):
+        return self.resp.read(n)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, *_):
+        if exc_type is not None:   # partial body: the socket cannot be reused
+            self.conns.pop(self.key, None)
+            try:
+                self.resp.close()
+            except Exception:   # noqa: BLE001
+                pass
+        return False
+
+
+class _NoKeepAlive(Exception):
+    pass
+
+
+def http_get(url, timeout=60):
+    try:
+        return _KeepAlive(url, timeout)
+    except _NoKeepAlive:
+        return http_open(url, timeout=timeout)
+
+
+def download_one(inst, man, e, prog):
+    staged = os.path.join(inst.root, STAGING, *e["path"].split("/"))
+    if os.path.isfile(staged) and os.path.getsize(staged) == e["size"] and sha256_file(staged) == e["sha256"]:
+        prog.add(e["size"])
+        return staged   # survived an interrupted run -- reuse
+    os.makedirs(os.path.dirname(staged), exist_ok=True)
+    url = e["url"] or (man["baseUrl"] + urllib.parse.quote(e["path"], safe="/"))
+    part = staged + ".part"
+    last_err = None
+    for attempt in range(4):
+        got = 0
+        try:
+            h = hashlib.sha256()
+            with http_get(url, timeout=60) as r, open(part, "wb") as f:
+                while True:
+                    chunk = r.read(1 << 18)
+                    if not chunk:
+                        break
+                    got += len(chunk)
+                    if got > e["size"]:
+                        raise ValueError("larger than the manifest says")
+                    h.update(chunk)
+                    f.write(chunk)
+                    prog.add(len(chunk))
+            if got != e["size"] or h.hexdigest() != e["sha256"]:
+                raise ValueError("size/hash mismatch (got %d bytes)" % got)
+            os.replace(part, staged)
+            return staged
+        except Exception as ex:   # noqa: BLE001 -- retried, then reported
+            prog.add(-got)
+            last_err = ex
+            time.sleep(2 * (attempt + 1))
+    try:
+        os.remove(part)
+    except OSError:
+        pass
+    raise RuntimeError("%s: %s" % (e["path"], last_err))
+
+
+def fetch_and_commit(inst, man, need, jobs, marker_version):
+    """Download every entry in `need` into _update/, verify each, then swap them all in.
+    Nothing on disk changes unless every download verified."""
+    total = sum(e["size"] for e in need)
+    free = shutil.disk_usage(inst.root).free
+    if free < total * 1.1 + 64 * 1024 * 1024:
+        raise RuntimeError("not enough disk space: need %s, %s free" % (human(total * 1.1), human(free)))
+    prog = Progress("downloaded", total)
+    staged = {}
+    errors = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, jobs)) as ex:
+        futs = {ex.submit(download_one, inst, man, e, prog): e for e in need}
+        for fut in concurrent.futures.as_completed(futs):
+            try:
+                staged[futs[fut]["path"]] = fut.result()
+            except Exception as exn:   # noqa: BLE001
+                errors.append(str(exn))
+    prog.add(0, force=True)
+    if errors:
+        for msg in errors[:10]:
+            say("  FAILED " + msg)
+        raise RuntimeError("%d download(s) failed; nothing was changed (staged files are kept for the retry)"
+                           % len(errors))
+    # Commit. The recover marker says "a swap was in progress" if we die half way;
+    # the next run sees it and does a full re-check (updater.cpp UPD_RECOVER_FILE).
+    write_atomic(os.path.join(inst.root, RECOVER_FILE), "%d\n" % marker_version, newline="\n")
+    for rel, src in staged.items():
+        dst = inst.path(rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        os.replace(src, dst)
+        if rel == "tribes-server":
+            try:
+                os.chmod(dst, 0o755)
+            except OSError:
+                pass
+    cache = HashCache(inst)
+    for e in need:
+        try:
+            cache.put(e["path"], os.stat(inst.path(e["path"])), e["sha256"])
+        except OSError:
+            pass
+    cache.save()
+
+
+def do_update(inst, cfg, check_only=False, full=None, verify=False, jobs=6, quiet_current=False):
+    """Game files, then every installed Asset Store pack. Returns (changed, remote_version).
+    Never call while the server process is running."""
+    changed, ver, man = _update_game(inst, cfg, check_only, full, verify, jobs, quiet_current)
+    pchanged = update_packs(inst, cfg, man, check_only=check_only, full=full, verify=verify, jobs=jobs)
+    return changed or pchanged, ver
+
+
+def _update_game(inst, cfg, check_only, full, verify, jobs, quiet_current):
+    if full is None:
+        full = cfg.get("update", "mode").lower() == "full"
+    url = manifest_url(inst, cfg)
+    say("checking %s" % url)
+    man = fetch_manifest(url)
+    local = read_int(os.path.join(inst.root, VERSION_FILE))
+    state = load_state(inst)
+    exclude = exclude_rules(cfg)
+    # the trusted fast path is only valid for the SAME file set it was verified against
+    mode = ("full" if full else "server") + ("|" + ",".join(exclude) if exclude else "")
+    say("installed v%d, latest v%d%s" % (local, man["version"], (" -- " + man["notes"]) if man["notes"] else ""))
+
+    if inst.is_dev_tree():
+        say("devtree.txt present: this tree runs development builds; game files are never updated here")
+        return False, man["version"], man
+
+    trusted = (local == man["version"] and state.get("verified") == man["version"]
+               and state.get("mode") == mode and not os.path.exists(os.path.join(inst.root, RECOVER_FILE)))
+    if trusted and not verify:
+        if not quiet_current:
+            say("up to date")
+        return False, man["version"], man
+    if check_only and local == man["version"] and not verify:
+        say("up to date (run `update --verify` for a full hash check)")
+        return False, man["version"], man
+
+    need, seed, skipped = plan_update(inst, man, full, verify, exclude)
+    total = sum(e["size"] for e in need)
+    say("%d file(s) to download (%s); %d file(s) skipped (mode=%s%s); %d seed file(s) kept"
+        % (len(need), human(total), skipped, "full" if full else "server",
+           (", exclude " + " ".join(exclude)) if exclude else "", seed))
+    if check_only:
+        return bool(need) or local != man["version"], man["version"], man
+
+    if need:
+        fetch_and_commit(inst, man, need, jobs, man["version"])
+
+    write_atomic(os.path.join(inst.root, VERSION_FILE), "%d\n" % man["version"], newline="\n")
+    if full:
+        write_atomic(os.path.join(inst.root, VERIFIED_FILE), "%d\n" % man["version"], newline="\n")
+    state.update({"verified": man["version"], "mode": mode, "updated": int(time.time())})
+    save_state(inst, state)
+    for leftover in (os.path.join(inst.root, RECOVER_FILE),):
+        try:
+            os.remove(leftover)
+        except OSError:
+            pass
+    shutil.rmtree(os.path.join(inst.root, STAGING), ignore_errors=True)
+    for name in ("tribes-server",):
+        p = inst.path(name)
+        if os.path.isfile(p):
+            try:
+                os.chmod(p, 0o755)
+            except OSError:
+                pass
+    say("now at v%d" % man["version"])
+    return bool(need) or local != man["version"], man["version"], man
+
+
+# ---------------------------------------------------------------------------------------
+# Asset Store packs -- the mods that are NOT in the game release (Red Moon RPG, Annihilation,
+# Shifter, Star Wars, ...). Mirrors updater.cpp: its own catalog (store.json) independent of
+# the game manifest; ownership = updpacks/<id>.receipt in the SAME JSON shape the client
+# writes; a pack whose paths the GAME manifest owns is unusable; remove/retire deletes only a
+# file whose hash matches the receipt, that the game does not own and that no other installed
+# pack claims (b244b1bf). Server-only filter + [update] exclude apply to pack files too.
+# ---------------------------------------------------------------------------------------
+STORE_URL_DEFAULT = "https://raw.githubusercontent.com/jcmolnar/Tribes-Asset-Store/main/store.json"
+PACKS_DIR = "updpacks"
+
+
+def store_url(cfg):
+    u = cfg.get("update", "store_url")
+    return "" if u == "0" else (u or STORE_URL_DEFAULT)
+
+
+def fetch_store(url):
+    with http_open(url) as r:
+        data = r.read(MANIFEST_CAP + 1)
+    if len(data) > MANIFEST_CAP:
+        raise ValueError("store catalog larger than %s" % human(MANIFEST_CAP))
+    s = json.loads(data.decode("utf-8"))
+    packs = {}
+    for p in s.get("packs") or []:
+        pid, ver = str(p.get("id", "")), p.get("version")
+        if not SAFE_WORD.match(pid) or not isinstance(ver, int):
+            raise ValueError("bad store pack entry: %r" % pid)
+        files = []
+        for e in p.get("files") or []:
+            path, sha, size, url = e.get("path"), str(e.get("sha256", "")).lower(), e.get("size"), e.get("url")
+            if not safe_rel(path) or not re.fullmatch(r"[0-9a-f]{64}", sha) \
+               or not isinstance(size, int) or not 0 <= size <= FILE_SIZE_CAP or not url:
+                raise ValueError("bad file in store pack %s: %r" % (pid, e))
+            files.append({"path": path, "sha256": sha, "size": size, "url": url})
+        packs[pid.lower()] = {"id": pid, "version": ver, "title": p.get("title", pid),
+                              "category": p.get("category", ""), "state": p.get("state", "live"),
+                              "launchMods": p.get("launchMods") or [], "files": files}
+    return {"generation": s.get("generation"), "packs": packs}
+
+
+def receipt_file(inst, pid):
+    return os.path.join(inst.root, PACKS_DIR, pid + ".receipt")
+
+
+def load_receipts(inst):
+    out = {}
+    d = os.path.join(inst.root, PACKS_DIR)
+    try:
+        names = os.listdir(d)
+    except OSError:
+        return out
+    for n in names:
+        if n.lower().endswith(".receipt"):
+            try:
+                with open(os.path.join(d, n), "r", encoding="utf-8") as f:
+                    r = json.load(f)
+                out[str(r.get("id", n[:-8])).lower()] = r
+            except (OSError, ValueError):
+                say("warning: unreadable receipt %s (treated as not installed)" % n)
+    return out
+
+
+def pack_unusable(pack, game_paths):
+    """updater.cpp packUsable + the game-owns-this-path rule. "" = usable."""
+    if pack["state"].lower() in ("coming-soon", "unavailable"):
+        return "not available yet (%s)" % pack["state"]
+    if not pack["files"]:
+        return "has no files"
+    clash = [f["path"] for f in pack["files"] if f["path"].lower() in game_paths]
+    if clash:
+        return "would overwrite game files (%s)" % clash[0]
+    return ""
+
+
+def _delete_if_owned(inst, rel, sha, game_paths, other_claims):
+    """Delete one file only if its bytes are what the receipt recorded, the game does not own
+    the path and no other installed pack claims it. Returns True if deleted."""
+    low = rel.lower()
+    if low in game_paths or low in other_claims:
+        return False
+    p = inst.path(rel)
+    try:
+        if not os.path.isfile(p) or sha256_file(p) != sha:
+            return False
+        os.remove(p)
+    except OSError:
+        return False
+    d = os.path.dirname(p)   # prune now-empty folders, never above the install root
+    while d.startswith(inst.root + os.sep):
+        try:
+            os.rmdir(d)
+        except OSError:
+            break
+        d = os.path.dirname(d)
+    return True
+
+
+def install_pack(inst, cfg, pack, game_man, receipts, full=None, verify=False, jobs=6, check_only=False):
+    """Install or bring one pack up to its catalog version. Returns True if anything changed."""
+    if full is None:
+        full = cfg.get("update", "mode").lower() == "full"
+    game_paths = {e["path"].lower() for e in game_man["files"]}
+    why = pack_unusable(pack, game_paths)
+    if why:
+        say("pack %s: %s -- skipped" % (pack["id"], why))
+        return False
+    exclude = exclude_rules(cfg)
+    rules = tuple(exclude) if full else tuple(CLIENT_ONLY) + tuple(exclude)
+    files = [f for f in pack["files"] if not matches_rules(f["path"], rules)]
+    need, _, _ = plan_update(inst, {"files": files}, True, verify, ())
+    old = receipts.get(pack["id"].lower())
+    say("pack %s v%d%s: %d file(s) to download (%s), %d client-only file(s) skipped"
+        % (pack["id"], pack["version"], (" (installed v%s)" % old.get("version")) if old else "",
+           len(need), human(sum(e["size"] for e in need)), len(pack["files"]) - len(files)))
+    if check_only:
+        return bool(need) or not old or old.get("version") != pack["version"]
+    if need:
+        fetch_and_commit(inst, {"baseUrl": ""}, need, jobs, read_int(os.path.join(inst.root, VERSION_FILE)))
+    retired = 0
+    if old:   # files the old version owned that the new one no longer ships
+        keep = {f["path"].lower() for f in files}
+        claims = {f["path"].lower() for pid, r in receipts.items() if pid != pack["id"].lower()
+                  for f in r.get("files", [])}
+        for f in old.get("files", []):
+            if f["path"].lower() not in keep and _delete_if_owned(inst, f["path"], f["sha256"], game_paths, claims):
+                retired += 1
+    os.makedirs(os.path.join(inst.root, PACKS_DIR), exist_ok=True)
+    receipt = {"id": pack["id"], "version": pack["version"],
+               "manifestVersion": read_int(os.path.join(inst.root, VERSION_FILE)),
+               "files": [{"path": f["path"], "sha256": f["sha256"]} for f in files]}
+    write_atomic(receipt_file(inst, pack["id"]), json.dumps(receipt, indent=1), newline="\n")
+    try:
+        os.remove(os.path.join(inst.root, RECOVER_FILE))
+    except OSError:
+        pass
+    shutil.rmtree(os.path.join(inst.root, STAGING), ignore_errors=True)
+    receipts[pack["id"].lower()] = receipt
+    say("pack %s now v%d%s" % (pack["id"], pack["version"], (", %d old file(s) retired" % retired) if retired else ""))
+    return True
+
+
+def update_packs(inst, cfg, game_man, check_only=False, full=None, verify=False, jobs=6):
+    receipts = load_receipts(inst)
+    url = store_url(cfg)
+    if not receipts or not url:
+        return False
+    try:
+        store = fetch_store(url)
+    except Exception as e:   # noqa: BLE001 -- a store outage never blocks a game update
+        say("store catalog unavailable (%s); installed packs left as they are" % e)
+        return False
+    changed = False
+    for pid, r in sorted(receipts.items()):
+        pack = store["packs"].get(pid)
+        if not pack:
+            say("pack %s is no longer in the store; kept as installed (v%s)" % (r.get("id", pid), r.get("version")))
+            continue
+        if pack["version"] == r.get("version") and not verify:
+            continue
+        changed = install_pack(inst, cfg, pack, game_man, receipts, full, verify, jobs, check_only) or changed
+    return changed
+
+
+def packs_behind(inst, cfg):
+    """Installed packs whose store version is newer -- what the auto-update timer needs to know
+    when the store moved but the game did not. Empty on any store error (never blocks)."""
+    receipts = load_receipts(inst)
+    url = store_url(cfg)
+    if not receipts or not url:
+        return []
+    try:
+        packs = fetch_store(url)["packs"]
+    except Exception:   # noqa: BLE001
+        return []
+    return ["%s v%s->v%d" % (r.get("id", pid), r.get("version"), packs[pid]["version"])
+            for pid, r in sorted(receipts.items()) if pid in packs and packs[pid]["version"] != r.get("version")]
+
+
+def remove_pack(inst, pid, game_man):
+    receipts = load_receipts(inst)
+    r = receipts.get(pid.lower())
+    if not r:
+        die("pack '%s' is not installed (`tribes-server store` lists them)" % pid)
+    game_paths = {e["path"].lower() for e in game_man["files"]}
+    claims = {f["path"].lower() for other, rr in receipts.items() if other != pid.lower()
+              for f in rr.get("files", [])}
+    deleted = kept = 0
+    for f in r.get("files", []):
+        if _delete_if_owned(inst, f["path"], f["sha256"], game_paths, claims):
+            deleted += 1
+        elif os.path.exists(inst.path(f["path"])):
+            kept += 1
+    os.remove(receipt_file(inst, r.get("id", pid)))   # LAST, like the client
+    say("removed pack %s: %d file(s) deleted, %d kept (changed by you, or used by the game or another pack)"
+        % (r.get("id", pid), deleted, kept))
+
+
+# ---------------------------------------------------------------------------------------
+# GameSpyQuery1 (0x62) status probe -- hostgui.cpp probeSend/probeRecv
+# ---------------------------------------------------------------------------------------
+def probe(port, timeout=2.0):
+    k1, k2 = random.randrange(256), random.randrange(256)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(timeout)
+    try:
+        s.sendto(bytes((0x62, k1, k2)), ("127.0.0.1", port))
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            try:
+                buf, frm = s.recvfrom(2048)
+            except socket.timeout:
+                return None
+            if frm[1] != port or len(buf) < 8 or buf[0] != 0 or buf[1] != k1 or buf[2] != k2 or buf[3] != 0x62:
+                continue
+            idx = [4]
+
+            def rd():
+                if idx[0] >= len(buf):
+                    raise ValueError
+                n = buf[idx[0]]
+                v = buf[idx[0] + 1: idx[0] + 1 + n]
+                if len(v) != n:
+                    raise ValueError
+                idx[0] += 1 + n
+                return v.decode("latin-1")
+            try:
+                game, ver, host = rd(), rd(), rd()
+                i = idx[0] + 2
+                players, maxp = buf[i], buf[i + 1]
+                idx[0] = i + 4
+                mods, mtype, mname = rd(), rd(), rd()
+            except (ValueError, IndexError):
+                continue
+            return {"name": host, "version": ver, "players": players, "max": maxp,
+                    "mods": mods, "missionType": mtype, "mission": mname}
+        return None
+    except OSError:
+        return None
+    finally:
+        s.close()
+
+
+# ---------------------------------------------------------------------------------------
+# Wine
+# ---------------------------------------------------------------------------------------
+def wine_env(inst, cfg):
+    env = dict(os.environ)
+    prefix = cfg.get("wine", "prefix") or os.path.join(inst.state, "wine")
+    env["WINEPREFIX"] = os.path.abspath(prefix)
+    arch = cfg.get("wine", "arch")
+    if arch:
+        env["WINEARCH"] = arch
+    env["WINEDEBUG"] = cfg.get("wine", "debug") or "-all"
+    # no Mono/Gecko install prompts, no desktop menu entries
+    env["WINEDLLOVERRIDES"] = "mscoree=;mshtml=;winemenubuilder.exe=d"
+    env["TRIBES_STDIO_CONSOLE"] = "1"   # simWinConsolePlugin.cpp: console on stdin/stdout
+    env.pop("DISPLAY", None)            # headless: Wine's null graphics driver, never X
+    env.pop("WAYLAND_DISPLAY", None)
+    return env
+
+
+def wine_bin(cfg):
+    w = cfg.get("wine", "wine") or "wine"
+    found = shutil.which(w)
+    if not found:
+        die("'%s' not found. Install Wine (Debian/Ubuntu: sudo dpkg --add-architecture i386 && "
+            "sudo apt update && sudo apt install --no-install-recommends wine wine32:i386)" % w)
+    return found
+
+
+def ensure_prefix(inst, cfg):
+    env = wine_env(inst, cfg)
+    prefix = env["WINEPREFIX"]
+    marker = os.path.join(prefix, ".tribes-server-ready")
+    if os.path.exists(marker):
+        return env
+    wine = wine_bin(cfg)
+    inst.ensure_state()
+    say("creating Wine prefix %s (first run only, ~1 minute) ..." % prefix)
+    subprocess.run([wine, "wineboot", "-i"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                   timeout=600)
+    regs = [
+        # null graphics driver: no X server / Wayland needed, ever
+        ["HKCU\\Software\\Wine\\Drivers", "/v", "Graphics", "/d", "null"],
+        # a crash must restart the server, not wait on an invisible winedbg dialog
+        ["HKCU\\Software\\Wine\\WineDbg", "/v", "ShowCrashDialog", "/t", "REG_DWORD", "/d", "0"],
+    ]
+    for r in regs:
+        subprocess.run([wine, "reg", "add"] + r + ["/f"], env=env,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+    ws = shutil.which("wineserver")
+    if ws:
+        subprocess.run([ws, "-w"], env=env, timeout=120)
+    with open(marker, "w") as f:
+        f.write("1\n")
+    return env
+
+
+# ---------------------------------------------------------------------------------------
+# control socket (supervisor <-> CLI)
+# ---------------------------------------------------------------------------------------
+def sock_path(inst):
+    p = os.path.join(inst.state, "control.sock")
+    if len(p.encode()) < 100:
+        return p
+    d = os.path.join("/tmp", "tribes-server-%d-%s" % (os.getuid(), hashlib.sha1(inst.root.encode()).hexdigest()[:12]))
+    os.makedirs(d, mode=0o700, exist_ok=True)
+    return os.path.join(d, "control.sock")
+
+
+def ctl_connect(inst):
+    if not hasattr(socket, "AF_UNIX"):
+        return None
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        s.connect(sock_path(inst))
+        return s
+    except OSError:
+        s.close()
+        return None
+
+
+def ctl_request(inst, op, **kw):
+    s = ctl_connect(inst)
+    if not s:
+        return None
+    kw["op"] = op
+    s.sendall((json.dumps(kw) + "\n").encode())
+    f = s.makefile("r", encoding="utf-8", errors="replace")
+    return s, f
+
+
+# ---------------------------------------------------------------------------------------
+# supervisor (`run`)
+# ---------------------------------------------------------------------------------------
+class Supervisor:
+    def __init__(self, inst, cfg, auto_update=None):
+        self.inst, self.cfg = inst, cfg
+        self.child = None
+        self.lock = threading.RLock()
+        self.ring = deque(maxlen=300)
+        self.watchers = set()
+        self.stop_requested = False
+        self.restart_requested = False
+        self.update_requested = None     # None | "empty" | "now"
+        self.state = "starting"
+        self.started_at = 0
+        self.restarts = 0
+        self.rapid = 0
+        self.status = None
+        self.last_answer = 0
+        self.ever_answered = False
+        self.remote_version = None
+        self.auto_update = cfg.bool("update", "auto_update", False) if auto_update is None else auto_update
+        self.settings = None
+
+    # -- output fan-out --------------------------------------------------------------------
+    def emit(self, line):
+        line = line.rstrip("\r\n")
+        sys.stdout.write(line + "\n")
+        sys.stdout.flush()
+        with self.lock:
+            self.ring.append(line)
+            dead = []
+            data = (line + "\n").encode("utf-8", "replace")
+            for w in self.watchers:
+                try:
+                    # non-blocking: a stalled viewer is dropped, it never stalls the pump
+                    if w.send(data, getattr(socket, "MSG_DONTWAIT", 0)) != len(data):
+                        dead.append(w)
+                except OSError:
+                    dead.append(w)
+            for w in dead:
+                self.watchers.discard(w)
+                try:
+                    w.shutdown(socket.SHUT_RDWR)   # ends that client's thread too
+                except OSError:
+                    pass
+
+    def note(self, msg):
+        self.emit("[tribes-server] " + msg)
+
+    def pump(self, child):
+        for raw in iter(child.stdout.readline, b""):
+            self.emit(raw.decode("latin-1"))
+
+    def send(self, cmd):
+        with self.lock:
+            c = self.child
+        if not c or c.poll() is not None:
+            return False
+        try:
+            c.stdin.write((cmd.replace("\n", " ") + "\n").encode("latin-1", "replace"))
+            c.stdin.flush()
+            return True
+        except OSError:
+            return False
+
+    # -- control socket ------------------------------------------------------------------
+    def serve(self):
+        path = sock_path(self.inst)
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+        srv = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        old = os.umask(0o077)
+        try:
+            srv.bind(path)
+        finally:
+            os.umask(old)
+        srv.listen(8)
+        self.sock_file = path
+        while True:
+            try:
+                conn, _ = srv.accept()
+            except OSError:
+                return
+            threading.Thread(target=self.client, args=(conn,), daemon=True).start()
+
+    def status_obj(self):
+        st = load_state(self.inst)
+        return {"state": self.state, "pid": self.child.pid if self.child else None,
+                "uptime": int(time.time() - self.started_at) if self.started_at and self.state == "running" else 0,
+                "restarts": self.restarts, "query": self.status, "installed": read_int(
+                    os.path.join(self.inst.root, VERSION_FILE)),
+                "latest": self.remote_version, "mode": st.get("mode"), "autoUpdate": self.auto_update,
+                "updatePending": self.update_requested,
+                "port": self.settings.port if self.settings else None}
+
+    def client(self, conn):
+        f = conn.makefile("r", encoding="utf-8", errors="replace")
+        try:
+            req = json.loads(f.readline() or "{}")
+            op = req.get("op")
+            if op == "status":
+                conn.sendall((json.dumps(self.status_obj()) + "\n").encode())
+            elif op == "cmd":
+                ok = self.send(req.get("text", ""))
+                conn.sendall((json.dumps({"ok": ok}) + "\n").encode())
+                time.sleep(float(req.get("wait", 0)))
+            elif op == "attach":
+                with self.lock:
+                    n = int(req.get("backlog", 40))
+                    backlog = list(self.ring)[-n:] if n > 0 else []   # [-0:] would be ALL of it
+                    for line in backlog:
+                        conn.sendall((line + "\n").encode("utf-8", "replace"))
+                    self.watchers.add(conn)
+                for line in f:
+                    if line.strip():
+                        self.send(line.strip())
+            elif op in ("stop", "restart"):
+                if op == "stop":
+                    self.stop_requested = True
+                else:
+                    self.restart_requested = True
+                conn.sendall((json.dumps({"ok": True}) + "\n").encode())
+            elif op == "update":
+                self.update_requested = "now" if req.get("now") else "empty"
+                conn.sendall((json.dumps({"ok": True, "when": self.update_requested}) + "\n").encode())
+            else:
+                conn.sendall(b'{"ok":false,"error":"unknown op"}\n')
+        except (OSError, ValueError):
+            pass
+        finally:
+            with self.lock:
+                self.watchers.discard(conn)
+            try:
+                conn.close()
+            except OSError:
+                pass
+
+    # -- child lifecycle -----------------------------------------------------------------
+    def launch(self):
+        self.cfg = Config(self.inst)   # re-read: `restart` picks up server.ini edits
+        self.settings = resolve(self.inst, self.cfg)
+        apply_settings(self.inst, self.settings)
+        env = ensure_prefix(self.inst, self.cfg)
+        args = [wine_bin(self.cfg)] + launch_args(self.inst, self.settings)
+        if probe(self.settings.port, 0.5):
+            self.note("WARNING: something already answers on UDP %d -- another server?" % self.settings.port)
+        self.note("launching: %s (profile %s, port %d)" % (" ".join(args[1:]), self.settings.profile.key,
+                                                           self.settings.port))
+        child = subprocess.Popen(args, cwd=self.inst.root, env=env, stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
+        with self.lock:
+            self.child = child
+        threading.Thread(target=self.pump, args=(child,), daemon=True).start()
+        self.started_at = time.time()
+        self.state = "running"
+        self.ever_answered = False
+        self.last_answer = time.time()
+        self.status = None
+
+    def safe_launch(self):
+        """launch(), but a server.ini / install problem (die() -> SystemExit) stops the supervisor
+        with exit code 3 -- the systemd unit's RestartPreventExitStatus -- instead of exiting 1
+        and being restarted into the same error every 10 seconds."""
+        try:
+            self.launch()
+            return True
+        except SystemExit:
+            self.state = "config-error"
+            self.note("cannot start the server (see the message above) -- fix it, then start again")
+            return False
+
+    def terminate(self, why, grace=20):
+        with self.lock:
+            c = self.child
+        if not c or c.poll() is not None:
+            return
+        self.note("stopping server (%s) ..." % why)
+        self.send("quit();")
+        try:
+            c.wait(grace)
+        except subprocess.TimeoutExpired:
+            self.note("server did not quit in %ds; terminating" % grace)
+            try:
+                os.killpg(c.pid, signal.SIGTERM)
+                c.wait(10)
+            except (OSError, subprocess.TimeoutExpired):
+                try:
+                    os.killpg(c.pid, signal.SIGKILL)
+                except OSError:
+                    pass
+        ws = shutil.which("wineserver")
+        if ws:   # private prefix: only our own processes live in it
+            subprocess.run([ws, "-k"], env=wine_env(self.inst, self.cfg), timeout=30,
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def players(self):
+        return self.status["players"] if self.status else None
+
+    def run_update(self):
+        self.state = "updating"
+        try:
+            changed, ver = do_update(self.inst, self.cfg, quiet_current=True)
+            self.remote_version = ver
+            if changed:
+                self.note("updated to v%d" % ver)
+        except Exception as e:   # noqa: BLE001 -- an update failure must not take the server down
+            self.note("update failed: %s (server restarts on the current version)" % e)
+        self.update_requested = None
+
+    def main(self):
+        self.inst.ensure_state()
+        with open(os.path.join(self.inst.state, "supervisor.pid"), "w") as f:
+            f.write("%d\n" % os.getpid())
+        threading.Thread(target=self.serve, daemon=True).start()
+
+        def on_signal(signum, _frame):
+            self.stop_requested = True
+        signal.signal(signal.SIGTERM, on_signal)
+        signal.signal(signal.SIGINT, on_signal)
+
+        restart_delay = self.cfg.int("supervisor", "restart_delay", 5)
+        loop_limit = self.cfg.int("supervisor", "crash_loop_restarts", 5)
+        hang_timeout = self.cfg.int("supervisor", "hang_timeout", 180)
+        check_every = max(5, self.cfg.int("update", "check_minutes", 30)) * 60
+        next_check = time.time() + 60
+        next_probe = 0
+        exit_code = 0 if self.safe_launch() else 3
+        while exit_code == 0:
+            time.sleep(0.5)
+            now = time.time()
+            c = self.child
+            if self.stop_requested:
+                self.terminate("stop requested")
+                break
+            if c.poll() is not None:
+                up = now - self.started_at
+                self.note("server exited (code %s) after %ds" % (c.returncode, up))
+                self.rapid = self.rapid + 1 if up < 60 else 0
+                self.restarts += 1
+                if self.rapid >= loop_limit:
+                    self.note("CRASH LOOP: %d exits in a row within a minute of starting -- not restarting. "
+                              "Read %s, fix, then start again." % (self.rapid, SERVER_LOG))
+                    self.state = "crash-loop"
+                    exit_code = 3
+                    break
+                if self.update_requested or (self.auto_update and self.remote_version and
+                                             self.remote_version > read_int(os.path.join(self.inst.root,
+                                                                                         VERSION_FILE))):
+                    self.run_update()
+                self.state = "restart-wait"
+                end = time.time() + restart_delay
+                while time.time() < end and not self.stop_requested:
+                    time.sleep(0.25)
+                if self.stop_requested:
+                    break
+                if not self.safe_launch():
+                    exit_code = 3
+                    break
+                continue
+            if self.restart_requested:
+                self.restart_requested = False
+                self.terminate("restart requested")
+                self.rapid = -1    # a requested restart is not a crash
+                continue
+            if now >= next_probe and self.settings:
+                next_probe = now + 10
+                st = probe(self.settings.port)
+                if st:
+                    self.status = st
+                    self.last_answer = now
+                    self.ever_answered = True
+                elif hang_timeout > 0 and self.ever_answered and now - self.last_answer > hang_timeout:
+                    self.note("server has not answered status queries for %ds -- treating as hung"
+                              % hang_timeout)
+                    self.terminate("hang", grace=5)
+                    continue
+            if self.auto_update and now >= next_check:
+                next_check = now + check_every
+                try:
+                    self.remote_version = fetch_manifest(manifest_url(self.inst, self.cfg))["version"]
+                    game_new = self.remote_version > read_int(os.path.join(self.inst.root, VERSION_FILE))
+                    behind = packs_behind(self.inst, self.cfg)
+                    if (game_new or behind) and not self.update_requested:
+                        what = (["game v%d" % self.remote_version] if game_new else []) + behind
+                        self.note("update available (%s); applying when the server is empty" % ", ".join(what))
+                        self.update_requested = "empty"
+                except Exception as e:   # noqa: BLE001
+                    self.note("update check failed: %s" % e)
+            if self.update_requested == "now" or (self.update_requested == "empty" and self.players() == 0):
+                self.terminate("update")
+                self.run_update()
+                self.rapid = -1
+                # loop sees the exit and relaunches after restart_delay
+        try:
+            os.unlink(getattr(self, "sock_file", ""))
+        except OSError:
+            pass
+        try:
+            os.remove(os.path.join(self.inst.state, "supervisor.pid"))
+        except OSError:
+            pass
+        self.note("supervisor exiting")
+        return exit_code
+
+
+# ---------------------------------------------------------------------------------------
+# commands
+# ---------------------------------------------------------------------------------------
+def cmd_install(a):
+    inst = Install(a.dir or a.target or os.getcwd())
+    os.makedirs(inst.root, exist_ok=True)
+    inst.ensure_state()
+    cfg = Config(inst)
+    if a.manifest:
+        cfg.cp.set("update", "manifest_url", a.manifest)
+    if a.channel:
+        with open(os.path.join(inst.root, "channel.txt"), "w") as f:
+            f.write(a.channel + "\n")
+    try:
+        do_update(inst, cfg, full=a.full, jobs=a.jobs)
+    except Exception as e:   # noqa: BLE001
+        die("install failed: %s (run the same command again to resume)" % e)
+    me = os.path.abspath(__file__)
+    dest = os.path.join(inst.root, "tribes-server")
+    if not os.path.isfile(dest) and os.path.abspath(dest) != me:
+        shutil.copyfile(me, dest)
+    try:
+        os.chmod(dest, 0o755)
+    except OSError:
+        pass
+    ensure_config(inst)
+    if a.manifest:
+        ini_set(inst, "update", "manifest_url", a.manifest)
+    if a.full:
+        ini_set(inst, "update", "mode", "full")
+    say("\ninstalled in %s\nnext:\n  cd %s\n  nano %s        # name, profile, passwords\n"
+        "  ./tribes-server run      # or: ./tribes-server systemd\n"
+        "full guide: LINUX-SERVER-GUIDE.md in that folder, or\n"
+        "  https://github.com/jcmolnar/Tribes-Repack/blob/main/LINUX-SERVER-GUIDE.md"
+        % (inst.root, shlex.quote(inst.root), CONFIG_NAME))
+
+
+def running(inst):
+    r = ctl_request(inst, "status")
+    if not r:
+        return None
+    s, f = r
+    s.settimeout(10)   # a wedged supervisor must not hang `status` (or the tui's poll) forever
+    try:
+        return json.loads(f.readline() or "null")
+    except (ValueError, OSError):
+        return None
+    finally:
+        s.close()
+
+
+def cmd_update(a):
+    inst = find_root(a.dir)
+    cfg = Config(inst)
+    st = running(inst)
+    if st and not a.check:
+        r = ctl_request(inst, "update", now=a.now)
+        r[1].readline()
+        r[0].close()
+        say("the server is running: update %s. Follow it with `tribes-server logs -f`."
+            % ("starts now (players are dropped)" if a.now else "applies as soon as the server is empty"))
+        return
+    try:
+        changed, _ = do_update(inst, cfg, check_only=a.check, full=True if a.full else None,
+                               verify=a.verify, jobs=a.jobs)
+    except Exception as e:   # noqa: BLE001
+        die("update failed: %s" % e)
+    if a.check:
+        sys.exit(10 if changed else 0)
+
+
+def cmd_run(a):
+    if os.name != "posix":
+        die("`run` is for Linux; on Windows use TribesHost.exe")
+    inst = find_root(a.dir)
+    cfg = ensure_config(inst)
+    if running(inst):
+        die("a supervisor for %s is already running (`tribes-server status`)" % inst.root)
+    if a.update or (cfg.bool("update", "auto_update", False) and not a.no_update):
+        try:
+            do_update(inst, cfg, quiet_current=True)
+        except Exception as e:   # noqa: BLE001 -- start on what we have
+            say("update check failed (%s); starting the installed version" % e)
+    sup = Supervisor(inst, cfg, auto_update=False if a.no_update else None)
+    sys.exit(sup.main())
+
+
+def cmd_start(a):
+    if os.name != "posix":
+        die("`start` is for Linux")
+    inst = find_root(a.dir)
+    ensure_config(inst)
+    if running(inst):
+        say("already running")
+        return
+    inst.ensure_state()
+    log = open(os.path.join(inst.state, "supervisor.log"), "ab")
+    subprocess.Popen([sys.executable, os.path.abspath(__file__), "--dir", inst.root, "run"],
+                     stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
+                     cwd=inst.root)
+    for _ in range(40):
+        time.sleep(0.25)
+        if running(inst):
+            say("started; `tribes-server status`, `tribes-server logs -f`, `tribes-server console`")
+            return
+    die("supervisor did not come up; see %s" % os.path.join(inst.state, "supervisor.log"))
+
+
+def cmd_stop(a, op="stop"):
+    inst = find_root(a.dir)
+    r = ctl_request(inst, op)
+    if not r:
+        die("not running", 0 if op == "stop" else 1)
+    r[1].readline()
+    r[0].close()
+    if op == "restart":
+        say("restarting (server.ini is re-read)")
+        return
+    for _ in range(160):
+        time.sleep(0.25)
+        if not running(inst):
+            say("stopped")
+            return
+    die("still stopping after 40s")
+
+
+def cmd_status(a):
+    inst = find_root(a.dir)
+    st = running(inst)
+    if a.json:
+        print(json.dumps(st))
+        sys.exit(0 if st else 3)
+    if not st:
+        say("not running (installed v%d)" % read_int(os.path.join(inst.root, VERSION_FILE)))
+        sys.exit(3)
+    q = st.get("query")
+    say("state     %s (pid %s, up %ds, %d restart(s))" % (st["state"], st["pid"], st["uptime"], st["restarts"]))
+    say("version   v%s installed%s, mode=%s, auto-update %s%s" % (
+        st["installed"], (", v%s latest" % st["latest"]) if st.get("latest") else "", st.get("mode"),
+        "on" if st["autoUpdate"] else "off",
+        (", update pending (%s)" % st["updatePending"]) if st.get("updatePending") else ""))
+    if q:
+        say("server    %s -- %d/%d players, %s (%s), port %s" % (q["name"], q["players"], q["max"], q["mission"],
+                                                                q["missionType"], st["port"]))
+    else:
+        say("server    not answering status queries yet (port %s)" % st["port"])
+
+
+def cmd_console(a):
+    inst = find_root(a.dir)
+    if a.command:
+        text = " ".join(a.command)
+        r = ctl_request(inst, "attach", backlog=0)
+        if not r:
+            die("not running")
+        s, f = r
+        s.sendall((text + "\n").encode())
+        s.settimeout(a.wait)
+        try:
+            for line in f:
+                print(line, end="", flush=True)
+        except (socket.timeout, OSError):
+            pass
+        s.close()
+        return
+    r = ctl_request(inst, "attach", backlog=40)
+    if not r:
+        die("not running")
+    s, f = r
+    say("-- attached to the server console. Type TorqueScript commands; Ctrl-D or Ctrl-C detaches "
+        "(the server keeps running). --")
+
+    def reader():
+        try:
+            for line in f:
+                print(line, end="", flush=True)
+        except (OSError, ValueError):
+            pass
+        os._exit(0)
+    threading.Thread(target=reader, daemon=True).start()
+    try:
+        for line in sys.stdin:
+            s.sendall(line.encode())
+    except KeyboardInterrupt:
+        pass
+    s.close()
+
+
+def cmd_logs(a):
+    inst = find_root(a.dir)
+    p = ci_join(inst.root, SERVER_LOG)
+    if not os.path.isfile(p):
+        die("no %s yet" % SERVER_LOG)
+    with open(p, "rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        f.seek(max(0, size - 64 * 1024))
+        tail = f.read().decode("latin-1").splitlines()[-a.lines:]
+        for line in tail:
+            print(line)
+        if not a.follow:
+            return
+        try:
+            while True:
+                chunk = f.read()
+                if chunk:
+                    sys.stdout.write(chunk.decode("latin-1"))
+                    sys.stdout.flush()
+                else:
+                    if os.path.getsize(p) < f.tell():
+                        f.seek(0)
+                    time.sleep(0.5)
+        except KeyboardInterrupt:
+            pass
+
+
+def ini_set(inst, sec, key, value):
+    """Set one key in server.ini in place, keeping every comment and the key order."""
+    with open(inst.config_path, "r", encoding="utf-8") as f:
+        lines = f.read().split("\n")
+    cur, done = None, False
+    for i, l in enumerate(lines):
+        m = re.match(r"\s*\[(.+)\]\s*$", l)
+        if m:
+            if cur == sec:
+                lines.insert(i, "%s = %s" % (key, value))
+                done = True
+                break
+            cur = m.group(1)
+        elif cur == sec and re.match(r"\s*%s\s*=" % re.escape(key), l):
+            lines[i] = "%s = %s" % (key, value)
+            done = True
+            break
+    if not done:
+        if cur != sec:
+            lines += ["", "[%s]" % sec]
+        lines.append("%s = %s" % (key, value))
+    write_atomic(inst.config_path, "\n".join(lines), newline="\n")
+
+
+PRESET_NAME = re.compile(r"^[A-Za-z0-9 _.-]{1,40}$")
+PASSWORD_KEYS = ("join_password", "admin_password")
+
+
+def _preset_dir(inst):
+    return os.path.join(inst.state, "presets")
+
+
+def _set_ini_text_value(text, key, value):
+    """Replace `key = ...` in [server] text (presets carry the same layout as server.ini)."""
+    return re.sub(r"(?m)^(\s*%s\s*=).*$" % re.escape(key), lambda m: "%s %s" % (m.group(1), value), text)
+
+
+def cmd_preset(inst, a):
+    """TribesHost presets: whole settings snapshots by name, passwords NEVER stored; loading one
+    keeps the passwords currently in server.ini."""
+    d = _preset_dir(inst)
+    if a.action == "presets":
+        names = sorted(n[:-4] for n in os.listdir(d) if n.endswith(".ini")) if os.path.isdir(d) else []
+        say("\n".join(names) if names else "no presets yet (`tribes-server config save <name>`)")
+        return
+    if len(a.args) != 1 or not PRESET_NAME.match(a.args[0]):
+        die("usage: tribes-server config %s <name>   (letters, digits, space, _ . -)" % a.action)
+    path = os.path.join(d, a.args[0] + ".ini")
+    with open(inst.config_path, "r", encoding="utf-8") as f:
+        cur = f.read()
+    if a.action == "save":
+        os.makedirs(d, exist_ok=True)
+        text = cur
+        for k in PASSWORD_KEYS:
+            text = _set_ini_text_value(text, k, "")
+        write_atomic(path, text, newline="\n")
+        say("saved preset '%s' (passwords excluded)" % a.args[0])
+        return
+    if not os.path.isfile(path):
+        die("no preset '%s' (`tribes-server config presets`)" % a.args[0])
+    with open(path, "r", encoding="utf-8") as f:
+        text = f.read()
+    cp = configparser.ConfigParser(interpolation=None)
+    cp.read_string(cur)
+    for k in PASSWORD_KEYS:
+        text = _set_ini_text_value(text, k, cp.get("server", k, fallback=""))
+    write_atomic(inst.config_path, text, newline="\n")
+    say("loaded preset '%s' (kept your current passwords); `tribes-server restart` to use it" % a.args[0])
+
+
+def cmd_config(a):
+    inst = find_root(a.dir)
+    cfg = ensure_config(inst)
+    if a.action in ("save", "load", "presets"):
+        return cmd_preset(inst, a)
+    if a.action == "restore-backup":
+        # TribesHost "Restore backup": the first-original copy surgical_edit took of each serv file
+        found = False
+        for n in sorted(os.listdir(ci_join(inst.root, "config"))):
+            if n.endswith(".hostgui.bak"):
+                found = True
+                src = os.path.join(ci_join(inst.root, "config"), n)
+                shutil.copyfile(src, src[:-len(".hostgui.bak")])
+                say("restored config/%s from its backup" % n[:-len(".hostgui.bak")])
+        if not found:
+            say("no backups (nothing has edited config/rpgserv.cs or rmrpgserv.cs yet)")
+        return
+    if a.action == "set":
+        if len(a.args) != 2 or "." not in a.args[0]:
+            die("usage: tribes-server config set section.key value   (e.g. server.name \"My Server\")")
+        sec, key = a.args[0].split(".", 1)
+        known = configparser.ConfigParser(interpolation=None)
+        known.read_string(DEFAULT_INI)
+        if not known.has_option(sec, key):
+            # a typo would otherwise be written, ignored, and look like it worked
+            die("unknown setting '%s.%s'. Settings:\n  %s" % (sec, key, "\n  ".join(
+                "%s.%s" % (s_, k) for s_ in known.sections() for k in known.options(s_))))
+        ini_set(inst, sec, key, a.args[1])
+        cfg = Config(inst)
+    s = resolve(inst, cfg)
+    if a.action == "apply":
+        apply_settings(inst, s)
+        say("wrote config/hostgui.cs%s" % (" and config/" + s.profile.serv_file if s.profile.serv_file else ""))
+        return
+    say("config    %s" % inst.config_path)
+    say("profile   %s (%s) -- launch: %s" % (s.profile.key, s.profile.label, " ".join(launch_args(inst, s))
+                                             if inst.exe() else "(not installed)"))
+    say("server    %s, port %d, %d players, mission %s, %s, netcode %s" % (
+        s.name, s.port, s.max_players, s.mission or "(mod default)", "public" if s.public else "LAN/unlisted",
+        "modern150" if s.modern else "legacy"))
+    if len(s.rotation) >= 2:
+        say("rotation  %s" % " -> ".join(s.rotation))
+    say("passwords join %s, admin %s" % ("set" if s.join_pw else "none", "set" if s.admin_pw else "NONE"))
+
+
+def cmd_store(a):
+    inst = find_root(a.dir)
+    cfg = Config(inst)
+    url = store_url(cfg)
+    if not url:
+        die("the store is disabled ([update] store_url = 0)")
+    store = fetch_store(url)
+    receipts = load_receipts(inst)
+    if a.action == "list":
+        full = cfg.get("update", "mode").lower() == "full"
+        rules = tuple(exclude_rules(cfg)) if full else tuple(CLIENT_ONLY) + tuple(exclude_rules(cfg))
+        say("%-16s %-9s %-4s %-10s %9s  %s" % ("id", "category", "ver", "installed", "download", "title"))
+        for pid, p in sorted(store["packs"].items(), key=lambda kv: (kv[1]["category"], kv[0])):
+            size = sum(f["size"] for f in p["files"] if not matches_rules(f["path"], rules))
+            r = receipts.get(pid)
+            note = "" if p["state"].lower() == "live" else "  [%s]" % p["state"]
+            say("%-16s %-9s v%-3d %-10s %9s  %s%s" % (p["id"], p["category"], p["version"],
+                ("v%s" % r.get("version")) if r else "-", human(size), p["title"], note))
+        say("\n`tribes-server store install <id>` adds one. Packs outside 'mods' are client-side looks "
+            "(models, textures, voices) a server does not need.")
+        return
+    if not a.ids:
+        die("name at least one pack id (`tribes-server store` lists them)")
+    st = running(inst)
+    game_man = fetch_manifest(manifest_url(inst, cfg))
+    for pid in a.ids:
+        pack = store["packs"].get(pid.lower())
+        if a.action == "remove":
+            if st:
+                die("stop the server before removing a pack")
+            remove_pack(inst, pid, game_man)
+            continue
+        if not pack:
+            die("no pack '%s' in the store (`tribes-server store` lists them)" % pid)
+        if st and pid.lower() in receipts:
+            die("pack '%s' is installed and the server is running: use `tribes-server update`, which "
+                "waits for an empty server" % pid)
+        try:
+            install_pack(inst, cfg, pack, game_man, receipts, jobs=a.jobs)
+        except Exception as e:   # noqa: BLE001
+            die("installing %s failed: %s (run it again to resume)" % (pid, e))
+        if pack["category"] == "mods" and pack["launchMods"]:
+            say("host it with:  tribes-server config set server.profile %s" % pack["launchMods"][-1].lower())
+
+
+def cmd_mods(a):
+    inst = find_root(a.dir)
+    for p in load_profiles(inst):
+        say("%-14s %-18s default map %-12s port %d" % (p.key, p.label, p.def_mission or "-", p.def_port))
+
+
+def mission_rows(inst, s):
+    """(type, name, folder) for every map of the profile, sorted by type then name."""
+    rows = []
+    for n, d in list_missions(inst, s):   # hostgui.cpp parseDscType: $MDESC::Type from the .dsc beside the .mis
+        t = ""
+        try:
+            with open(ci_join(mod_dir(inst, d), "missions", n + ".dsc"), "r", encoding="latin-1") as f:
+                for line in f:
+                    pa = _parse_assignment(line.rstrip("\r\n"))
+                    if pa and pa[0].lower() == "mdesc::type":
+                        t = pa[1]
+                        break
+        except OSError:
+            pass
+        rows.append((t or ("Other" if d.lower() == "base" else d + " maps"), n, d))
+    return sorted(rows, key=lambda r: (r[0].lower(), r[1].lower()))
+
+
+def cmd_missions(a):
+    inst = find_root(a.dir)
+    s = resolve(inst, Config(inst))
+    want = (a.type or "").lower()
+    shown = 0
+    for t, n, d in mission_rows(inst, s):
+        if want and want not in t.lower():
+            continue
+        say("%-30s %-24s %s" % (n, t, d))
+        shown += 1
+    say("%d mission(s) for profile %s%s" % (shown, s.profile.key, (" matching '%s'" % a.type) if want else ""))
+
+
+ADMIN_HELP = """\
+Server console (`tribes-server console`) runs commands AS the server -- no login needed:
+  messageAll(0, "text");          say something to everyone
+  Server::loadMission("MapName"); switch map now (names: `tribes-server missions`)
+  Server::nextMission();          advance the rotation (base / most mods)
+  for(%c = Client::getFirst(); %c != -1; %c = Client::getNext(%c)) echo(%c @ " " @ Client::getName(%c));
+                                  who is on, with client ids (people only: bots are
+                                  not in the client list)
+  quit();                         stop the server (the supervisor restarts it;
+                                  use `tribes-server stop` to stay stopped)
+
+In-game, from a player's console (~ key) -- log in first with the admin password:
+  AdminPassword("password");      log in as admin (a wrong password gives NO reply)
+  SetPassword("password");        set or clear the join password
+  SetTimeLimit(minutes);          change the mission time limit
+  SetTeamInfo(team, "name", "skin");  rename or reskin a team
+  CycleMission();                 advance to the next map in the rotation
+  CasterGrant(clientId, 1);       grant caster tools (0 revokes; target must be observing)
+  VoteYes(); / VoteNo();          cast a vote (any player)
+Kick and ban are menu-only by design: use the in-game admin menu.
+RPG / Red Moon: admin login uses $AdminPassword[1..5], all set from admin_password.
+Mods can add their own admin commands -- see the mod's documentation."""
+
+
+def cmd_admin(a):
+    say(ADMIN_HELP)
+
+
+def cmd_netcheck(a):
+    """TribesHost "Readiness" + "Test Internet": public address, local answer, firewall hint,
+    and the optional UDP reachability service ([network] probe_url, same protocol)."""
+    inst = find_root(a.dir)
+    cfg = Config(inst)
+    s = resolve(inst, cfg)
+    say("game port UDP %d, voice UDP %d" % (s.port, s.port + 2))
+    st = probe(s.port)
+    say(("  ok   server answers on this machine: %s, %d/%d players" % (st["name"], st["players"], st["max"]))
+        if st else "  --   no server answering on UDP %d here (start it first for a full check)" % s.port)
+    lan = ""
+    try:
+        t = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        t.connect(("192.0.2.1", 9))   # TEST-NET: picks the outbound interface, sends nothing
+        lan = t.getsockname()[0]
+        t.close()
+    except OSError:
+        pass
+    if lan:
+        say("  LAN join address:      %s:%d" % (lan, s.port))
+    public = ""
+    try:
+        with http_open("https://api.ipify.org", timeout=8) as r:
+            public = r.read(64).decode("ascii", "replace").strip()
+    except Exception:   # noqa: BLE001
+        pass
+    if re.fullmatch(r"\d{1,3}(\.\d{1,3}){3}", public):
+        say("  Internet join address: %s:%d   (players: Join by address IP:%s:%d)" % (public, s.port, public, s.port))
+    else:
+        say("  could not look up the public address (no Internet, or api.ipify.org blocked)")
+    if shutil.which("ufw"):
+        say("  firewall (ufw):        sudo ufw allow %d:%d/udp" % (s.port, s.port + 2))
+    elif shutil.which("firewall-cmd"):
+        say("  firewall (firewalld):  sudo firewall-cmd --permanent --add-port=%d-%d/udp && sudo firewall-cmd --reload"
+            % (s.port, s.port + 2))
+    say("  home router: forward UDP %d and %d to %s (cloud VPS: open them in the provider's firewall)"
+        % (s.port, s.port + 2, lan or "this machine"))
+    if not s.public:
+        say("  note: public = false -- the server is not announced on the master list")
+    url = cfg.get("network", "probe_url")
+    if url:
+        try:
+            with http_open(url + ("&" if "?" in url else "?") + "port=%d" % s.port, timeout=15) as r:
+                body = json.loads(r.read(65536).decode("utf-8", "replace"))
+            say("  Internet UDP test:     %s %s" % (body.get("status", "?"), body.get("detail", "")))
+        except Exception as e:   # noqa: BLE001
+            say("  Internet UDP test failed: %s" % e)
+    else:
+        say("  (full Internet UDP test needs [network] probe_url, the same optional service TribesHost uses)")
+
+
+def cmd_systemd(a):
+    inst = find_root(a.dir)
+    user = os.environ.get("USER") or "tribes"
+    name = "tribes-server" + ("-" + a.name if a.name else "")
+    print("""# /etc/systemd/system/%(name)s.service
+# install:  ./tribes-server systemd | sudo tee /etc/systemd/system/%(name)s.service
+#           sudo systemctl daemon-reload && sudo systemctl enable --now %(name)s
+# console:  ./tribes-server console      logs: journalctl -u %(name)s -f
+[Unit]
+Description=Modern Tribes dedicated server (%(root)s)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%(user)s
+WorkingDirectory=%(root)s
+ExecStart=%(py)s %(script)s --dir %(root)s run
+ExecStop=%(py)s %(script)s --dir %(root)s stop
+# the supervisor restarts the game itself; this only covers the supervisor
+Restart=on-failure
+RestartSec=10
+# exit code 3 = crash loop: stay down until someone looks at it
+RestartPreventExitStatus=3
+TimeoutStopSec=60
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target""" % {"name": name, "root": inst.root, "user": user, "py": sys.executable,
+                                  "script": os.path.join(inst.root, "tribes-server")})
+
+
+def cmd_doctor(a):
+    inst = find_root(a.dir)
+    ok = True
+
+    def chk(cond, good, bad):
+        nonlocal ok
+        say(("  ok   " if cond else "  FAIL ") + (good if cond else bad))
+        ok = ok and cond
+    say("install   %s" % inst.root)
+    chk(sys.version_info >= (3, 8), "python %s" % sys.version.split()[0], "python 3.8+ required")
+    w = shutil.which(Config(inst).get("wine", "wine") or "wine")
+    ver = ""
+    if w:
+        try:
+            ver = subprocess.run([w, "--version"], capture_output=True, text=True, timeout=30).stdout.strip()
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    chk(bool(w), "wine: %s %s" % (w, ver), "wine not found (sudo dpkg --add-architecture i386 && sudo apt update "
+                                           "&& sudo apt install --no-install-recommends wine wine32:i386)")
+    chk(bool(inst.exe()), "game exe: %s" % inst.exe(), "no ModernTribes.exe (run `tribes-server install`)")
+    chk(read_int(os.path.join(inst.root, VERSION_FILE)) > 0,
+        "installed v%d" % read_int(os.path.join(inst.root, VERSION_FILE)), "no updver.txt (never updated)")
+    free = shutil.disk_usage(inst.root).free
+    chk(free > 1 << 30, "%s free" % human(free), "only %s free" % human(free))
+    try:
+        cfg = Config(inst)
+        s = resolve(inst, cfg)
+        chk(True, "config: profile %s, port %d" % (s.profile.key, s.port), "")
+        if not running(inst):
+            for port in (s.port, s.port + 2):
+                t = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                try:
+                    t.bind(("0.0.0.0", port))
+                    chk(True, "UDP %d free" % port, "")
+                except OSError:
+                    chk(False, "", "UDP %d is in use" % port)
+                finally:
+                    t.close()
+    except SystemExit:
+        chk(False, "", "server.ini does not resolve (see the message above)")
+    sys.exit(0 if ok else 1)
+
+
+# ---------------------------------------------------------------------------------------
+# terminal UI (`tui`)
+# ---------------------------------------------------------------------------------------
+# Standard-library curses, nothing to install. It is a CLIENT of the supervisor's control
+# socket -- the one `console` and `status` use -- so it works over SSH, beside systemd, with
+# several open at once, and closing it never stops the server. Long jobs (start, update,
+# store install/remove) run as child `tribes-server` processes so their output lands in the
+# log pane instead of on top of the screen.
+TUI_SCREENS = ("Console", "Players", "Maps", "Settings", "Store", "Help")
+TUI_TAG = "[tui-pl] "      # player-list replies; filtered out of the log pane
+TUI_PLAYERS_CMD = ('echo("[tui-pl] BEGIN"); for(%c = Client::getFirst(); %c != -1; %c = Client::getNext(%c)) '
+                   'echo("[tui-pl] P|" @ %c @ "|" @ Client::getTeam(%c) @ "|" @ Client::getTransportAddress(%c) '
+                   '@ "|" @ Client::getName(%c)); echo("[tui-pl] END");')
+
+# (section, key, label, kind). kind: text | pw | int | int? (blank allowed) | bool | profile |
+# mission | choice:a,b (an empty choice = blank = default)
+TUI_FIELDS = (
+    ("server", "profile", "Mod (profile)", "profile"),
+    ("server", "name", "Server name", "text"),
+    ("server", "mission", "Starting map", "mission"),
+    ("server", "max_players", "Max players", "int"),
+    ("server", "port", "Port (UDP)", "int?"),
+    ("server", "public", "List publicly", "bool"),
+    ("server", "join_password", "Join password", "pw"),
+    ("server", "admin_password", "Admin password", "pw"),
+    ("server", "info", "Server info", "text"),
+    ("server", "motd", "Join message", "text"),
+    ("server", "rotation", "Map rotation", "text"),
+    ("server", "bots", "Bots", "choice:true,false,"),
+    ("server", "bots_team0", "Bot cap, team 0", "int?"),
+    ("server", "bots_team1", "Bot cap, team 1", "int?"),
+    ("server", "mixed_types", "Mixed game types", "bool"),
+    ("server", "voice_chat", "Voice chat", "bool"),
+    ("server", "netcode", "Netcode", "choice:legacy,modern150"),
+    ("server", "lag_comp", "Lag compensation", "bool"),
+    ("server", "fire_from_view", "Fire from view", "bool"),
+    ("server", "require_current_client", "Require current client", "bool"),
+    ("server", "cheat_observe", "Cheat observation", "bool"),
+    ("server", "rpg_limits", "RPG limits", "choice:,true,false"),
+    ("server", "competitive", "Competitive", "bool"),
+    ("server", "mods", "Mod chain override", "text"),
+    ("update", "auto_update", "Auto-update when empty", "bool"),
+    ("update", "check_minutes", "Update check, minutes", "int"),
+    ("supervisor", "restart_delay", "Restart delay, seconds", "int"),
+    ("supervisor", "crash_loop_restarts", "Crash-loop limit", "int"),
+    ("supervisor", "hang_timeout", "Hang timeout, seconds", "int"),
+)
+
+# Help for keys that have no comment of their own in DEFAULT_INI (that text is the rest).
+TUI_HELP_EXTRA = {
+    ("server", "name"): "Shown in the server browser.",
+    ("server", "max_players"): "1 to 128.",
+    ("server", "join_password"): "Players need this to join. Blank = anyone can join.",
+    ("server", "admin_password"): "Admins log in from a player's console: AdminPassword(\"password\"); "
+                                  "RPG / Red Moon: sets all five admin levels.",
+    ("server", "motd"): "Shown to players when they join. Use \\n for a line break.",
+    ("server", "bots_team1"): "Per-team bot caps; blank = full roster.",
+    ("server", "mixed_types"): "Allow a rotation that mixes game types (TribesHost's Mixed Types box).",
+    ("server", "voice_chat"): "Voice chat relay on UDP port + 2.",
+    ("server", "lag_comp"): "modern150 netcode only.",
+    ("server", "fire_from_view"): "modern150 netcode only.",
+    ("server", "require_current_client"): "modern150 netcode only: refuse out-of-date clients.",
+    ("server", "cheat_observe"): "Log-only cheat observation warnings in the server log.",
+    ("update", "check_minutes"): "How often a running server with auto-update on looks for updates.",
+}
+
+
+def ini_help():
+    """{(section, key): the comment lines above that key in DEFAULT_INI}."""
+    out, buf, sec = {}, [], None
+    for line in DEFAULT_INI.splitlines():
+        s = line.strip()
+        m = re.match(r"\[(.+)\]$", s)
+        if m:
+            sec, buf = m.group(1), []
+        elif s.startswith("#"):
+            buf.append(s.lstrip("#").strip())
+        elif "=" in s and sec:
+            out[(sec, s.split("=", 1)[0].strip())] = " ".join(buf)
+            buf = []
+        else:
+            buf = []
+    for k, v in TUI_HELP_EXTRA.items():
+        out[k] = v
+    return out
+
+
+def _quiet(fn, *a, **kw):
+    """Call a CLI helper that may say() / die() without it printing onto the curses screen.
+    Returns (result or None if it died, the text it printed)."""
+    import contextlib
+    import io
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+            r = fn(*a, **kw)
+        return r, buf.getvalue().strip()
+    except SystemExit:
+        return None, buf.getvalue().strip()
+
+
+def _script_text(text):
+    """Operator text made safe inside a TorqueScript string literal."""
+    return text.replace("\\", "/").replace('"', "'").replace("\r", " ").replace("\n", " ")
+
+
+def _edit_line(buf, cur, k):
+    """Shared single-line editing. Returns (buf, cur, handled)."""
+    if k in (curses.KEY_LEFT,):
+        return buf, max(0, cur - 1), True
+    if k in (curses.KEY_RIGHT,):
+        return buf, min(len(buf), cur + 1), True
+    if k in (curses.KEY_HOME, "\x01"):
+        return buf, 0, True
+    if k in (curses.KEY_END, "\x05"):
+        return buf, len(buf), True
+    if k in (curses.KEY_BACKSPACE, "\x7f", "\x08"):
+        return (buf[:cur - 1] + buf[cur:], cur - 1, True) if cur > 0 else (buf, cur, True)
+    if k == curses.KEY_DC:
+        return buf[:cur] + buf[cur + 1:], cur, True
+    if k == "\x15":   # Ctrl-U: clear
+        return "", 0, True
+    if k == "\x0b":   # Ctrl-K: kill to end
+        return buf[:cur], cur, True
+    if k == "\x17":   # Ctrl-W: delete word
+        i = cur
+        while i > 0 and buf[i - 1] == " ":
+            i -= 1
+        while i > 0 and buf[i - 1] != " ":
+            i -= 1
+        return buf[:i] + buf[cur:], i, True
+    if isinstance(k, str) and len(k) == 1 and k.isprintable():
+        return buf[:cur] + k + buf[cur:], cur + 1, True
+    return buf, cur, False
+
+
+class Tui:
+    def __init__(self, inst):
+        self.inst = inst
+        self.lock = threading.Lock()
+        self.lines = deque(maxlen=5000)
+        self.st = None                   # supervisor status dict; None = not running
+        self.conn = None                 # attach socket
+        self.screen = 0
+        self.scroll = 0                  # console: lines back from the live tail
+        self.inp, self.cur = "", 0
+        self.hist, self.hpos = self.load_history(), None
+        self.msg, self.msg_at = "", 0.0
+        self.confirm = None              # (question, fn)
+        self.modal = None                # {title, items:[(label, value)], fn, sel, top, filter}
+        self.edit = None                 # {label, buf, cur, fn, secret}
+        self.job, self.job_name = None, ""
+        self.players, self.pl_new, self.players_at = [], None, 0.0
+        self.pl_asked = 0.0              # a reply is only ours while a request is pending (the
+                                         # attach backlog can replay someone else's old one)
+        self.sel = {n: 0 for n in TUI_SCREENS}
+        self.top = {n: 0 for n in TUI_SCREENS}
+        self.map_filter = ""
+        self.maps = None
+        self.store, self.store_err, self.store_busy = None, "", False
+        self.help = ini_help()
+        self.summary = {}
+        self.ascii = True
+        self.quit = False
+        self.refresh_config()
+
+    # -- data ----------------------------------------------------------------------------
+    def history_path(self):
+        return os.path.join(self.inst.state, "tui_history")
+
+    def load_history(self):
+        try:
+            with open(self.history_path(), "r", encoding="utf-8") as f:
+                return [l.rstrip("\n") for l in f if l.strip()][-500:]
+        except OSError:
+            return []
+
+    def save_history(self):
+        try:
+            self.inst.ensure_state()
+            fd = os.open(self.history_path(), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)   # may hold passwords
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write("\n".join(self.hist[-500:]) + "\n")
+        except OSError:
+            pass
+
+    def refresh_config(self):
+        """Re-read server.ini: what the header shows while stopped, and the map list."""
+        self.cfg = Config(self.inst)
+        s, out = _quiet(resolve, self.inst, self.cfg)
+        self.settings_err = "" if s else (out or "server.ini does not resolve")
+        self.summary = {"name": s.name, "profile": s.profile.key, "port": s.port, "mission": s.mission} if s else {}
+        self.maps = None
+        if s:
+            rows, _ = _quiet(mission_rows, self.inst, s)
+            self.maps = rows or []
+
+    def add(self, line):
+        with self.lock:
+            self.lines.append(line)
+            if self.scroll:
+                self.scroll += 1   # keep a scrolled-back view still
+
+    def note(self, msg):
+        self.msg, self.msg_at = msg, time.time()
+
+    def on_line(self, line):
+        if line.startswith(TUI_TAG):
+            body = line[len(TUI_TAG):]
+            if body == "BEGIN":
+                if time.time() - self.pl_asked < 15:
+                    self.pl_new = []
+            elif body == "END" and self.pl_new is not None:
+                self.players, self.pl_new, self.players_at = self.pl_new, None, time.time()
+                self.pl_asked = 0.0
+            elif body.startswith("P|") and self.pl_new is not None:
+                parts = body.split("|", 4)
+                if len(parts) == 5:
+                    self.pl_new.append({"id": parts[1], "team": parts[2], "addr": parts[3], "name": parts[4]})
+            return
+        if TUI_TAG in line:   # the console's echo of our own player-list command
+            return
+        self.add(line)
+
+    def show_log_tail(self):
+        p = ci_join(self.inst.root, SERVER_LOG)
+        try:
+            with open(p, "rb") as f:
+                f.seek(0, 2)
+                f.seek(max(0, f.tell() - 32 * 1024))
+                tail = f.read().decode("latin-1").splitlines()[-200:]
+        except OSError:
+            tail = []
+        if tail:
+            self.add("[tui] -- the server is not running; last lines of %s --" % SERVER_LOG)
+            for line in tail:
+                self.on_line(line)
+        self.add("[tui] F7 starts the server.")
+
+    # -- background threads ------------------------------------------------------------------
+    def poll_status(self):
+        while not self.quit:
+            st = running(self.inst)
+            with self.lock:
+                self.st = st
+            time.sleep(1.5)
+
+    def pump_console(self):
+        first = True
+        while not self.quit:
+            r = ctl_request(self.inst, "attach", backlog=300)
+            if not r:
+                if first:
+                    self.show_log_tail()
+                first = False
+                time.sleep(2)
+                continue
+            first = False
+            s, f = r
+            with self.lock:
+                self.conn = s
+            self.add("[tui] -- attached to the server console --")
+            try:
+                for line in f:
+                    self.on_line(line.rstrip("\r\n"))
+            except (OSError, ValueError):
+                pass
+            with self.lock:
+                self.conn = None
+            try:
+                s.close()
+            except OSError:
+                pass
+            if not self.quit:
+                self.add("[tui] -- supervisor stopped; the server is not running (F7 starts it) --")
+            time.sleep(1)
+
+    def send(self, text, quiet=False):
+        with self.lock:
+            s = self.conn
+        if not s:
+            if not quiet:
+                self.note("The server is not running (F7 starts it).")
+            return False
+        try:
+            s.sendall((text.replace("\n", " ") + "\n").encode("utf-8", "replace"))
+            return True
+        except OSError:
+            self.note("Lost the console connection; reconnecting.")
+            return False
+
+    def ctl(self, op, **kw):
+        r = ctl_request(self.inst, op, **kw)
+        if not r:
+            self.note("The server is not running.")
+            return False
+        try:
+            r[1].readline()
+        except OSError:
+            pass
+        r[0].close()
+        return True
+
+    def run_job(self, name, args, then=None):
+        if self.job and self.job.poll() is None:
+            self.note("Busy: '%s' is still running." % self.job_name)
+            return
+        cmd = [sys.executable, os.path.abspath(__file__), "--dir", self.inst.root] + args
+        try:
+            p = subprocess.Popen(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                 env=dict(os.environ, PYTHONUNBUFFERED="1"), cwd=self.inst.root)
+        except OSError as e:
+            self.note("Could not run %s: %s" % (name, e))
+            return
+        self.job, self.job_name = p, name
+        self.add("[tui] %s: tribes-server %s" % (name, " ".join(args)))
+        self.screen = 0
+        self.scroll = 0
+
+        def pump():
+            for raw in iter(p.stdout.readline, b""):
+                self.add("[%s] %s" % (name, raw.decode("utf-8", "replace").rstrip()))
+            rc = p.wait()
+            self.add("[tui] %s %s" % (name, "finished" if rc == 0 else "FAILED (exit code %d)" % rc))
+            self.note("%s %s" % (name, "finished." if rc == 0 else "failed -- see the log above."))
+            if then:
+                then(rc)
+        threading.Thread(target=pump, daemon=True).start()
+
+    def load_store(self):
+        if self.store_busy:
+            return
+        self.store_busy, self.store_err = True, ""
+
+        def work():
+            try:
+                cfg = Config(self.inst)
+                url = store_url(cfg)
+                if not url:
+                    raise ValueError("the store is disabled ([update] store_url = 0)")
+                store = fetch_store(url)
+                receipts, _ = _quiet(load_receipts, self.inst)
+                full = cfg.get("update", "mode").lower() == "full"
+                rules = tuple(exclude_rules(cfg)) if full else tuple(CLIENT_ONLY) + tuple(exclude_rules(cfg))
+                rows = []
+                for pid, p in sorted(store["packs"].items(), key=lambda kv: (kv[1]["category"], kv[0])):
+                    size = sum(f["size"] for f in p["files"] if not matches_rules(f["path"], rules))
+                    r = (receipts or {}).get(pid)
+                    rows.append({"id": pid, "pack": p, "size": size,
+                                 "have": int(r.get("version") or 0) if r else 0})
+                self.store = rows
+            except Exception as e:   # noqa: BLE001
+                self.store_err = "Could not load the Asset Store: %s" % e
+            self.store_busy = False
+        threading.Thread(target=work, daemon=True).start()
+
+    # -- actions -------------------------------------------------------------------------
+    def players_online(self):
+        q = (self.st or {}).get("query")
+        return q["players"] if q else 0
+
+    def ask(self, question, fn):
+        self.confirm = (question, fn)
+
+    def act_startstop(self):
+        if not self.st:
+            self.run_job("start", ["start"])
+            return
+        n = self.players_online()
+        self.ask("Stop the server%s?" % (" (%d player%s online)" % (n, "s" if n != 1 else "") if n else ""),
+                 lambda: self.ctl("stop") and self.note("Stopping the server..."))
+
+    def act_restart(self):
+        if not self.st:
+            self.note("The server is not running (F7 starts it).")
+            return
+        n = self.players_online()
+        self.ask("Restart the server now%s? It re-reads server.ini." %
+                 (" (%d player%s online)" % (n, "s" if n != 1 else "") if n else ""),
+                 lambda: self.ctl("restart") and self.note("Restarting..."))
+
+    def act_update(self):
+        if not self.st:
+            self.run_job("update", ["update"])
+            return
+
+        def pick(v):
+            if v == "empty":
+                self.ctl("update") and self.note("Update queued: applies as soon as the server is empty.")
+            elif v == "now":
+                self.ctl("update", now=True) and self.note("Updating now...")
+        self.open_modal("Update the running server", [
+            ("When the server is empty (players are never dropped)", "empty"),
+            ("Now -- drops %d player(s)" % self.players_online(), "now"),
+            ("Cancel", None)], pick)
+
+    def refresh_players(self):
+        self.pl_asked = time.time()
+        self.send(TUI_PLAYERS_CMD, quiet=True)
+
+    def set_value(self, sec, key, value):
+        ini_set(self.inst, sec, key, value)
+        self.refresh_config()
+        if self.settings_err:
+            self.note("Saved, but: %s" % self.settings_err.splitlines()[-1])
+        else:
+            self.note("Saved. %s" % ("F8 restarts the server to use it." if self.st else "Used at the next start."))
+
+    def set_profile(self, word):
+        """A map from the old mod would not exist in the new one: the map goes back to default."""
+        ini_set(self.inst, "server", "mission", "")
+        self.set_value("server", "profile", word)
+
+    def open_modal(self, title, items, fn, filterable=False):
+        self.modal = {"title": title, "items": items, "fn": fn, "sel": 0, "top": 0,
+                      "filter": "" if filterable else None}
+
+    def open_edit(self, label, value, fn, secret=False):
+        self.edit = {"label": label, "buf": value, "cur": len(value), "fn": fn, "secret": secret}
+
+    def edit_field(self, f):
+        sec, key, label, kind = f
+        cur = self.cfg.get(sec, key)
+        if kind == "bool":
+            self.set_value(sec, key, "false" if cur.lower() in BOOL_TRUE else "true")
+        elif kind.startswith("choice:"):
+            opts = kind[7:].split(",")
+            self.open_modal(label, [(o or "(blank: default)", o) for o in opts],
+                            lambda v: v is not None and self.set_value(sec, key, v))
+        elif kind == "profile":
+            profs, _ = _quiet(load_profiles, self.inst)
+            self.open_modal("Mod (profile)", [("%-14s %s" % (p.key, p.label), p.key) for p in profs or []],
+                            lambda v: v is not None and self.set_profile(v), filterable=True)
+        elif kind == "mission":
+            items = [("(profile default)", "")] + [("%-30s %s" % (n, t), n) for t, n, d in (self.maps or [])]
+            self.open_modal("Starting map", items, lambda v: v is not None and self.set_value(sec, key, v),
+                            filterable=True)
+        else:
+            def done(v):
+                v = v.strip()
+                if '"' in v:
+                    self.note("Double quotes are not allowed.")
+                elif kind in ("int", "int?") and not (v.isdigit() or (kind == "int?" and v == "")):
+                    self.note("%s must be a number%s." % (label, " or blank" if kind == "int?" else ""))
+                else:
+                    self.set_value(sec, key, v)
+            self.open_edit(label, cur, done, secret=(kind == "pw"))
+
+    def map_actions(self, name):
+        acts = []
+        if self.st:
+            acts.append(("Switch to %s now" % name, "now"))
+        acts += [("Make it the starting map", "start"), ("Add it to the rotation", "rot"), ("Cancel", None)]
+
+        def pick(v):
+            if v == "now":
+                def go():
+                    self.send('Server::loadMission("%s");' % _script_text(name))
+                    self.note("Switching to %s..." % name)
+                n = self.players_online()
+                if n:
+                    self.ask("Switch to %s now? %d player(s) online." % (name, n), go)
+                else:
+                    go()
+            elif v == "start":
+                self.set_value("server", "mission", name)
+            elif v == "rot":
+                rot = [m.strip() for m in self.cfg.get("server", "rotation").split(",") if m.strip()]
+                rot.append(name)
+                self.set_value("server", "rotation", ", ".join(rot))
+        self.open_modal(name, acts, pick)
+
+    def player_actions(self, p):
+        def pick(v):
+            if v == "kick":
+                self.ask("Kick %s?" % p["name"], lambda: self.send(
+                    'messageAll(0, "%s was kicked by the server admin."); Net::kick(%s, "You were kicked by the '
+                    'server admin.");' % (_script_text(p["name"]), p["id"])) and self.later_refresh())
+            elif v == "ban":
+                self.ask("Ban %s for 30 minutes?" % p["name"], lambda: self.send(
+                    'BanList::add(Client::getTransportAddress(%s), 1800); messageAll(0, "%s was banned by the '
+                    'server admin."); Net::kick(%s, "You were banned by the server admin.");'
+                    % (p["id"], _script_text(p["name"]), p["id"])) and self.later_refresh())
+        if not p["id"].lstrip("-").isdigit():
+            return
+        self.open_modal(p["name"], [("Kick", "kick"), ("Ban for 30 minutes", "ban"), ("Cancel", None)], pick)
+
+    def later_refresh(self):
+        threading.Timer(1.5, self.refresh_players).start()
+        return True
+
+    def message_all(self):
+        self.open_edit("Message to everyone", "", lambda v: v.strip() and self.send(
+            'messageAll(0, "%s");' % _script_text(v.strip())))
+
+    def store_action(self, row, remove=False):
+        p, pid = row["pack"], row["id"]
+        if remove:
+            if not row["have"]:
+                self.note("%s is not installed." % pid)
+            elif self.st:
+                self.note("Stop the server (F7) before removing a pack.")
+            else:
+                self.ask("Remove %s (%s)?" % (p["title"], pid), lambda: self.run_job(
+                    "store", ["store", "remove", pid], then=lambda rc: self.after_store()))
+            return
+        if p["state"].lower() != "live":
+            self.note("%s is not available yet (%s)." % (pid, p["state"]))
+        elif row["have"] >= p["version"]:
+            self.note("%s is installed and up to date." % pid)
+        elif row["have"] and self.st:
+            self.note("F9 updates %s along with the game (waits for an empty server)." % pid)
+        else:
+            def done(rc):
+                self.after_store()
+                if rc == 0 and p["category"] == "mods" and p["launchMods"]:
+                    word = p["launchMods"][-1].lower()
+                    self.ask("Host %s now? (sets the profile to %s)" % (p["title"], word),
+                             lambda: self.set_profile(word))
+            self.ask("%s %s (%s download)?" % ("Update" if row["have"] else "Install", p["title"], human(row["size"])),
+                     lambda: self.run_job("store", ["store", "install", pid], then=done))
+
+    def after_store(self):
+        self.store = None
+        self.load_store()
+        self.refresh_config()
+
+    # -- input -----------------------------------------------------------------------------
+    def key(self, k):
+        if self.confirm:
+            q, fn = self.confirm
+            self.confirm = None
+            if k in ("y", "Y"):
+                fn()
+            else:
+                self.note("Cancelled.")
+            return
+        if self.edit:
+            e = self.edit
+            if k in ("\n", "\r", curses.KEY_ENTER):
+                self.edit = None
+                e["fn"](e["buf"])
+            elif k == "\x1b":
+                self.edit = None
+            else:
+                e["buf"], e["cur"], _ = _edit_line(e["buf"], e["cur"], k)
+            return
+        if self.modal:
+            m = self.modal
+            items = self.modal_items()
+            if k in ("\n", "\r", curses.KEY_ENTER):
+                self.modal = None
+                if items:
+                    m["fn"](items[min(m["sel"], len(items) - 1)][1])
+            elif k == "\x1b":
+                self.modal = None
+            elif k == curses.KEY_UP:
+                m["sel"] = max(0, m["sel"] - 1)
+            elif k == curses.KEY_DOWN:
+                m["sel"] = min(len(items) - 1, m["sel"] + 1)
+            elif k == curses.KEY_PPAGE:
+                m["sel"] = max(0, m["sel"] - 10)
+            elif k == curses.KEY_NPAGE:
+                m["sel"] = min(len(items) - 1, m["sel"] + 10)
+            elif m["filter"] is not None:
+                m["filter"], _, _ = _edit_line(m["filter"], len(m["filter"]), k)
+                m["sel"] = m["top"] = 0
+            return
+        fkeys = {curses.KEY_F1: 5, curses.KEY_F2: 0, curses.KEY_F3: 1, curses.KEY_F4: 2, curses.KEY_F5: 3,
+                 curses.KEY_F6: 4}
+        if k in fkeys:
+            self.go(fkeys[k])
+        elif k == "\t":
+            self.go((self.screen + 1) % len(TUI_SCREENS))
+        elif k == curses.KEY_BTAB:
+            self.go((self.screen - 1) % len(TUI_SCREENS))
+        elif k == "\x0c":   # Ctrl-L: repaint everything (after another program scribbled on the terminal)
+            self.scr.clear()
+        elif k == curses.KEY_F7:
+            self.act_startstop()
+        elif k == curses.KEY_F8:
+            self.act_restart()
+        elif k == curses.KEY_F9:
+            self.act_update()
+        elif k in (curses.KEY_F10, "\x11", "\x03"):   # F10, Ctrl-Q, Ctrl-C
+            if self.job and self.job.poll() is None:
+                self.ask("'%s' is still running and quitting stops it. Quit anyway?" % self.job_name, self.stop)
+            else:
+                self.stop()
+        else:
+            getattr(self, "key_" + TUI_SCREENS[self.screen].lower())(k)
+
+    def stop(self):
+        self.quit = True
+
+    def go(self, n):
+        self.screen = n
+        name = TUI_SCREENS[n]
+        if name == "Players" and time.time() - self.players_at > 5:
+            self.refresh_players()
+        elif name == "Store" and self.store is None:
+            self.load_store()
+
+    def body_h(self):
+        return max(1, self.H - 6)
+
+    def key_console(self, k):
+        if k in ("\n", "\r", curses.KEY_ENTER):
+            text = self.inp.strip()
+            if text:
+                if self.send(text):
+                    if not self.hist or self.hist[-1] != text:
+                        self.hist.append(text)
+                    self.inp, self.cur, self.hpos, self.scroll = "", 0, None, 0
+            return
+        if k == curses.KEY_UP and self.hist:
+            self.hpos = len(self.hist) - 1 if self.hpos is None else max(0, self.hpos - 1)
+            self.inp = self.hist[self.hpos]
+            self.cur = len(self.inp)
+        elif k == curses.KEY_DOWN and self.hpos is not None:
+            self.hpos += 1
+            if self.hpos >= len(self.hist):
+                self.hpos, self.inp = None, ""
+            else:
+                self.inp = self.hist[self.hpos]
+            self.cur = len(self.inp)
+        elif k == curses.KEY_PPAGE:
+            with self.lock:
+                self.scroll = min(max(0, len(self.lines) - 1), self.scroll + self.body_h() - 1)
+        elif k == curses.KEY_NPAGE:
+            self.scroll = max(0, self.scroll - (self.body_h() - 1))
+        elif k == curses.KEY_END and not self.inp:
+            self.scroll = 0
+        elif k == "\x1b":
+            self.scroll = 0
+        else:
+            self.inp, self.cur, _ = _edit_line(self.inp, self.cur, k)
+
+    def list_move(self, name, k, n):
+        s = self.sel[name]
+        if k == curses.KEY_UP:
+            s -= 1
+        elif k == curses.KEY_DOWN:
+            s += 1
+        elif k == curses.KEY_PPAGE:
+            s -= self.body_h() - 2
+        elif k == curses.KEY_NPAGE:
+            s += self.body_h() - 2
+        elif k == curses.KEY_HOME:
+            s = 0
+        elif k == curses.KEY_END:
+            s = n - 1
+        else:
+            return False
+        self.sel[name] = max(0, min(n - 1, s))
+        return True
+
+    def key_players(self, k):
+        if self.list_move("Players", k, len(self.players)):
+            return
+        if k in ("\n", "\r") and self.players:
+            self.player_actions(self.players[min(self.sel["Players"], len(self.players) - 1)])
+        elif k in ("r", "R"):
+            self.refresh_players()
+        elif k in ("m", "M"):
+            self.message_all()
+
+    def filtered_maps(self):
+        f = self.map_filter.lower()
+
+        def initials(t):   # "ctf" finds "Capture the Flag", "dnd" / "dad" "Defend and Destroy"
+            words = re.findall(r"[a-z0-9]+", t.lower())
+            return "".join(w[0] for w in words), "".join(w[0] for w in words if w not in ("and", "the", "&"))
+        return [r for r in (self.maps or []) if not f or f in r[1].lower() or f in r[0].lower()
+                or f in initials(r[0])]
+
+    def full_mission(self, q):
+        """The status query carries at most 16 characters of the map name (CanyonCrusadeDel);
+        give back the whole name when exactly one map of this profile starts with it."""
+        name = (q or {}).get("mission") or ""
+        if not name:
+            return ""
+        hits = [r[1] for r in (self.maps or []) if r[1].lower().startswith(name.lower())]
+        exact = [h for h in hits if h.lower() == name.lower()]
+        if exact:
+            return exact[0]
+        cfg = self.cfg.get("server", "mission") or self.summary.get("mission", "")
+        if cfg and cfg in hits:
+            return cfg
+        return hits[0] if len(hits) == 1 else name
+
+    def key_maps(self, k):
+        rows = self.filtered_maps()
+        if self.list_move("Maps", k, len(rows)):
+            return
+        if k in ("\n", "\r"):
+            if rows:
+                self.map_actions(rows[min(self.sel["Maps"], len(rows) - 1)][1])
+        elif k == "\x1b":
+            self.map_filter = ""
+        else:
+            self.map_filter, _, _ = _edit_line(self.map_filter, len(self.map_filter), k)
+            self.sel["Maps"] = self.top["Maps"] = 0
+
+    def key_settings(self, k):
+        if self.list_move("Settings", k, len(TUI_FIELDS)):
+            return
+        if k in ("\n", "\r", " "):
+            self.edit_field(TUI_FIELDS[self.sel["Settings"]])
+
+    def key_store(self, k):
+        rows = self.store or []
+        if self.list_move("Store", k, len(rows)):
+            return
+        if k in ("r", "R"):
+            self.store = None
+            self.load_store()
+        elif rows and k in ("\n", "\r", "i", "I"):
+            self.store_action(rows[min(self.sel["Store"], len(rows) - 1)])
+        elif rows and k in ("x", "X"):
+            self.store_action(rows[min(self.sel["Store"], len(rows) - 1)], remove=True)
+
+    def key_help(self, k):
+        self.list_move("Help", k, len(self.help_lines()))
+
+    # -- drawing ---------------------------------------------------------------------------
+    def put(self, y, x, text, attr=0):
+        if y < 0 or y >= self.H or x >= self.W:
+            return
+        text = "".join(c if c.isprintable() else " " for c in text)
+        if self.ascii:
+            text = text.encode("ascii", "replace").decode("ascii")
+        n = self.W - x - (1 if y == self.H - 1 else 0)
+        if n <= 0:
+            return
+        try:
+            self.scr.addnstr(y, x, text, n, attr)
+        except Exception:   # noqa: BLE001 -- curses.error at the edges, encoding on odd locales
+            pass
+
+    def fill(self, y, attr):
+        self.put(y, 0, " " * self.W, attr)
+
+    def color(self, name):
+        return self.colors.get(name, 0) if self.colors else {"head": curses.A_REVERSE, "sel": curses.A_REVERSE,
+                                                             "bad": curses.A_BOLD, "warn": curses.A_BOLD,
+                                                             "key": curses.A_REVERSE}.get(name, 0)
+
+    def line_attr(self, line):
+        low = line.lower()
+        if line.startswith("[tui]") or line.startswith("[tribes-server]"):
+            return self.color("info")
+        if "error" in low or "unknown command" in low or "crash" in low or "failed" in low:
+            return self.color("bad")
+        if "warning" in low:
+            return self.color("warn")
+        if line.startswith("[start]") or line.startswith("[update]") or line.startswith("[store]"):
+            return self.color("ok")
+        return 0
+
+    def draw_header(self):
+        st = self.st
+        self.fill(0, self.color("head"))
+        self.fill(1, self.color("head"))
+        if st:
+            q = st.get("query") or {}
+            state = st["state"]
+            left = " %s " % (q.get("name") or self.summary.get("name", ""))
+            up = st.get("uptime") or 0
+            self.put(0, 0, left, self.color("head"))
+            tag = " %s " % state.upper()
+            good = state == "running" and q
+            self.put(0, len(left) + 1, tag, self.color("okhead" if good else "badhead"
+                                                       if state in ("crash-loop", "config-error") else "warnhead"))
+            self.put(0, len(left) + len(tag) + 2, "up %dh%02dm  restarts %d" % (up // 3600, up // 60 % 60,
+                                                                                  st.get("restarts", 0)),
+                     self.color("head"))
+            inst, latest = st.get("installed") or 0, st.get("latest") or 0
+            parts = []
+            if q:
+                parts.append("%s (%s)" % (self.full_mission(q), q.get("missionType")))
+                parts.append("%d/%d players" % (q.get("players", 0), q.get("max", 0)))
+            else:
+                parts.append("starting (not answering yet)")
+            parts.append("port %s" % st.get("port"))
+            parts.append("v%d%s" % (inst, (" (v%d available)" % latest) if latest > inst else ""))
+            parts.append("auto-update %s" % ("on" if st.get("autoUpdate") else "off"))
+            if st.get("updatePending"):
+                parts.append("UPDATE PENDING (%s)" % st["updatePending"])
+            self.put(1, 0, " " + "  |  ".join(parts), self.color("head"))
+        else:
+            sm = self.summary
+            left = " %s " % (sm.get("name") or "tribes-server")
+            self.put(0, 0, left, self.color("head"))
+            self.put(0, len(left) + 1, " STOPPED ", self.color("badhead"))
+            v = read_int(os.path.join(self.inst.root, VERSION_FILE))
+            info = ("profile %s  |  %s  |  port %s  |  v%d installed  |  F7 starts it" % (
+                sm.get("profile"), sm.get("mission") or "(no map)", sm.get("port"), v)) if sm else \
+                "server.ini has a problem -- see Settings"
+            self.put(1, 0, " " + info, self.color("head"))
+        if self.job and self.job.poll() is None:
+            t = " %s running... " % self.job_name
+            self.put(0, max(0, self.W - len(t) - 1), t, self.color("warnhead"))
+        x = 0
+        for i, n in enumerate(TUI_SCREENS):
+            label = " F%d %s " % ((i + 2) if i < 5 else 1, n)
+            self.put(2, x, label, self.color("sel") if i == self.screen else 0)
+            x += len(label) + 1
+
+    def wrap(self, text, width):
+        if not text:
+            return [""]
+        return [text[i:i + width] for i in range(0, len(text), width)]
+
+    def draw_console(self, y0, h):
+        with self.lock:
+            lines = list(self.lines)
+            scroll = min(self.scroll, max(0, len(lines) - 1))
+        end = len(lines) - scroll
+        rows = []
+        i = end - 1
+        while i >= 0 and len(rows) < h:
+            rows = [(c, self.line_attr(lines[i])) for c in self.wrap(lines[i], self.W)] + rows
+            i -= 1
+        rows = rows[-h:]
+        for n, (text, attr) in enumerate(rows):
+            self.put(y0 + n, 0, text, attr)
+        if scroll:
+            t = " scrolled back %d lines -- PgDn / End / Esc returns to live " % scroll
+            self.put(y0, max(0, self.W - len(t)), t, self.color("sel"))
+
+    def draw_list(self, name, y0, h, header, rows, attrs=None):
+        """rows: list of strings; keeps the selection visible."""
+        self.put(y0, 0, header, self.color("dim") | curses.A_UNDERLINE)
+        h -= 1
+        sel = min(self.sel[name], max(0, len(rows) - 1))
+        top = self.top[name]
+        if sel < top:
+            top = sel
+        elif sel >= top + h:
+            top = sel - h + 1
+        self.top[name] = top
+        for n, r in enumerate(rows[top:top + h]):
+            idx = top + n
+            a = self.color("sel") if idx == sel else (attrs[idx] if attrs else 0)
+            self.put(y0 + 1 + n, 0, r.ljust(self.W), a)
+        if len(rows) > h:
+            self.put(y0, max(0, self.W - 12), " %d/%d " % (sel + 1, len(rows)), self.color("dim"))
+
+    def draw_players(self, y0, h):
+        if not self.st:
+            self.put(y0 + 1, 2, "The server is not running.")
+            return
+        rows = []
+        for p in self.players:
+            team = {"-1": "observer"}.get(p["team"], "team " + p["team"])
+            rows.append("%-8s %-10s %-24s %s" % (p["id"], team, p["addr"] or "-", p["name"]))
+        if not rows:
+            self.put(y0 + 1, 2, "Nobody is on (bots are not listed)." if self.players_at else "Asking the server...")
+            self.put(y0, 0, "%-8s %-10s %-24s %s" % ("ID", "TEAM", "ADDRESS", "NAME"))
+            return
+        self.draw_list("Players", y0, h, "%-8s %-10s %-24s %s" % ("ID", "TEAM", "ADDRESS", "NAME"), rows)
+
+    def draw_maps(self, y0, h):
+        rows = self.filtered_maps()
+        cur = self.full_mission((self.st or {}).get("query")).lower()
+        start = self.cfg.get("server", "mission").lower() or self.summary.get("mission", "").lower()
+        self.put(y0, 0, "Filter: %s_" % self.map_filter if self.map_filter else
+                 "Type to filter by name or game type.  %d maps for profile %s." % (
+                     len(self.maps or []), self.summary.get("profile", "?")), self.color("info"))
+        text = []
+        for t, n, d in rows:
+            mark = "*" if n.lower() == cur else ("s" if n.lower() == start else " ")
+            text.append("%s %-32s %-26s %s" % (mark, n, t, d))
+        if not text:
+            self.put(y0 + 2, 2, "No maps match." if self.maps else (self.settings_err or "No maps found."))
+            return
+        self.draw_list("Maps", y0 + 1, h - 1, "  %-32s %-26s %s" % ("MAP", "TYPE", "FOLDER"), text)
+
+    def draw_settings(self, y0, h):
+        rows = []
+        for sec, key, label, kind in TUI_FIELDS:
+            v = self.cfg.get(sec, key)
+            if kind == "pw":
+                v = "(set)" if v else "(none)"
+            elif v == "":
+                v = "(default)"
+            rows.append("%-26s %s" % (label, v))
+        self.draw_list("Settings", y0, h - 4, "%-26s %s" % ("SETTING", "VALUE   (Enter changes it)"), rows)
+        f = TUI_FIELDS[self.sel["Settings"]]
+        txt = "%s.%s -- %s" % (f[0], f[1], self.help.get((f[0], f[1]), ""))
+        for n, part in enumerate(textwrap.wrap(txt, self.W - 2)[:3]):
+            self.put(y0 + h - 3 + n, 1, part, self.color("info"))
+        if self.settings_err:
+            self.put(y0 + h - 4, 1, "server.ini: " + self.settings_err.splitlines()[-1], self.color("bad"))
+
+    def draw_store(self, y0, h):
+        if self.store_busy and self.store is None:
+            self.put(y0 + 1, 2, "Loading the Asset Store catalog...")
+            return
+        if self.store_err:
+            self.put(y0 + 1, 2, self.store_err, self.color("bad"))
+            return
+        rows, attrs = [], []
+        for r in self.store or []:
+            p = r["pack"]
+            have = ("v%d" % r["have"]) if r["have"] else "-"
+            if r["have"] and r["have"] < p["version"]:
+                have += " (v%d out)" % p["version"]
+            state = "" if p["state"].lower() == "live" else " [%s]" % p["state"]
+            rows.append("%-16s %-8s %-14s %9s  %s%s" % (r["id"], p["category"], have, human(r["size"]),
+                                                        p["title"], state))
+            attrs.append(self.color("ok") if r["have"] else (self.color("dim") if p["category"] != "mods" else 0))
+        self.draw_list("Store", y0, h - 2, "%-16s %-8s %-14s %9s  %s" % ("ID", "TYPE", "INSTALLED", "DOWNLOAD",
+                                                                         "TITLE"), rows, attrs)
+        self.put(y0 + h - 1, 1, "Only 'mods' packs matter on a server; the rest are client-side looks.",
+                 self.color("dim"))
+
+    def help_lines(self):
+        return ("Keys",
+                "  F2-F6 / Tab    switch screens        F1   this help",
+                "  F7  start / stop the server          F8   restart (re-reads server.ini)",
+                "  F9  update (waits for an empty server, or now)",
+                "  F10 / Ctrl-Q   quit this screen -- the server keeps running        Ctrl-L  repaint",
+                "",
+                "Console:   type a command + Enter; Up/Down = history; PgUp/PgDn scroll; End/Esc = live",
+                "           Ctrl-U clear, Ctrl-W delete word, Ctrl-A / Ctrl-E start / end of line",
+                "Players:   Enter = kick / ban;  m = message everyone;  r = refresh",
+                "Maps:      type to filter; Enter = switch now / set starting map / add to rotation",
+                "Settings:  Enter changes a value (saved to server.ini; F8 applies it to a running server)",
+                "Store:     Enter = install / update;  x = remove (server stopped);  r = reload",
+                "") + tuple(ADMIN_HELP.splitlines())
+
+    def draw_help(self, y0, h):
+        lines = self.help_lines()
+        top = min(self.sel["Help"], max(0, len(lines) - h))
+        for n, l in enumerate(lines[top:top + h]):
+            self.put(y0 + n, 1, l, self.color("info") if l and not l.startswith(" ") else 0)
+
+    def modal_items(self):
+        m = self.modal
+        if m["filter"]:
+            f = m["filter"].lower()
+            return [it for it in m["items"] if f in it[0].lower()]
+        return m["items"]
+
+    def draw_modal(self):
+        m = self.modal
+        items = self.modal_items()
+        w = min(self.W - 4, max(40, max([len(i[0]) for i in items] + [len(m["title"])]) + 6))
+        h = min(self.H - 4, len(items) + (4 if m["filter"] is not None else 3))
+        x0, y0 = (self.W - w) // 2, max(1, (self.H - h) // 2)
+        for y in range(h):
+            self.put(y0 + y, x0, " " * w, self.color("box"))
+        self.put(y0, x0 + 2, " %s " % m["title"], self.color("box") | curses.A_BOLD)
+        ly = y0 + 1
+        if m["filter"] is not None:
+            self.put(ly, x0 + 2, "filter: %s_" % m["filter"], self.color("box"))
+            ly += 1
+        vis = h - (ly - y0) - 1
+        m["sel"] = min(m["sel"], max(0, len(items) - 1))
+        if m["sel"] < m["top"]:
+            m["top"] = m["sel"]
+        elif m["sel"] >= m["top"] + vis:
+            m["top"] = m["sel"] - vis + 1
+        for n, (label, _) in enumerate(items[m["top"]:m["top"] + vis]):
+            a = self.color("sel") if m["top"] + n == m["sel"] else self.color("box")
+            self.put(ly + n, x0 + 1, (" " + label).ljust(w - 2)[:w - 2], a)
+        self.put(y0 + h - 1, x0 + 2, " Enter picks, Esc cancels ", self.color("box"))
+
+    def draw(self):
+        self.H, self.W = self.scr.getmaxyx()
+        self.scr.erase()
+        if self.H < 12 or self.W < 60:
+            self.put(0, 0, "Terminal too small (need at least 60x12). F10 quits.")
+            self.scr.refresh()
+            return
+        self.draw_header()
+        y0, h = 3, self.H - 6
+        getattr(self, "draw_" + TUI_SCREENS[self.screen].lower())(y0, h)
+        # message line
+        cursor = None
+        if self.confirm:
+            self.fill(self.H - 3, self.color("warnhead"))
+            self.put(self.H - 3, 1, self.confirm[0] + "  [y/N]", self.color("warnhead"))
+        elif self.edit:
+            e = self.edit
+            shown = "*" * len(e["buf"]) if e["secret"] else e["buf"]
+            pre = "%s: " % e["label"]
+            room = self.W - len(pre) - 3
+            off = max(0, e["cur"] - room)
+            self.fill(self.H - 3, self.color("sel"))
+            self.put(self.H - 3, 1, pre + shown[off:off + room], self.color("sel"))
+            cursor = (self.H - 3, 1 + len(pre) + e["cur"] - off)
+        elif self.msg and time.time() - self.msg_at < 10:
+            self.put(self.H - 3, 1, self.msg, self.color("warn"))
+        # input / hint line
+        if self.screen == 0:
+            pre = "> " if self.st else "(stopped) > "
+            room = self.W - len(pre) - 2
+            off = max(0, self.cur - room)
+            self.put(self.H - 2, 0, pre + self.inp[off:off + room], self.color("ok") if self.st else self.color("dim"))
+            if not (self.edit or self.modal or self.confirm):
+                cursor = (self.H - 2, len(pre) + self.cur - off)
+        else:
+            hint = {"Players": "Enter: kick / ban   m: message everyone   r: refresh",
+                    "Maps": "Type to filter (ctf = Capture the Flag)  Enter: switch/start/rotation  Esc: clear  "
+                            "*=playing s=start",
+                    "Settings": "Up/Down choose   Enter change   (changes are saved to server.ini)",
+                    "Store": "Enter: install / update   x: remove   r: reload",
+                    "Help": "Up/Down scroll"}.get(TUI_SCREENS[self.screen], "")
+            self.put(self.H - 2, 1, hint, self.color("dim"))
+        # footer
+        self.fill(self.H - 1, self.color("key"))
+        self.put(self.H - 1, 0, " F7 %s  F8 Restart  F9 Update  F10 Quit  Tab Next screen  F1 Help" %
+                 ("Stop" if self.st else "Start"), self.color("key"))
+        if self.modal:
+            self.draw_modal()
+            cursor = None
+        try:
+            if cursor:
+                curses.curs_set(1)
+                self.scr.move(cursor[0], min(cursor[1], self.W - 1))
+            else:
+                curses.curs_set(0)
+        except curses.error:
+            pass
+        self.scr.refresh()
+
+    def init_colors(self):
+        self.colors = {}
+        if not curses.has_colors():
+            return
+        try:
+            curses.start_color()
+            curses.use_default_colors()
+            bg = -1
+        except curses.error:
+            bg = curses.COLOR_BLACK
+        spec = {"head": (curses.COLOR_WHITE, curses.COLOR_BLUE), "ok": (curses.COLOR_GREEN, bg),
+                "warn": (curses.COLOR_YELLOW, bg), "bad": (curses.COLOR_RED, bg), "info": (curses.COLOR_CYAN, bg),
+                "sel": (curses.COLOR_BLACK, curses.COLOR_CYAN), "key": (curses.COLOR_BLACK, curses.COLOR_WHITE),
+                "box": (curses.COLOR_WHITE, curses.COLOR_BLUE), "okhead": (curses.COLOR_BLACK, curses.COLOR_GREEN),
+                "warnhead": (curses.COLOR_BLACK, curses.COLOR_YELLOW),
+                "badhead": (curses.COLOR_WHITE, curses.COLOR_RED), "dim": (curses.COLOR_WHITE, bg)}
+        for n, (name, (fg, b)) in enumerate(spec.items(), 1):
+            try:
+                curses.init_pair(n, fg, b)
+                self.colors[name] = curses.color_pair(n)
+            except curses.error:
+                self.colors[name] = 0
+        self.colors["dim"] |= curses.A_DIM
+        self.colors["key"] |= curses.A_BOLD
+
+    def read_escape(self):
+        """curses decodes only the sequences in the terminfo entry for $TERM. PuTTY's default
+        keyboard sends F1-F4 as ESC[11~..ESC[14~ and the Linux console as ESC[[A..ESC[[E; map
+        those, and swallow any other unknown sequence instead of typing it into the console.
+        Returns the key, "\\x1b" for a lone Esc, or None."""
+        esc_keys = {"[11~": curses.KEY_F1, "[12~": curses.KEY_F2, "[13~": curses.KEY_F3, "[14~": curses.KEY_F4,
+                    "[[A": curses.KEY_F1, "[[B": curses.KEY_F2, "[[C": curses.KEY_F3, "[[D": curses.KEY_F4,
+                    "[[E": curses.KEY_F5}
+        seq = ""
+        self.scr.timeout(40)
+        try:
+            while len(seq) < 8:
+                try:
+                    c = self.scr.get_wch()
+                except curses.error:
+                    break
+                if not isinstance(c, str):
+                    curses.ungetch(c)   # a decoded key (Esc then F5, typed fast): keep it
+                    break
+                seq += c
+                if len(seq) >= 2 and (c.isalpha() or c == "~"):
+                    break
+        finally:
+            self.scr.timeout(150)
+        if not seq:
+            return "\x1b"
+        return esc_keys.get(seq)
+
+    def main(self, scr):
+        import locale
+        self.scr = scr
+        enc = (locale.getpreferredencoding(False) or "").lower().replace("-", "")
+        self.ascii = enc != "utf8"
+        self.init_colors()
+        curses.raw()          # Ctrl-C / Ctrl-Q arrive as keys
+        scr.keypad(True)
+        scr.timeout(150)
+        threading.Thread(target=self.poll_status, daemon=True).start()
+        threading.Thread(target=self.pump_console, daemon=True).start()
+        while not self.quit:
+            self.draw()
+            try:
+                k = scr.get_wch()
+            except curses.error:
+                continue
+            except KeyboardInterrupt:
+                break
+            if k == "\x1b":
+                k = self.read_escape()
+                if k is None:
+                    continue
+            if k == curses.KEY_RESIZE:
+                try:
+                    curses.update_lines_cols()
+                except AttributeError:
+                    pass
+                continue
+            try:
+                self.key(k)
+            except Exception as e:   # noqa: BLE001 -- a bug in one action must not kill the screen
+                self.note("Error: %s" % e)
+        self.quit = True
+        with self.lock:
+            s = self.conn
+        if s:
+            try:
+                s.close()
+            except OSError:
+                pass
+        self.save_history()
+
+
+def cmd_tui(a):
+    if os.name != "posix":
+        die("`tui` is for Linux (curses); on Windows use TribesHost.exe")
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        die("`tui` needs an interactive terminal (use `console`, `status` and `logs` in scripts)")
+    if curses is None:
+        die("this Python has no curses module (Debian/Ubuntu ship it with python3)")
+    inst = find_root(a.dir)
+    ensure_config(inst)
+    os.environ.setdefault("ESCDELAY", "25")   # Esc reacts at once instead of after a second
+    try:
+        curses.wrapper(Tui(inst).main)
+    except curses.error as e:
+        die("could not start the terminal UI (%s) -- is TERM set? e.g. TERM=xterm-256color" % e)
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="tribes-server", description="Headless Modern Tribes server host + updater.")
+    ap.add_argument("--dir", help="game folder (default: the folder this script is in)")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    p = sub.add_parser("install", help="download a server install into a folder")
+    p.add_argument("target", nargs="?", help="folder to install into (default: current folder)")
+    p.add_argument("--full", action="store_true", help="everything the client gets (~7.5 GB)")
+    p.add_argument("--manifest", help="manifest URL override")
+    p.add_argument("--channel", help="update channel (dist branch), e.g. nightly")
+    p.add_argument("--jobs", type=int, default=6)
+    p.set_defaults(fn=cmd_install)
+
+    p = sub.add_parser("update", help="update the install from the manifest")
+    p.add_argument("--check", action="store_true", help="only report (exit 10 = update available)")
+    p.add_argument("--full", action="store_true", help="include client-only content")
+    p.add_argument("--verify", action="store_true", help="re-hash every file")
+    p.add_argument("--now", action="store_true", help="running server: update immediately, even with players on")
+    p.add_argument("--jobs", type=int, default=6)
+    p.set_defaults(fn=cmd_update)
+
+    p = sub.add_parser("run", help="run + supervise the server in the foreground")
+    p.add_argument("--update", action="store_true", help="update before starting")
+    p.add_argument("--no-update", action="store_true", help="disable auto-update for this run")
+    p.set_defaults(fn=cmd_run)
+
+    sub.add_parser("start", help="run in the background").set_defaults(fn=cmd_start)
+    sub.add_parser("stop", help="stop the server").set_defaults(fn=cmd_stop)
+    sub.add_parser("restart", help="restart the game (re-reads server.ini)").set_defaults(
+        fn=lambda a: cmd_stop(a, "restart"))
+
+    p = sub.add_parser("status", help="show server status")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_status)
+
+    p = sub.add_parser("console", help="send a console command, or attach interactively")
+    p.add_argument("command", nargs=argparse.REMAINDER)
+    p.add_argument("--wait", type=float, default=1.5, help="seconds to show output after a one-shot command")
+    p.set_defaults(fn=cmd_console)
+
+    p = sub.add_parser("logs", help="show console_server.log")
+    p.add_argument("-f", "--follow", action="store_true")
+    p.add_argument("-n", "--lines", type=int, default=50)
+    p.set_defaults(fn=cmd_logs)
+
+    p = sub.add_parser("config", help="show / set / apply server.ini")
+    p.add_argument("action", nargs="?", default="show",
+                   choices=("show", "set", "apply", "save", "load", "presets", "restore-backup"))
+    p.add_argument("args", nargs="*")
+    p.set_defaults(fn=cmd_config)
+
+    p = sub.add_parser("store", help="Asset Store mods: list / install <id...> / remove <id...>")
+    p.add_argument("action", nargs="?", choices=("list", "install", "remove"), default="list")
+    p.add_argument("ids", nargs="*")
+    p.add_argument("--jobs", type=int, default=6)
+    p.set_defaults(fn=cmd_store)
+
+    sub.add_parser("mods", help="list hostable profiles").set_defaults(fn=cmd_mods)
+    p = sub.add_parser("missions", help="list missions (with game type) for the configured profile")
+    p.add_argument("--type", help="only types containing this, e.g. CTF")
+    p.set_defaults(fn=cmd_missions)
+    sub.add_parser("admin", help="console and in-game admin commands").set_defaults(fn=cmd_admin)
+    sub.add_parser("netcheck", help="public / LAN join address, firewall and port-forward help") \
+        .set_defaults(fn=cmd_netcheck)
+    p = sub.add_parser("systemd", help="print a systemd unit for this install")
+    p.add_argument("--name", help="unit suffix for several servers on one box")
+    p.set_defaults(fn=cmd_systemd)
+    sub.add_parser("doctor", help="check the environment").set_defaults(fn=cmd_doctor)
+    sub.add_parser("tui", help="full-screen terminal UI: live console, players, maps, settings, store") \
+        .set_defaults(fn=cmd_tui)
+
+    a = ap.parse_args()
+    a.fn(a)
+
+
+if __name__ == "__main__":
+    main()
