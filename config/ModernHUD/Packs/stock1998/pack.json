@@ -12,7 +12,6 @@
   },
   "assets": {},
   "prefs": {},
-  "partless": true,
   "stockHuds": [
     {
       "name": "crosshairHud",
@@ -65,6 +64,247 @@
       "visible": true
     }
   ],
-  "parts": [],
+  "parts": [
+    {
+      "id": "health",
+      "slot": "healthenergy",
+      "handle": "ModernHUD::StockHealth",
+      "anchor": "top-left",
+      "offset": [
+        50,
+        7
+      ],
+      "size": [
+        131,
+        35
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawHealth",
+          "body": [
+            "ModernHUDStock::drawHealth(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "energy",
+      "slot": "healthenergy",
+      "handle": "ModernHUD::StockEnergy",
+      "anchor": "top-left",
+      "offset": [
+        50,
+        28
+      ],
+      "size": [
+        131,
+        35
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawEnergy",
+          "body": [
+            "ModernHUDStock::drawEnergy(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "weapon",
+      "slot": "weapon",
+      "handle": "ModernHUD::StockWeapon",
+      "anchor": "top-left",
+      "offset": [
+        0,
+        761
+      ],
+      "size": [
+        64,
+        124
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawWeapon",
+          "body": [
+            "ModernHUDStock::drawWeapon(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "clock",
+      "slot": "clock",
+      "handle": "ModernHUD::StockClock",
+      "anchor": "bottom-left",
+      "offset": [
+        0,
+        0
+      ],
+      "size": [
+        79,
+        18
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawClock",
+          "body": [
+            "ModernHUDStock::drawClock(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "slot": "chat",
+      "handle": "ModernHUD::StockChat",
+      "anchor": "top-left",
+      "offset": [
+        8,
+        24
+      ],
+      "size": [
+        440,
+        102
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawChat",
+          "body": [
+            "ModernHUDStock::drawChat(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "minimap",
+      "slot": "minimap",
+      "handle": "ModernHUD::StockMinimap",
+      "anchor": "top-right",
+      "offset": [
+        8,
+        8
+      ],
+      "size": [
+        316,
+        316
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawMinimap",
+          "body": [
+            "ModernHUDStock::drawMinimap(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "compass",
+      "handle": "ModernHUD::StockCompass",
+      "anchor": "top-right",
+      "offset": [
+        0,
+        376
+      ],
+      "size": [
+        64,
+        64
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawCompass",
+          "body": [
+            "ModernHUDStock::drawCompass(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sensor",
+      "handle": "ModernHUD::StockSensor",
+      "anchor": "top-right",
+      "offset": [
+        384,
+        0
+      ],
+      "size": [
+        32,
+        32
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawSensor",
+          "body": [
+            "ModernHUDStock::drawSensor(%screen);"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reticle",
+      "handle": "ModernHUD::StockReticle",
+      "anchor": "center",
+      "offset": [
+        0,
+        0
+      ],
+      "size": [
+        64,
+        64
+      ],
+      "elements": [
+        {
+          "type": "script",
+          "at": [
+            0,
+            0
+          ],
+          "from": "ModernHUDStock::drawReticle",
+          "body": [
+            "ModernHUDStock::drawReticle(%screen);"
+          ]
+        }
+      ]
+    }
+  ],
   "adapters": []
 }

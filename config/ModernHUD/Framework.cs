@@ -9,6 +9,12 @@
 $ModernHUD::FrameworkVersion = 2;
 $ModernHUD::ResetGeneration = 0;
 
+exec("ModernHUD/StockRouting.cs");
+exec("ModernHUD/StockParts.cs");
+exec("ModernHUD/StockReticle.cs");
+exec("ModernHUD/StockChatMap.cs");
+exec("ModernHUD/PartAppearance.cs");
+
 //----------------------------------------------------------------------------
 // PHASE 1 -- ONE PERSISTENCE IDENTITY PER PACK
 //
@@ -106,6 +112,11 @@ function ModernHUD::posOf(%name)
 
 function ModernHUD::scaleOfPart(%name)
 {
+   // Shared stock previews read the native scale before its first live import.
+   // This lasts only for that part's placement; no saved preference is changed.
+   %previewScale = $ModernHUD::StockPreviewScale[ModernHUD::qualify(%name)];
+   if($ModernHUD::Preview && %previewScale != "")
+      return %previewScale;
    ModernHUD::claimLegacyLayout(%name);
    return $pref::hudScale[ModernHUD::qualify(%name)];
 }
@@ -194,8 +205,31 @@ function ModernHUD::storeAll()
 // Handle names are registered by the pack's handle() helper so the normal
 // $pref::hudPositions namespace is cleared as well and the reset survives a
 // restart instead of being overwritten by an old saved position.
+// A shared part reset is also an explicit choice against legacy migration.
+// Keep this separate from an empty imported seed: a fresh native layout can
+// legitimately have no saved position or size. Blank name resets every shared
+// part, including ones a main-menu preview has not created a live handle for.
+function ModernHUD::markStockReset(%name)
+{
+   if(!$ModernHUD::Enabled || $ModernHUD::PackId == "")
+      return;
+   %names = "healthHud jetPackHud weaponHud clockHud compassHud sensorHUD chatDisplayHud Minimap crosshairHud";
+   for(%i = 0; %i < 9; %i++)
+   {
+      %part = ModernHUDStock::partName(getWord(%names, %i));
+      if(%name == "" || %name == %part)
+      {
+         %q = ModernHUD::qualify(%part);
+         $pref::ModernHUD::StockMigrated[%q] = 1;
+         $pref::ModernHUD::StockMigrationPos[%q] = "reset";
+         $pref::ModernHUD::StockMigrationScale[%q] = "reset";
+      }
+   }
+}
+
 function ModernHUD::resetPositions()
 {
+   ModernHUD::markStockReset("");
    $ModernHUD::ResetGeneration++;
    for(%i = 0; %i < $ModernHUD::HandleCount; %i++)
    {
@@ -432,6 +466,11 @@ function ModernHUD::hasSetting(%key)
 //------------------------------------------------------------------------------
 function ModernHUD::commonSettings()
 {
+   ModernHUDStock::registerAll();
+   // Register before preset restore, including currently hidden panels.
+   ModernHUDStock::settings();
+   ModernHUDStock::chatMapSettings();
+   ModernHUDStock::reticleSettings();
    // ★Opt-out is DECLARED, not inferred.★ The first cut sniffed the pack's row
    // labels for the word "opacity". That is guessing twice over: it depends on a
    // label a pack is free to word differently, and on String::findSubStr being
@@ -470,7 +509,7 @@ function ModernHUD::commonSettings()
    if(!$ModernHUD::OwnCrosshairArt && !ModernHUD::hasSetting("pref::hideCrosshairArt"))
    {
       ModernHUD::setting("enum", "pref::hideCrosshairArt", "Crosshair art",
-                         "0", "On|0;Off|1", "");
+                         "0", "On|0;Off|1", "", "ModernHUD::StockReticle");
    }
 
    // TRUE/FALSE, not 1/0: FearGuiHudList.cpp:114-123 and the crosshair renderer
@@ -479,7 +518,7 @@ function ModernHUD::commonSettings()
    if(!$ModernHUD::OwnSniperCross && !ModernHUD::hasSetting("pref::SniperCrosshair"))
    {
       ModernHUD::setting("enum", "pref::SniperCrosshair", "Sniper crosshair",
-                         "TRUE", "Off|FALSE;On|TRUE", "");
+                         "TRUE", "Off|FALSE;On|TRUE", "", "ModernHUD::StockReticle");
    }
 
    // NETCODE-150 NETHUD: live link readout (rtt, loss, snapshot age, clock offset,
@@ -541,7 +580,7 @@ function ModernHUD::commonSettings()
    if(!ModernHUD::hasSetting("pref::ChatVisibilityMode"))
    {
       ModernHUD::setting("enum", "pref::ChatVisibilityMode", "Chat visibility",
-                         "0", "HUD default|0;Keep visible|1;Hide when idle|2", "", "chatDisplayHud");
+                         "0", "HUD default|0;Keep visible|1;Hide when idle|2", "", "ModernHUD::StockChat");
    }
 
    // The delay is consulted only in mode 2. The K panel walks a flat row registry and
@@ -552,24 +591,24 @@ function ModernHUD::commonSettings()
    if(!ModernHUD::hasSetting("pref::ChatIdleSeconds"))
    {
       ModernHUD::setting("int", "pref::ChatIdleSeconds", "Hide chat after (sec)",
-                         "15", "5|120|5", "", "chatDisplayHud");
+                         "15", "5|120|5", "", "ModernHUD::StockChat");
    }
 
    %cfSpec = ModernHUD::ttfSpec();
    if(%cfSpec != "" && !ModernHUD::hasSetting("pref::ChatFont"))
    {
       ModernHUD::setting("enum", "pref::ChatFont", "Chat font", "Segoe UI",
-                         %cfSpec, "", "chatDisplayHud");
+                         %cfSpec, "", "ModernHUD::StockChat");
    }
    if(!ModernHUD::hasSetting("pref::ChatFontSize"))
    {
       ModernHUD::setting("int", "pref::ChatFontSize", "Chat font size (px, 0 = auto)",
-                         "0", "0|48|1", "", "chatDisplayHud");
+                         "0", "0|48|1", "", "ModernHUD::StockChat");
    }
    if(!ModernHUD::hasSetting("pref::ChatFontBold"))
    {
       ModernHUD::setting("enum", "pref::ChatFontBold", "Chat font weight", "1",
-                         "Semibold|1;Regular|0", "", "chatDisplayHud");
+                         "Semibold|1;Regular|0", "", "ModernHUD::StockChat");
    }
 }
 
@@ -659,12 +698,12 @@ function ModernHUD::stockLabel(%ctrl)
 // opt-out, and it needs no new mechanism.
 function ModernHUD::stock(%ctrl, %default)
 {
-   // ★Never.★ FearGui::Crosshair::onRender drives names, health and jet bars, the
-   // pass helper, friend/foe skulls and target acquisition. A row that hid this
-   // would read "Crosshair: OFF" and silently disable half the HUD.
+   // Reticle pixels use ScriptGL, while the control keeps target acquisition,
+   // names, health bars and the pass helper alive. Visibility is the existing
+   // Crosshair art preference; never hide the target controller.
    if(%ctrl == "crosshairHud")
    {
-      Control::SetVisible(crosshairHud, true);
+      ModernHUD::stockVisible(crosshairHud, true);
       return;
    }
 
@@ -677,7 +716,9 @@ function ModernHUD::stock(%ctrl, %default)
    // never come through here, so they are never registered. Delegates to the
    // explicit API so a pack with its own visibility logic can register the
    // control WITHOUT taking a settings row (ModernHUD::editTarget).
-   ModernHUD::editTarget(%ctrl);
+   %part = ModernHUDStock::partName(%ctrl);
+   if(%part == "")
+      ModernHUD::editTarget(%ctrl);
 
    // ★Compare against QUOTED strings, never against a bare 0.★ The generator emits
    // `true`/`false` here, and compare() (eval.cpp:367-380) promotes the whole
@@ -700,8 +741,10 @@ function ModernHUD::stock(%ctrl, %default)
    {
       // Tagged with the control itself, so the HUD designer lists it under that part
       // (chatDisplayHud, Minimap) when the part is on the preview.
+      %settingPart = %ctrl;
+      if(%part != "") %settingPart = %part;
       ModernHUD::setting("bool", %key, ModernHUD::stockLabel(%ctrl), %dflt, "",
-                         "ModernHUDPack::stockHuds();", %ctrl);
+                         "ModernHUDPack::stockHuds();", %settingPart);
    }
 
    // ModernHUD::setting seeded the default when the pref was unset, so a read
@@ -713,8 +756,8 @@ function ModernHUD::stock(%ctrl, %default)
 
    // Same rule as above: quoted, so a stored "false" and a stored "0" both read
    // as off and neither is decided by a float promotion.
-   if(%v == "0" || %v == "false") { Control::SetVisible(%ctrl, false); }
-   else                           { Control::SetVisible(%ctrl, true);  }
+   if(%v == "0" || %v == "false") { ModernHUD::stockVisible(%ctrl, false); }
+   else                           { ModernHUD::stockVisible(%ctrl, true);  }
 }
 
 // The multipliers the universal rows drive. Read per draw call rather than
@@ -752,6 +795,7 @@ function ModernHUD::settingSet(%key, %value)
 
 function ModernHUD::clearSettings()
 {
+   ModernHUDStock::clear();
    %n = $ModernHUD::SettingCount;
    if(%n == "") %n = 0;
    for(%i = 0; %i < %n; %i++)
@@ -1738,12 +1782,18 @@ function ModernHUD::fitOnScreen(%name, %handle, %defaultPos, %w, %h)
 
    %px = getWord(%pos, 0);
    %py = getWord(%pos, 1);
+   %scale = ModernHUD::scaleOfPart(%name);
+   if(%scale == "") %scale = 1;
+   %scale = ModernHUD::scaleOf(%scale);
+   %w *= %scale; %h *= %scale;
    if(%px >= 0 && %py >= 0 && %px + %w <= %sw && %py + %h <= %sh)
       return "";
 
+   %defaultPos = ModernHUD::clampPartPos(%defaultPos, %w, %h, %sw, %sh);
    // setSessionPos, not a bare position write: it updates the retained resize
    // state too, so the next resize does not walk the part straight back out.
    Hud::setSessionPos(%handle, getWord(%defaultPos, 0), getWord(%defaultPos, 1));
+   $ModernHUD::HandlePos[%name] = %defaultPos;
    if($ModernHUD::Debug)
       echo("[MH-FIT] " @ %name @ " restored to " @ %px @ " " @ %py @
            " (" @ %w @ "x" @ %h @ ") which is outside " @ %sw @ "x" @ %sh @
@@ -1848,24 +1898,30 @@ function ModernHUD::partStyle(%name, %at)
    %scale = ModernHUD::scaleOf(%scale);
    glPartScale(getWord(%at, 0), getWord(%at, 1), %scale);
 
+   ModernHUD::partAppearance(%name);
+   return %scale;
+}
+
+function ModernHUD::partAppearance(%name)
+{
    // HUD DESIGNER: the part's own visibility and opacity (Options -> CONFIGS/HUDS),
    // pack-qualified like its position. Issued for EVERY part, so one part's style
    // never carries into the next. In the preview a hidden part draws faint instead,
    // so it can still be found and switched back on.
    %q = ModernHUD::qualify(%name);
+   %tint = ModernHUD::partTint(%name);
    %op = $pref::ModernHUD::PartAlpha[%q];
    if(%op == "")
       %op = 100;
    if($pref::ModernHUD::PartHide[%q])
    {
       if($ModernHUD::Preview)
-         glPartStyle(0, 0.2);
+         glPartStyle(0, 0.2, %tint);
       else
-         glPartStyle(1, 1);
+         glPartStyle(1, 1, %tint);
    }
    else
-      glPartStyle(0, %op / 100);
-   return %scale;
+      glPartStyle(0, %op / 100, %tint);
 }
 
 // HUD DESIGNER: record one part the preview pass drew. ModernHUD::part calls it; a pack
@@ -1909,6 +1965,30 @@ function ModernHUD::pvRecord(%name, %at, %w, %h, %anchor)
 // position every 0.1s too, so this is faithful, not a new limitation.
 function ModernHUD::dockTo(%name, %target, %dx, %dy, %fallback, %partW, %partH)
 {
+   // Converted decoration follows the immediate owner in both preview and play.
+   // It shares that owner's scale; the retained object's old position is no
+   // longer the visible panel's position after dragging it in the designer.
+   %r = $ModernHUD::ScriptStockRect[%target];
+   if($ModernHUD::ScriptStock[%target] && %r == "")
+   {
+      // The immediate owner yielded its slot or was disabled this pass.
+      // Old retained geometry is not a visible panel to decorate.
+      glPartStyle(1, 1);
+      ModernHUD::editorDecoration(%name);
+      return %fallback;
+   }
+   if($ModernHUD::ScriptStock[%target] && %r != "")
+   {
+      %scale = getWord(%r, 4);
+      %x = getWord(%r, 0) + %dx * %scale;
+      %y = getWord(%r, 1) + %dy * %scale;
+      if(%partW > 0 && %partH > 0)
+         glPartScale(%x, %y, (getWord(%r, 2) - 2 * %dx) * %scale / %partW,
+                            (getWord(%r, 3) - 2 * %dy) * %scale / %partH);
+      ModernHUD::dockedAppearance(%name, %target);
+      ModernHUD::editorDecoration(%name);
+      return %x @ " " @ %y;
+   }
    %pos = Control::GetPosition(%target);
    if(%pos == "")
       return %fallback;
@@ -1954,7 +2034,25 @@ function ModernHUD::dockTo(%name, %target, %dx, %dy, %fallback, %partW, %partH)
    // (engine/console/code/gram.y:119,333) and has NO SPC/TAB/NL operators -- those
    // are TorqueScript, a later engine. SPC here is a hard Syntax error that aborts
    // the REST OF THE FILE, which is why it also took out detachContainer below.
+   ModernHUD::partAppearance(%name);
    return %x @ " " @ %y;
+}
+
+function ModernHUD::dockedAppearance(%name, %target)
+{
+   %owner = ModernHUDStock::partName(%target);
+   %oq = ModernHUD::qualify(%owner);
+   %q = ModernHUD::qualify(%name);
+   %alpha = $pref::ModernHUD::PartAlpha[%q];
+   %ownerAlpha = $pref::ModernHUD::PartAlpha[%oq];
+   if(%alpha == "") %alpha = 100;
+   if(%ownerAlpha == "") %ownerAlpha = 100;
+   %hidden = $pref::ModernHUD::PartHide[%q] || $pref::ModernHUD::PartHide[%oq];
+   %tint = ModernHUD::partTint(%name);
+   if(%hidden && $ModernHUD::Preview)
+      glPartStyle(0, 0.2, %tint);
+   else
+      glPartStyle(%hidden, %alpha * %ownerAlpha / 10000, %tint);
 }
 
 function ModernHUD::hide(%name)
@@ -1974,6 +2072,8 @@ function ModernHUD::hide(%name)
 //----------------------------------------------------------------------------
 function ModernHUD::editTarget(%ctrl)
 {
+   if($ModernHUD::ScriptStock[%ctrl])
+      return;
    HudEditor::addTarget(%ctrl);
 }
 
@@ -2296,6 +2396,7 @@ function ModernHUD::loadProvider(%prov)
    $ModernHUD::ProviderTriedList = $ModernHUD::ProviderTriedList @ %prov @ " ";
    echo("[MODERNHUD] loading components from '" @ %prov @ "' for a borrowed part");
    exec("ModernHUD/Packs/" @ %prov @ "/components.cs");
+   ModernHUD::registerPartSettings(%prov);
 }
 
 // True when the BASE pack should draw this slot itself: nothing borrowed, or the
@@ -2908,8 +3009,10 @@ function ModernHUD::onDraw(%screen)
       $ModernHUD::PvCount = 0;   // ModernHUD::part lists the parts this pass drew
       if(%demo)
          ModernHUD::previewBegin($pref::hudStageScenario);
+      ModernHUDStock::draw(%screen);
       ModernHUDPack::draw(%screen);
       ModernHUD::drawBorrowed(%screen);
+      ModernHUDStock::drawChatInput(%screen);
       if(%demo)
          ModernHUD::previewEnd();
       return;
@@ -2920,12 +3023,14 @@ function ModernHUD::onDraw(%screen)
    // from before a clock reset.
    ModernHUD::toastClock();
 
+   ModernHUDStock::draw(%screen);
    ModernHUDPack::draw(%screen);
 
    // Components borrowed from other providers draw AFTER the base pack, so a
    // borrowed part is never covered by the base pack's own art for that slot.
    // The base pack yields the slot itself (ownsSlot / baseOwns).
    ModernHUD::drawBorrowed(%screen);
+   ModernHUDStock::drawChatInput(%screen);
 
    // NETCODE-150 NETHUD: after the pack and borrowed parts, before the menu.
    ModernHUD::netStats(%screen);
@@ -3092,6 +3197,13 @@ function ModernHUD::previewPos(%name, %defaultPos, %w, %h)
 {
    %rw = getWord($ModernHUD::PreviewReal, 0);
    %rh = getWord($ModernHUD::PreviewReal, 1);
+   %sw = getWord($ModernHUD::PreviewScreen, 0);
+   %sh = getWord($ModernHUD::PreviewScreen, 1);
+   %scale = ModernHUD::scaleOfPart(%name);
+   if(%scale == "") %scale = 1;
+   %scale = ModernHUD::scaleOf(%scale);
+   %w *= %scale; %h *= %scale;
+   %defaultPos = ModernHUD::clampPartPos(%defaultPos, %w, %h, %sw, %sh);
    // The authored spot, for "has the player moved this part?" (configModules.cpp
    // CfgModules_factoryModified). Only when the preview IS the real screen -- at any
    // other size %defaultPos is in the wrong units. ModernHUD::handle records the same
@@ -3151,10 +3263,21 @@ function ModernHUD::previewPos(%name, %defaultPos, %w, %h)
       if(%py > (%rh - %h)) %py = %rh - %h;
       if(%py < 0) %py = 0;
    }
-   %sw = getWord($ModernHUD::PreviewScreen, 0);
-   %sh = getWord($ModernHUD::PreviewScreen, 1);
    %x = ModernHUD::previewAxis(%px, %w, %rw, %sw);
    %y = ModernHUD::previewAxis(%py, %h, %rh, %sh);
+   return ModernHUD::clampPartPos(%x @ " " @ %y, %w, %h, %sw, %sh);
+}
+
+// Dimensions are the displayed extent, including the part and pack scales.
+// If a deliberately oversized part cannot fit, keep its origin on the canvas.
+function ModernHUD::clampPartPos(%pos, %w, %h, %sw, %sh)
+{
+   if(%sw <= 0 || %sh <= 0) return %pos;
+   %x = getWord(%pos, 0); %y = getWord(%pos, 1);
+   if(%x < 0) %x = 0;
+   if(%y < 0) %y = 0;
+   if(%x > max(0, %sw - %w)) %x = floor(max(0, %sw - %w));
+   if(%y > max(0, %sh - %h)) %y = floor(max(0, %sh - %h));
    return %x @ " " @ %y;
 }
 

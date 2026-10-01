@@ -11,6 +11,20 @@
 ModernHUD::require("ModernHUD/Core/Data/Team.cs");
 ModernHUD::require("ModernHUD/Core/Data/Timer.cs");
 
+// Constants belong with the borrowable draw/event functions. A fresh donor
+// load executes this file without executing Overstep's base-pack hud.cs.
+$Overstep::FlagPopupHold = 5000;
+$Overstep::FlagPopupFade = 600;
+$Overstep::ToastyWidth = 401;
+$Overstep::ToastySlide = 200;
+$Overstep::ToastyHold = 800;
+$Overstep::ToastyMinMeters = 50;
+
+// The manifest's status component has three independently movable plates.
+// Seed the two additional plates before the first draw so presets restore them.
+ModernHUD::partTint("ModernHUD::Speed", "overstep");
+ModernHUD::partTint("ModernHUD::Energy", "overstep");
+
 
 function Overstep::handle(%name, %defaultPos, %w, %h)
 {
@@ -149,6 +163,34 @@ function Overstep::minimapAlpha()
 
 function Overstep::drawMinimapFrame(%screen)
 {
+   if($ModernHUD::ScriptStock[Minimap])
+   {
+      // The shared map draws first, including when this decoration is borrowed.
+      // Its same-pass record is authoritative in both the Options preview and
+      // play; the retained Minimap no longer owns visible geometry.
+      %rect = $ModernHUD::ScriptStockRect[Minimap];
+      if(%rect == "")
+         return;
+      %x = getWord(%rect, 0);
+      %y = getWord(%rect, 1);
+      %w = getWord(%rect, 2) - 10;
+      %h = getWord(%rect, 3) - 10;
+      if(%w < 22 || %h < 22)
+         return;
+      // Reissue the owner's scale, tint and opacity after any intervening
+      // parts. Dimensions remain authored pixels under that same transform.
+      // The shared map keeps the base configuration's appearance even when
+      // this decorative frame is borrowed from Overstep.
+      %provider = $ModernHUD::DrawPack;
+      $ModernHUD::DrawPack = "";
+      ModernHUD::partStyle("ModernHUD::StockMinimap", %x @ " " @ %y);
+      $ModernHUD::DrawPack = %provider;
+      glDrawImage(%x + 5, %y + 5, %w, %h,
+                  "Modules/minimap/R1.png", Overstep::minimapAlpha());
+      return;
+   }
+
+   // Compatibility for a framework that has not enabled the ScriptGL owner.
    if(!isObject(Minimap))
       return;
 

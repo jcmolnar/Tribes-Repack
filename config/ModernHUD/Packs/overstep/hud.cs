@@ -139,12 +139,7 @@ function ModernHUDPack::stockHuds()
    ModernHUD::stock(jetPackHud, false);
    ModernHUD::stock(healthHud, false);
    ModernHUD::stock(weaponHud, false);
-   Control::SetVisible(ChatDisplayHUD, true);
-   // Chat/minimap resize handoff: this pack drives chat visibility directly
-   // (no settings row), so it never passed the stock() chokepoint and the chat
-   // was NOT an editor target here. Explicit registration, visibility logic
-   // unchanged.
-   ModernHUD::editTarget(ChatDisplayHUD);
+   ModernHUD::stock(chatDisplayHud, true);
    ModernHUD::stock(Minimap, true);
    Control::SetVisible(reticleCompass, false);
 }
@@ -213,16 +208,25 @@ function ModernHUDPack::draw(%screen)
 {
    ModernHUDPack::detachRetained();
 
-   // Phase 3b parts. No ownsSlot gate: these three have no competing implementation
-   // in any other pack, so there is nothing to yield to -- adding a gate would only
-   // create a slot the picker would list with a single entry.
-   Overstep::drawRepKit(%screen);
-   Overstep::drawLowHealth(%screen);
-   // Same reasoning: no other pack implements a flag banner or a toasty, so there
-   // is no slot to yield. Both early-out unless their event has armed them, so the
-   // cost when idle is one variable read each.
-   Overstep::drawFlagPopup(%screen);
-   Overstep::drawToasty(%screen);
+   // Every offered component yields to Off or an explicit provider selection.
+   // In particular, selecting Overstep itself must not draw the same handle in
+   // this base pass and again through the borrowed-component dispatcher.
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::repkit))
+      Overstep::drawRepKit(%screen);
+   else
+      ModernHUDPack::hideHandle("ModernHUD::RepKit");
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::lowhealth))
+      Overstep::drawLowHealth(%screen);
+   else
+      ModernHUDPack::hideHandle("ModernHUD::LowHealth");
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::flagpopup))
+      Overstep::drawFlagPopup(%screen);
+   else
+      ModernHUDPack::hideHandle("ModernHUD::FlagPopup");
+   if(ModernHUDPack::ownsSlot($pref::HudSlot::toasty))
+      Overstep::drawToasty(%screen);
+   else
+      ModernHUDPack::hideHandle("ModernHUD::Toasty");
 
    if(ModernHUDPack::ownsSlot($pref::HudSlot::minimap))
       Overstep::drawMinimapFrame(%screen);
@@ -281,8 +285,7 @@ ModernHUDPack::detachRetained();
 // (100 steps x 0.006s), only for the local player, and the legacy Drop/Cap reset
 // condition -- which fires when the flag whose team is NOT mine leaves my hands.
 //----------------------------------------------------------------------------
-$Overstep::FlagPopupHold = 5000;    // legacy $popupTime = 5 seconds
-$Overstep::FlagPopupFade = 600;     // legacy 100 steps x 0.006s
+// Hold/fade constants live in components.cs so borrowed banners work on a fresh load.
 
 //----------------------------------------------------------------------------
 // ToastyHUD -- Dan Forden slides in from the right on a 50m+ mid-air.
@@ -305,11 +308,7 @@ $Overstep::FlagPopupFade = 600;     // legacy 100 steps x 0.006s
 // and hiding every control except its own, which has no meaning for immediate-mode
 // parts that are not playGui children. See CONVERSION_NOTES.md.
 //----------------------------------------------------------------------------
-$Overstep::ToastyWidth = 401;       // the shipped toasty.png is 401x401
-$Overstep::ToastySlide = 200;       // ms for the slide in/out
-$Overstep::ToastyHold  = 800;       // ms fully on screen (legacy: anim in at
-                                         // 0.2s, out at 1.0s)
-$Overstep::ToastyMinMeters = 50;    // legacy $MA_METER_DIST
+// Size/timing constants live with the borrowable renderer in components.cs.
 
 // ★One-time: forget the part sizes saved before sizes did anything here.★ Until the HUD
 // designer's stage 6 this pack's parts never drew at their saved size (Overstep::handle had no

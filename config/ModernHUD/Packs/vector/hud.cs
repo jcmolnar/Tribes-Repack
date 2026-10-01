@@ -243,9 +243,9 @@ function ModernHUDPack::stockHuds()
    // owns the concept under its own name, and two rows switching one control
    // would fight on every assertion.
    if($pref::Vector::Minimap == 0)
-      Control::SetVisible(Minimap, false);
+      ModernHUD::stockVisible(Minimap, false);
    else
-      Control::SetVisible(Minimap, true);
+      ModernHUD::stockVisible(Minimap, true);
    // Chat/minimap resize handoff: the dynamic visibility above never passes the
    // stock() chokepoint, so the minimap was NOT an editor target in this pack.
    // Register explicitly -- visibility still gates hit testing, so a hidden

@@ -185,6 +185,7 @@ continuous control does not mint an atlas per step.
 |---|---|
 | `glTicks()` | milliseconds, wall clock. Use for animation; it is frame-rate independent |
 | `glPartScale(originX, originY, sx [, sy])` | scale subsequent draws about a point. Scale 1 = identity reset, and it also drops the part style (`glPartStyle` hide/opacity) |
+| `glPartStyle(hidden, alpha [, "R G B"])` | hide, fade and tint every subsequent draw in the part; alpha 0..1, RGB bytes 0..255, default white |
 
 ★`glPartScale` persists to the END of the whole ScriptGL pass.★ `ModernHUD::part`
 pushes one per part, so anything you draw after your last part call inherits the
@@ -194,6 +195,14 @@ moved a centred panel off-screen and desynchronised every mouse hit-test.
 
 `glEnable` / `glDisable` / `glBlendFunc` exist as **no-ops**, so legacy scripts
 that call them do not error.
+
+Parts placed through `ModernHUD::part` or `ModernHUD::partStyle` automatically
+offer red, green and blue tint controls in the HUD designer. These multiply the
+authored pixels, including converted bitmap-font markup and bar art. `255 255 255`
+restores the original colors; tint does not replace the font or recolor black
+pixels. Preferences belong to the provider and part, so borrowing a component
+preserves its colors independently of the active base configuration. The same
+settings participate in preset save/load and the K menu.
 
 ---
 

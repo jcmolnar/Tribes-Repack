@@ -1,8 +1,7 @@
 // pack: stock1998  (Stock (1998))    -- HAND-AUTHORED ("authoring": "manual")
 //
-// The game as it shipped: every 1998 retained HUD control on, nothing drawn over
-// them, nothing of the 1.40 config era left standing. This pack DRAWS NOTHING --
-// its whole job is what it turns on, what it takes down, and one engine request.
+// The 1998 stock panels, redrawn by the shared ScriptGL parts. The framework
+// draws the enabled defaults; components.cs also exposes them to other packs.
 //
 //   - every stock control visible (health, jetpack, weapon list, compass, clock,
 //     sensor ping, chat, reticle compass, crosshair); each keeps a K-panel row so
@@ -22,19 +21,18 @@
 //     still draw on an RPG server -- that is the suite's business, not this pack's.
 //
 // What stock did NOT have, and this pack therefore does not show: flag status,
-// grenade/beacon counts, kill feed, a minimap. Stock (2026) is the pack that
-// redraws this look as movable, scalable parts.
+// grenade/beacon counts, kill feed, a minimap. The minimap remains opt-in.
 
 exec("ModernHUD/Framework.cs");
 
 $ModernHUD::Enabled = true;
 $ModernHUD::Pack = "Stock (1998)";
 $ModernHUD::PackId = "stock1998";
-// Options > CONFIGS/HUDS says this on the preview: the 1998 controls are the game's own, so the
-// preview shows each as a box (move or resize it there; it looks like itself in game).
-$ModernHUD::PreviewNote = "The 1998 HUD is the game's own controls: each shows as a box you can move or resize.";
+exec("ModernHUD/Packs/stock1998/components.cs");
+$ModernHUD::PreviewNote = "";
 
-// This pack draws nothing, so it owns no slot.
+// Shared routing draws the defaults. Even when this pack is the base, an explicit
+// stock1998/<slot> choice is rendered by its component after shared routing yields.
 function ModernHUDPack::ownsSlot(%value)
 {
    return false;
@@ -128,6 +126,31 @@ function S98::place(%ctrl, %x, %y)
            @ " ok=" @ %ok @ " now@" @ Control::getPosition(%ctrl));
 }
 
+// Re-enabling the layout row explicitly returns the six shared panels to their
+// authored anchors. Ordinary PlayGui opens preserve subsequent editor drags.
+// Size, opacity, colors, and chat/minimap placement remain independently owned.
+function S98::applyLayout()
+{
+   %on = $pref::ModernHUD::stock1998::Layout;
+   %enabled = (%on != "0" && %on != "false");
+   if(%enabled && !$S98::LayoutWasOn)
+   {
+      %names = "Health Energy Weapon Clock Compass Sensor";
+      for(%i = 0; %i < 6; %i++)
+      {
+         %part = "ModernHUD::Stock" @ getWord(%names, %i);
+         %q = ModernHUD::qualify(%part);
+         $pref::hudPositions[%q] = "";
+         $pref::ModernHUD::PartAnchor[%q] = "";
+         $pref::ModernHUD::StockMigrated[%q] = 1;
+         $pref::ModernHUD::StockMigrationPos[%q] = "original-layout";
+         $ModernHUD::ResetPending[%part] = 1;
+      }
+   }
+   $S98::LayoutWasOn = %enabled;
+   S98::layout();
+}
+
 function S98::layout()
 {
    %on = $pref::ModernHUD::stock1998::Layout;
@@ -140,18 +163,18 @@ function S98::layout()
       return;
    if(%w <= 0 || %h <= 0)
       return;
-   S98::place(healthHud,      50,        7);
-   S98::place(jetPackHud,     50,        28);
-   S98::place(clockHud,       0,         %h - 18);
-   S98::place(sensorHUD,      %w - 416,  0);
-   S98::place(compassHud,     %w - 64,   %h * 0.348);
-   S98::place(weaponHud,      0,         %h * 0.705);
+   // The six panels use StockParts' responsive defaults. Only the native
+   // reticle strip still needs an explicit lifecycle placement.
    S98::place(reticleCompass, %w - 184,  %h * 0.223);
 }
 
 function ModernHUDPack::init()
 {
    $Hud::StockChrome = "1";
+   // Preset applyAll re-runs every callback; resetting requires an actual
+   // off-to-on transition, not merely re-applying this pack's settings.
+   $S98::LayoutWasOn = ($pref::ModernHUD::stock1998::Layout != "0" &&
+                        $pref::ModernHUD::stock1998::Layout != "false");
    // The stock reticle is drawn by crosshairHud only while this GLOBAL pref is off.
    // Packs that draw their own reticle (Ascend, Vector) leave it at 1 behind them,
    // and "stock with no crosshair" is not stock. The common K row still offers it.
@@ -160,8 +183,7 @@ function ModernHUDPack::init()
 
 function ModernHUDPack::draw(%screen)
 {
-   // Nothing. The stock controls render themselves; the K panel and its rows are
-   // drawn by the framework.
+   // Shared ScriptGL panels are drawn by the framework, including the designer.
 }
 
 function ModernHUDPack::onPlayGuiOpen()
@@ -211,7 +233,7 @@ function ModernHUDPack::menuReset()
 $ModernHUD::MenuTitle = "STOCK (1998)";
 
 ModernHUD::setting("bool", "pref::ModernHUD::stock1998::Layout",
-   "Original 1998 layout", "1", "", "ModernHUDPack::stockHuds();");
+   "Original 1998 positions (enable to reset)", "1", "", "S98::applyLayout();");
 
 ModernHUD::attach("eventGuiOpen_PlayGui", "ModernHUDPack::onPlayGuiOpen");
 ModernHUD::attach("eventGuiOpen", "ModernHUDPack::onGuiOpen");
