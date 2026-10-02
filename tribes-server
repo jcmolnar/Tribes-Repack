@@ -311,8 +311,10 @@ manifest_url =
 store_url =
 
 [network]
-# Optional UDP reachability service (the same protocol as TribesHost's ProbeUrl):
-# GET <url>?port=N -> {"status": "open|closed|inconclusive", "detail": "..."}.
+# `netcheck`'s Internet UDP test (the same service and rule as TribesHost's ProbeUrl): it asks
+# the service to send this server ONE status query from outside, probing only the address that
+# asked. Blank = the official one (https://kingdomofkronos.com/probe); 0 = never.
+# Protocol: GET <url>?port=N -> "status=open|closed|inconclusive" / "public_ip=" / "detail=" lines.
 probe_url =
 
 [wine]
@@ -321,6 +323,11 @@ wine = wine
 prefix =
 arch = win32
 debug = -all
+
+[tui]
+# Colours of `tribes-server tui`: blue (the original, default), green (Tribes green),
+# amber, cyan, or mono (no colour: bold and reverse only).
+theme = blue
 """
 
 BOOL_TRUE = ("1", "true", "yes", "on")
@@ -1091,7 +1098,8 @@ def _update_game(inst, cfg, check_only, full, verify, jobs, quiet_current):
     exclude = exclude_rules(cfg)
     # the trusted fast path is only valid for the SAME file set it was verified against
     mode = ("full" if full else "server") + ("|" + ",".join(exclude) if exclude else "")
-    say("installed v%d, latest v%d%s" % (local, man["version"], (" -- " + man["notes"]) if man["notes"] else ""))
+    say("%s, latest v%d%s" % ("installed v%d" % local if local else "fresh install", man["version"],
+                              (" -- " + man["notes"]) if man["notes"] else ""))
 
     if inst.is_dev_tree():
         say("devtree.txt present: this tree runs development builds; game files are never updated here")
@@ -1149,6 +1157,8 @@ def _update_game(inst, cfg, check_only, full, verify, jobs, quiet_current):
 # pack claims (b244b1bf). Server-only filter + [update] exclude apply to pack files too.
 # ---------------------------------------------------------------------------------------
 STORE_URL_DEFAULT = "https://raw.githubusercontent.com/jcmolnar/Tribes-Asset-Store/main/store.json"
+# tools/hostprobe, live since 2026-10-02; TribesHost's ProbeUrl uses the same default (hostgui.cpp)
+PROBE_URL_DEFAULT = "https://kingdomofkronos.com/probe"
 PACKS_DIR = "updpacks"
 
 
@@ -1494,8 +1504,47 @@ class Supervisor:
         self.last_answer = 0
         self.ever_answered = False
         self.remote_version = None
-        self.auto_update = cfg.bool("update", "auto_update", False) if auto_update is None else auto_update
+        self.auto_update_override = auto_update   # --no-update pins it off for this run
         self.settings = None
+        self.load_policy()
+
+    # -- supervisor policy: [update] + [supervisor] -----------------------------------------
+    # These steer THIS process, not the game, so they apply live: the loop re-reads them
+    # whenever server.ini changes (the tui's settings screen, `config set`, an editor).
+    # They used to be read once at supervisor start, so turning auto_update on from the
+    # tui did nothing -- not even after F8, which restarts only the game -- until a full
+    # stop + start.
+    def load_policy(self):
+        cfg = self.cfg
+        ov = self.auto_update_override
+        self.auto_update = cfg.bool("update", "auto_update", False) if ov is None else ov
+        self.check_every = max(5, cfg.int("update", "check_minutes", 30)) * 60
+        self.restart_delay = cfg.int("supervisor", "restart_delay", 5)
+        self.loop_limit = cfg.int("supervisor", "crash_loop_restarts", 5)
+        self.hang_timeout = cfg.int("supervisor", "hang_timeout", 180)
+        self.policy_mtime = self.ini_mtime()
+
+    def ini_mtime(self):
+        try:
+            return os.stat(self.inst.config_path).st_mtime_ns
+        except OSError:
+            return None
+
+    def reload_policy_if_changed(self):
+        """True when auto_update was just switched ON (the caller checks for updates now)."""
+        if self.ini_mtime() == self.policy_mtime:
+            return False
+        was = self.auto_update
+        try:
+            self.cfg = Config(self.inst)
+        except (OSError, configparser.Error) as e:
+            self.policy_mtime = self.ini_mtime()   # don't re-report a half-saved file every tick
+            self.note("server.ini changed but could not be read (%s); keeping the current settings" % e)
+            return False
+        self.load_policy()
+        if self.auto_update != was:
+            self.note("auto-update is now %s" % ("on" if self.auto_update else "off"))
+        return self.auto_update and not was
 
     # -- output fan-out --------------------------------------------------------------------
     def emit(self, line):
@@ -1616,9 +1665,11 @@ class Supervisor:
     # -- child lifecycle -----------------------------------------------------------------
     def launch(self):
         self.cfg = Config(self.inst)   # re-read: `restart` picks up server.ini edits
+        self.load_policy()
         self.settings = resolve(self.inst, self.cfg)
         apply_settings(self.inst, self.settings)
         env = ensure_prefix(self.inst, self.cfg)
+        rotate_log(os.path.join(self.inst.root, SERVER_LOG))   # the game is not running here
         args = [wine_bin(self.cfg)] + launch_args(self.inst, self.settings)
         if probe(self.settings.port, 0.5):
             self.note("WARNING: something already answers on UDP %d -- another server?" % self.settings.port)
@@ -1696,16 +1747,19 @@ class Supervisor:
         signal.signal(signal.SIGTERM, on_signal)
         signal.signal(signal.SIGINT, on_signal)
 
-        restart_delay = self.cfg.int("supervisor", "restart_delay", 5)
-        loop_limit = self.cfg.int("supervisor", "crash_loop_restarts", 5)
-        hang_timeout = self.cfg.int("supervisor", "hang_timeout", 180)
-        check_every = max(5, self.cfg.int("update", "check_minutes", 30)) * 60
         next_check = time.time() + 60
         next_probe = 0
+        next_policy = 0
         exit_code = 0 if self.safe_launch() else 3
         while exit_code == 0:
             time.sleep(0.5)
             now = time.time()
+            if now >= next_policy:
+                next_policy = now + 2
+                if self.reload_policy_if_changed():
+                    next_check = now    # just switched on: look for an update right away
+            restart_delay, loop_limit = self.restart_delay, self.loop_limit
+            hang_timeout, check_every = self.hang_timeout, self.check_every
             c = self.child
             if self.stop_requested:
                 self.terminate("stop requested")
@@ -1811,8 +1865,10 @@ def cmd_install(a):
         ini_set(inst, "update", "manifest_url", a.manifest)
     if a.full:
         ini_set(inst, "update", "mode", "full")
-    say("\ninstalled in %s\nnext:\n  cd %s\n  nano %s        # name, profile, passwords\n"
-        "  ./tribes-server run      # or: ./tribes-server systemd\n"
+    say("\ninstalled in %s\nnext:\n  cd %s\n  nano %s        # name, profile, admin password; public = true to be listed\n"
+        "  ./tribes-server start    # or run it as a service: ./tribes-server systemd\n"
+        "  ./tribes-server netcheck # join address + firewall; also open UDP port and port+2\n"
+        "                           # in your VPS provider's firewall\n"
         "full guide: LINUX-SERVER-GUIDE.md in that folder, or\n"
         "  https://github.com/jcmolnar/Tribes-Repack/blob/main/LINUX-SERVER-GUIDE.md"
         % (inst.root, shlex.quote(inst.root), CONFIG_NAME))
@@ -1868,6 +1924,21 @@ def cmd_run(a):
     sys.exit(sup.main())
 
 
+LOG_ROTATE_BYTES = 50 * 1024 * 1024
+
+
+def rotate_log(path):
+    """A server meant to stay up for months on a small VPS disk must not grow its logs forever:
+    past LOG_ROTATE_BYTES the log becomes <name>.1 (one old copy kept, the older one dropped).
+    Only called while nothing has the file open -- the game holds console_server.log open
+    for its whole run, so it rotates at (re)launch, not mid-run."""
+    try:
+        if os.path.getsize(path) > LOG_ROTATE_BYTES:
+            os.replace(path, path + ".1")
+    except OSError:
+        pass
+
+
 def cmd_start(a):
     if os.name != "posix":
         die("`start` is for Linux")
@@ -1877,6 +1948,7 @@ def cmd_start(a):
         say("already running")
         return
     inst.ensure_state()
+    rotate_log(os.path.join(inst.state, "supervisor.log"))
     log = open(os.path.join(inst.state, "supervisor.log"), "ab")
     subprocess.Popen([sys.executable, os.path.abspath(__file__), "--dir", inst.root, "run"],
                      stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
@@ -2094,6 +2166,8 @@ def cmd_config(a):
             # a typo would otherwise be written, ignored, and look like it worked
             die("unknown setting '%s.%s'. Settings:\n  %s" % (sec, key, "\n  ".join(
                 "%s.%s" % (s_, k) for s_ in known.sections() for k in known.options(s_))))
+        if (sec, key) == ("tui", "theme") and a.args[1].lower() not in TUI_THEMES:
+            die("unknown theme '%s'. Themes: %s" % (a.args[1], ", ".join(TUI_THEMES)))
         ini_set(inst, sec, key, a.args[1])
         cfg = Config(inst)
     s = resolve(inst, cfg)
@@ -2206,11 +2280,11 @@ Server console (`tribes-server console`) runs commands AS the server -- no login
                                   use `tribes-server stop` to stay stopped)
 
 In-game, from a player's console (~ key) -- log in first with the admin password:
-  AdminPassword("password");      log in as admin (a wrong password gives NO reply)
-  SetPassword("password");        set or clear the join password
-  SetTimeLimit(minutes);          change the mission time limit
-  SetTeamInfo(team, "name", "skin");  rename or reskin a team
-  CycleMission();                 advance to the next map in the rotation
+  SAD("password");                log in as admin (a wrong password gives NO reply)
+  remoteEval(2048, SetPassword, "password");   set or clear the join password
+  remoteEval(2048, SetTimeLimit, minutes);     change the mission time limit
+  remoteEval(2048, SetTeamInfo, team, "name", "skin");  rename or reskin a team
+  remoteEval(2048, CycleMission);              advance to the next map in the rotation
   CasterGrant(clientId, 1);       grant caster tools (0 revokes; target must be observing)
   VoteYes(); / VoteNo();          cast a vote (any player)
 Kick and ban are menu-only by design: use the in-game admin menu.
@@ -2261,16 +2335,32 @@ def cmd_netcheck(a):
         % (s.port, s.port + 2, lan or "this machine"))
     if not s.public:
         say("  note: public = false -- the server is not announced on the master list")
-    url = cfg.get("network", "probe_url")
+    url = cfg.get("network", "probe_url") or PROBE_URL_DEFAULT
+    if url.lower() in ("0", "off"):
+        url = ""
     if url:
         try:
             with http_open(url + ("&" if "?" in url else "?") + "port=%d" % s.port, timeout=15) as r:
-                body = json.loads(r.read(65536).decode("utf-8", "replace"))
-            say("  Internet UDP test:     %s %s" % (body.get("status", "?"), body.get("detail", "")))
+                text = r.read(65536).decode("utf-8", "replace")
+            # tools/hostprobe replies "key=value" lines -- what TribesHost parses (hostgui.cpp
+            # responseValue). This used to json.loads() it and failed on the real service.
+            try:
+                body = json.loads(text)
+            except ValueError:
+                body = dict(l.split("=", 1) for l in text.splitlines() if "=" in l)
+            say("  Internet UDP test:     %s -- %s" % (body.get("status", "?"), body.get("detail", "")))
+            if body.get("status") == "open":
+                say("  ok   players on the Internet can reach this server")
+            elif st:
+                say("  !!   the server runs here but did not answer from outside: open UDP %d and %d in"
+                    "\n       the VPS provider's firewall / security group (or forward them on your router)"
+                    % (s.port, s.port + 2))
+            else:
+                say("  --   start the server, then run netcheck again for a real answer")
         except Exception as e:   # noqa: BLE001
             say("  Internet UDP test failed: %s" % e)
     else:
-        say("  (full Internet UDP test needs [network] probe_url, the same optional service TribesHost uses)")
+        say("  (Internet UDP test is off: [network] probe_url = 0)")
 
 
 def cmd_systemd(a):
@@ -2362,8 +2452,49 @@ TUI_PLAYERS_CMD = ('echo("[tui-pl] BEGIN"); for(%c = Client::getFirst(); %c != -
                    'echo("[tui-pl] P|" @ %c @ "|" @ Client::getTeam(%c) @ "|" @ Client::getTransportAddress(%c) '
                    '@ "|" @ Client::getName(%c)); echo("[tui-pl] END");')
 
+# tui colour themes: name -> (description, {role: (fg, bg, attrs)}). Colours are the 8 basic
+# curses names (the ones every SSH client and the Linux console draw alike); bg "default" =
+# the terminal's own background; fg None = no colour pair, attributes only. Attrs: b=bold,
+# d=dim, r=reverse. Role "body" is the plain-text colour (painted as the window background).
+# ★Never bold BLACK text on a coloured bar★ -- most terminals draw bold black as dark grey,
+# which made the green theme's F-key bar unreadable in its first render. ("blue" keeps its
+# original bold key bar on purpose: it is the original look, unchanged.)
+TUI_THEMES = {
+    "blue": ("The original (default): blue bars on your terminal's own background", {
+        "body": None, "head": ("white", "blue", ""), "ok": ("green", "default", ""),
+        "warn": ("yellow", "default", ""), "bad": ("red", "default", ""), "info": ("cyan", "default", ""),
+        "sel": ("black", "cyan", ""), "key": ("black", "white", "b"), "box": ("white", "blue", ""),
+        "title": ("white", "blue", "b"), "okhead": ("black", "green", ""),
+        "warnhead": ("black", "yellow", ""), "badhead": ("white", "red", ""), "dim": ("white", "default", "d")}),
+    "green": ("Tribes green on black", {
+        "body": ("green", "black", ""), "head": ("black", "green", ""), "ok": ("green", "black", "b"),
+        "warn": ("yellow", "black", ""), "bad": ("red", "black", ""), "info": ("green", "black", "b"),
+        "sel": ("black", "white", ""), "key": ("black", "green", ""), "box": ("black", "green", ""),
+        "title": ("green", "black", "b"), "okhead": ("green", "black", "b"),
+        "warnhead": ("black", "yellow", ""), "badhead": ("white", "red", ""), "dim": ("green", "black", "d")}),
+    "amber": ("Amber terminal on black", {
+        "body": ("yellow", "black", ""), "head": ("black", "yellow", ""), "ok": ("yellow", "black", "b"),
+        "warn": ("white", "black", "b"), "bad": ("red", "black", "b"), "info": ("yellow", "black", "b"),
+        "sel": ("black", "white", ""), "key": ("black", "yellow", ""), "box": ("black", "yellow", ""),
+        "title": ("yellow", "black", "b"), "okhead": ("yellow", "black", "b"),
+        "warnhead": ("black", "white", ""), "badhead": ("white", "red", ""), "dim": ("yellow", "black", "d")}),
+    "cyan": ("Cyan on black", {
+        "body": ("cyan", "black", ""), "head": ("black", "cyan", ""), "ok": ("cyan", "black", "b"),
+        "warn": ("yellow", "black", ""), "bad": ("red", "black", ""), "info": ("cyan", "black", "b"),
+        "sel": ("black", "white", ""), "key": ("black", "cyan", ""), "box": ("black", "cyan", ""),
+        "title": ("cyan", "black", "b"), "okhead": ("cyan", "black", "b"),
+        "warnhead": ("black", "yellow", ""), "badhead": ("white", "red", ""), "dim": ("cyan", "black", "d")}),
+    "mono": ("No colour: bold and reverse only (any terminal, colour-blind friendly)", {
+        "body": None, "head": (None, None, "r"), "ok": (None, None, "b"), "warn": (None, None, "b"),
+        "bad": (None, None, "b"), "info": (None, None, "b"), "sel": (None, None, "rb"),
+        "key": (None, None, "r"), "box": (None, None, "r"), "title": (None, None, "b"),
+        "okhead": (None, None, "b"), "warnhead": (None, None, "rb"), "badhead": (None, None, "rb"),
+        "dim": (None, None, "d")}),
+}
+TUI_THEME_DEFAULT = "blue"   # Joe, 2026-10-02: the original stays the default; green is opt-in
+
 # (section, key, label, kind). kind: text | pw | int | int? (blank allowed) | bool | profile |
-# mission | choice:a,b (an empty choice = blank = default)
+# mission | theme | choice:a,b (an empty choice = blank = default)
 TUI_FIELDS = (
     ("server", "profile", "Mod (profile)", "profile"),
     ("server", "name", "Server name", "text"),
@@ -2394,6 +2525,7 @@ TUI_FIELDS = (
     ("supervisor", "restart_delay", "Restart delay, seconds", "int"),
     ("supervisor", "crash_loop_restarts", "Crash-loop limit", "int"),
     ("supervisor", "hang_timeout", "Hang timeout, seconds", "int"),
+    ("tui", "theme", "Colour theme", "theme"),
 )
 
 # Help for keys that have no comment of their own in DEFAULT_INI (that text is the rest).
@@ -2401,7 +2533,7 @@ TUI_HELP_EXTRA = {
     ("server", "name"): "Shown in the server browser.",
     ("server", "max_players"): "1 to 128.",
     ("server", "join_password"): "Players need this to join. Blank = anyone can join.",
-    ("server", "admin_password"): "Admins log in from a player's console: AdminPassword(\"password\"); "
+    ("server", "admin_password"): "Admins log in from a player's console: SAD(\"password\"); "
                                   "RPG / Red Moon: sets all five admin levels.",
     ("server", "motd"): "Shown to players when they join. Use \\n for a line break.",
     ("server", "bots_team1"): "Per-team bot caps; blank = full roster.",
@@ -2412,6 +2544,8 @@ TUI_HELP_EXTRA = {
     ("server", "require_current_client"): "modern150 netcode only: refuse out-of-date clients.",
     ("server", "cheat_observe"): "Log-only cheat observation warnings in the server log.",
     ("update", "check_minutes"): "How often a running server with auto-update on looks for updates.",
+    ("tui", "theme"): "Colours of this screen only; applies at once. blue (the original, default), green, "
+                      "amber, cyan or mono.",
 }
 
 
@@ -2751,14 +2885,23 @@ class Tui:
     def set_value(self, sec, key, value):
         ini_set(self.inst, sec, key, value)
         self.refresh_config()
-        if self.settings_err:
+        if sec == "tui":
+            self.init_colors()
+            self.scr.clear()     # repaint every cell in the new colours
+            self.note("Theme: %s." % self.theme_name())
+        elif self.settings_err:
             self.note("Saved, but: %s" % self.settings_err.splitlines()[-1])
+        elif sec in ("update", "supervisor"):
+            # Supervisor.reload_policy_if_changed picks these up within ~2 s; no restart.
+            self.note("Saved. %s" % ("Applied to the running server." if self.st else "Used at the next start."))
         else:
             self.note("Saved. %s" % ("F8 restarts the server to use it." if self.st else "Used at the next start."))
 
     def set_profile(self, word):
-        """A map from the old mod would not exist in the new one: the map goes back to default."""
-        ini_set(self.inst, "server", "mission", "")
+        """A map from the old mod would not exist in the new one: the map goes back to default.
+        Re-picking the CURRENT mod keeps the map (it used to clear it too)."""
+        if word.lower() != self.cfg.get("server", "profile").lower():
+            ini_set(self.inst, "server", "mission", "")
         self.set_value("server", "profile", word)
 
     def open_modal(self, title, items, fn, filterable=False):
@@ -2777,6 +2920,12 @@ class Tui:
             opts = kind[7:].split(",")
             self.open_modal(label, [(o or "(blank: default)", o) for o in opts],
                             lambda v: v is not None and self.set_value(sec, key, v))
+        elif kind == "theme":
+            names = list(TUI_THEMES)
+            items = [("%-7s %s" % (n, TUI_THEMES[n][0]), n) for n in names]
+            self.open_modal(label, items, lambda v: v is not None and self.set_value(sec, key, v))
+            if cur in names:
+                self.modal["sel"] = names.index(cur)
         elif kind == "profile":
             profs, _ = _quiet(load_profiles, self.inst)
             self.open_modal("Mod (profile)", [("%-14s %s" % (p.key, p.label), p.key) for p in profs or []],
@@ -3094,7 +3243,8 @@ class Tui:
     def color(self, name):
         return self.colors.get(name, 0) if self.colors else {"head": curses.A_REVERSE, "sel": curses.A_REVERSE,
                                                              "bad": curses.A_BOLD, "warn": curses.A_BOLD,
-                                                             "key": curses.A_REVERSE}.get(name, 0)
+                                                             "key": curses.A_REVERSE, "box": curses.A_REVERSE,
+                                                             "title": curses.A_BOLD}.get(name, 0)
 
     def line_attr(self, line):
         low = line.lower()
@@ -3302,7 +3452,7 @@ class Tui:
         x0, y0 = (self.W - w) // 2, max(1, (self.H - h) // 2)
         for y in range(h):
             self.put(y0 + y, x0, " " * w, self.color("box"))
-        self.put(y0, x0 + 2, " %s " % m["title"], self.color("box") | curses.A_BOLD)
+        self.put(y0, x0 + 2, " %s " % m["title"], self.color("title"))
         ly = y0 + 1
         if m["filter"] is not None:
             self.put(ly, x0 + 2, "filter: %s_" % m["filter"], self.color("box"))
@@ -3381,26 +3531,46 @@ class Tui:
         self.colors = {}
         if not curses.has_colors():
             return
-        try:
-            curses.start_color()
-            curses.use_default_colors()
-            bg = -1
-        except curses.error:
-            bg = curses.COLOR_BLACK
-        spec = {"head": (curses.COLOR_WHITE, curses.COLOR_BLUE), "ok": (curses.COLOR_GREEN, bg),
-                "warn": (curses.COLOR_YELLOW, bg), "bad": (curses.COLOR_RED, bg), "info": (curses.COLOR_CYAN, bg),
-                "sel": (curses.COLOR_BLACK, curses.COLOR_CYAN), "key": (curses.COLOR_BLACK, curses.COLOR_WHITE),
-                "box": (curses.COLOR_WHITE, curses.COLOR_BLUE), "okhead": (curses.COLOR_BLACK, curses.COLOR_GREEN),
-                "warnhead": (curses.COLOR_BLACK, curses.COLOR_YELLOW),
-                "badhead": (curses.COLOR_WHITE, curses.COLOR_RED), "dim": (curses.COLOR_WHITE, bg)}
-        for n, (name, (fg, b)) in enumerate(spec.items(), 1):
+        if not getattr(self, "colors_started", False):
             try:
-                curses.init_pair(n, fg, b)
-                self.colors[name] = curses.color_pair(n)
+                curses.start_color()
+                self.colors_started = True
             except curses.error:
-                self.colors[name] = 0
-        self.colors["dim"] |= curses.A_DIM
-        self.colors["key"] |= curses.A_BOLD
+                return
+            try:
+                curses.use_default_colors()   # lets a theme say bg "default" (the original look)
+                self.default_bg = -1
+            except curses.error:
+                self.default_bg = curses.COLOR_BLACK
+        names = {"black": curses.COLOR_BLACK, "red": curses.COLOR_RED, "green": curses.COLOR_GREEN,
+                 "yellow": curses.COLOR_YELLOW, "blue": curses.COLOR_BLUE, "magenta": curses.COLOR_MAGENTA,
+                 "cyan": curses.COLOR_CYAN, "white": curses.COLOR_WHITE, "default": self.default_bg}
+        flags = {"b": curses.A_BOLD, "d": curses.A_DIM, "r": curses.A_REVERSE}
+        spec = TUI_THEMES[self.theme_name()][1]
+        for n, (role, entry) in enumerate(spec.items(), 1):
+            if entry is None:
+                self.colors[role] = 0
+                continue
+            fg, bg, attrs = entry
+            a = 0
+            for ch in attrs:
+                a |= flags[ch]
+            if fg is not None:
+                try:
+                    curses.init_pair(n, names[fg], names[bg])
+                    a |= curses.color_pair(n)
+                except curses.error:
+                    pass
+            self.colors[role] = a
+        try:
+            # plain text (attr 0) draws in the body colour; 0 = the terminal's own colours
+            self.scr.bkgd(" ", self.colors.get("body", 0))
+        except curses.error:
+            pass
+
+    def theme_name(self):
+        t = (self.cfg.get("tui", "theme") if getattr(self, "cfg", None) else "").lower()
+        return t if t in TUI_THEMES else TUI_THEME_DEFAULT
 
     def read_escape(self):
         """curses decodes only the sequences in the terminfo entry for $TERM. PuTTY's default

@@ -477,6 +477,8 @@ if($DiagReset::skip != 1) {
 	$DiagReset::list = $DiagReset::list @ " shapeViewDiag skinDiag skyShipDiag srvProfLog stormBoltDiag texLoadDiag uiBoxDiag uiBtnDiag";
 	$DiagReset::list = $DiagReset::list @ " uiEditMissionDiag uiInvDiag uiPlateDiag uiRectDiag uiScopeDiag uiSdfDiag uiSurfDiag uiTextDiag";
 	$DiagReset::list = $DiagReset::list @ " uiThemeCoverageDiag uiThemeScanDiag uiVideoDiag viewLagDiag visDistDiag xhairDiag";
+	// SCRIPT-NUMERIC 2026-10-02: both absent == "0" (fast paths on, no [SCRIPTNUM] lines).
+	$DiagReset::list = $DiagReset::list @ " scriptNumCrtDiag scriptNumDiag";
 	for(%i = 0; (%dg = getWord($DiagReset::list, %i)) != -1; %i++) {
 		if($pref::[%dg] != "" && $pref::[%dg] != "0") {
 			echo("[DIAGRESET] $pref::" @ %dg @ " was " @ $pref::[%dg] @ " -- forcing 0 (see nativeDefaults.cs)");

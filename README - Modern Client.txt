@@ -304,10 +304,10 @@ HOSTING ON LINUX (no desktop needed)
   1. Install Python 3 and 32-bit Wine. Debian / Ubuntu:
        sudo dpkg --add-architecture i386
        sudo apt update
-       sudo apt install --no-install-recommends python3 wine wine32:i386
+       sudo apt install --no-install-recommends python3 wine wine32:i386 wget ca-certificates
   2. Download the installer and install a server:
-       wget https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/main/tribes-server
-       python3 tribes-server install ~/tribes
+       wget -O tribes-server-setup https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/main/tribes-server
+       python3 tribes-server-setup install ~/tribes
   3. Edit ~/tribes/server.ini (name, profile, passwords, map
      rotation, bots), then start it:
        cd ~/tribes

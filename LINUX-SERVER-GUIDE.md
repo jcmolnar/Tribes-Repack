@@ -57,11 +57,12 @@ You need Wine **with 32-bit support**.
 ```bash
 sudo dpkg --add-architecture i386
 sudo apt update
-sudo apt install --no-install-recommends python3 wine wine32:i386
+sudo apt install --no-install-recommends python3 wine wine32:i386 wget ca-certificates
 ```
 
 `--no-install-recommends` keeps it small: the server needs none of the graphics or audio
-extras Wine normally pulls in.
+extras Wine normally pulls in. `wget` is for the next step; minimal server images often
+leave it out.
 
 **Other distros** (untested): install your distribution's `wine` package with its 32-bit
 (multilib) parts, plus `python3`.
@@ -78,9 +79,14 @@ python3 --version
 Download the installer and install into a folder of your choice (here `~/tribes`):
 
 ```bash
-wget https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/main/tribes-server
-python3 tribes-server install ~/tribes
+wget -O tribes-server-setup https://raw.githubusercontent.com/jcmolnar/Tribes-Repack/main/tribes-server
+python3 tribes-server-setup install ~/tribes
 ```
+
+`-O tribes-server-setup` names the download, so it works even if the folder you are in
+already has something called `tribes-server` (without it, wget stops with
+"Is a directory"). The install puts its own `tribes-server` in `~/tribes`; you can
+delete `tribes-server-setup` afterwards.
 
 This downloads the **server-only** set: everything a server needs, without the
 client-only HD textures, player skins, videos, music, sky art and fonts (about 4 GB
@@ -113,7 +119,22 @@ The first install writes `server.ini` in the install folder. Edit it with any te
 ./tribes-server config            # show what will be used
 ```
 
-Changes take effect the next time the server starts (`./tribes-server restart`).
+**For a server people can find and you can run**, set an admin password and list it.
+A new server is unlisted and has no admin login until you do:
+
+```bash
+PW=$(LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 12)
+./tribes-server config set server.admin_password "$PW" >/dev/null && echo "Admin password: $PW"
+./tribes-server config set server.public true
+```
+
+That picks a random admin password and prints it (or set your own:
+`config set server.admin_password "..."`). Admins log in from the game console (`~`) with
+`SAD("the password");`. Then open the ports: see [Ports, firewall and letting players in](#11-ports-firewall-and-letting-players-in).
+
+Changes to `[server]` take effect the next time the server starts (`./tribes-server restart`).
+Changes to `[update]` and `[supervisor]` (auto-update, check interval, restart rules) apply
+to a running server within a few seconds, with no restart.
 
 `server.ini` holds your passwords, so it is created readable only by you.
 
@@ -286,7 +307,7 @@ alongside the service from section 7, and several people can have it open at onc
 | **F2 Console** | The live server console. Type a command, Enter runs it. Up/Down = command history (kept between sessions), PgUp/PgDn scroll back, End or Esc = back to live. |
 | **F3 Players** | Who is on: client id, team, address, name. Enter on a player = **kick** or **ban for 30 minutes**. `m` = message everyone, `r` = refresh. Bots are not listed. |
 | **F4 Maps** | Every map for the current mod, with its game type. Type to filter by part of a name or a type -- or a type's initials (`ctf` finds every Capture the Flag map). Enter = **switch to it now**, make it the **starting map**, or **add it to the rotation**. `*` marks the map being played. |
-| **F5 Settings** | Everything in `server.ini`'s `[server]` section plus auto-update and the restart rules, with the explanation of the selected one underneath. Enter changes it: on/off settings flip, the mod and the map are picked from a list, text is typed in. Saved straight to `server.ini` (your comments are kept); **F8** applies it to a running server. Changing the mod resets the map to that mod's default. |
+| **F5 Settings** | Everything in `server.ini`'s `[server]` section plus auto-update and the restart rules, with the explanation of the selected one underneath. Enter changes it: on/off settings flip, the mod and the map are picked from a list, text is typed in. Saved straight to `server.ini` (your comments are kept); **F8** applies a game setting to a running server, while auto-update and the restart rules apply on their own within a few seconds. The last row, **Colour theme**, switches this screen between blue (the original look, and the default), Tribes green, amber, cyan and mono (no colour) at once; it is saved as `[tui] theme` in `server.ini`. Changing the mod resets the map to that mod's default. |
 | **F6 Store** | The Asset Store: what is installed, what has an update, download sizes. Enter = install or update, `x` = remove (server stopped). After installing a mod it offers to host it. |
 | **F1 Help** | Keys, and the admin command cheat sheet. |
 
@@ -329,7 +350,7 @@ live. Ctrl-D or Ctrl-C leaves the console; **the server keeps running**:
 ```
 
 lists the commands for the server console (no login needed there) and for players'
-in-game console (they log in with `AdminPassword("your password");`). To kick or ban, use
+in-game console (they log in with `SAD("your password");`). To kick or ban, use
 the Players screen in `tui`, or the in-game admin menu.
 
 ## 9. Updates
