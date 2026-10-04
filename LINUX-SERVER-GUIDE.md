@@ -210,6 +210,12 @@ to a running server within a few seconds, with no restart.
 ./tribes-server config set server.mission Broadside
 ```
 
+Switching mods: `mods`, `mission` and `rotation` belong to the mod they were set for. Picking a
+different mod in the `tui` clears all three; `config set server.profile` leaves them and prints a
+note -- a leftover `mods = Duel` keeps launching Duel whatever the profile says. A change only takes
+effect after a restart (F8 in the `tui`); while the running mod differs from the saved one the `tui`
+header shows `SAVED <mod> -- F8 to apply`.
+
 Included in the download: **base Tribes, Tribes RPG, Mech Mayhem, War40k, SEX, TSC**
 (plus small content folders) -- each of these was hosted and checked on Linux. More mods come from the Asset Store -- see
 [section 10](#10-asset-store-mods).

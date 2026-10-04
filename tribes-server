@@ -1499,6 +1499,7 @@ class Supervisor:
         self.state = "starting"
         self.started_at = 0
         self.restarts = 0
+        self.generation = 0              # launches so far (status: proves a restart happened)
         self.rapid = 0
         self.status = None
         self.last_answer = 0
@@ -1618,7 +1619,12 @@ class Supervisor:
                     os.path.join(self.inst.root, VERSION_FILE)),
                 "latest": self.remote_version, "mode": st.get("mode"), "autoUpdate": self.auto_update,
                 "updatePending": self.update_requested,
-                "port": self.settings.port if self.settings else None}
+                "port": self.settings.port if self.settings else None,
+                # what was LAUNCHED (not what server.ini now says): the tui flags a saved-but-not-
+                # applied profile/mod change against these; generation bumps on every launch
+                "profile": self.settings.profile.key if self.settings else None,
+                "launchMods": list(self.settings.launch_mods) if self.settings else None,
+                "generation": self.generation}
 
     def client(self, conn):
         f = conn.makefile("r", encoding="utf-8", errors="replace")
@@ -1679,6 +1685,7 @@ class Supervisor:
                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)
         with self.lock:
             self.child = child
+        self.generation += 1
         threading.Thread(target=self.pump, args=(child,), daemon=True).start()
         self.started_at = time.time()
         self.state = "running"
@@ -2093,6 +2100,12 @@ def ini_set(inst, sec, key, value):
     write_atomic(inst.config_path, "\n".join(lines), newline="\n")
 
 
+# [server] keys that belong to the selected profile: a profile CHANGE in the tui clears them
+# (Tui.set_profile). `config set server.profile` only warns -- an expert may set mods after it.
+PROFILE_OWNED_KEYS = ("mods", "mission", "rotation")
+PROFILE_KEY_LABELS = {"mods": "mod chain override", "mission": "starting map", "rotation": "map rotation"}
+
+
 PRESET_NAME = re.compile(r"^[A-Za-z0-9 _.-]{1,40}$")
 PASSWORD_KEYS = ("join_password", "admin_password")
 
@@ -2168,8 +2181,15 @@ def cmd_config(a):
                 "%s.%s" % (s_, k) for s_ in known.sections() for k in known.options(s_))))
         if (sec, key) == ("tui", "theme") and a.args[1].lower() not in TUI_THEMES:
             die("unknown theme '%s'. Themes: %s" % (a.args[1], ", ".join(TUI_THEMES)))
+        old_profile = cfg.get("server", "profile").lower()
         ini_set(inst, sec, key, a.args[1])
         cfg = Config(inst)
+        if (sec, key) == ("server", "profile") and a.args[1].lower() != old_profile:
+            kept = [k for k in PROFILE_OWNED_KEYS if cfg.get("server", k).strip()]
+            if kept:
+                say("note: %s still set from the previous mod%s -- clear with `config set server.<key> \"\"`"
+                    % (", ".join("server.%s = %s" % (k, cfg.get("server", k)) for k in kept),
+                       " (mods OVERRIDES the profile's chain)" if "mods" in kept else ""))
     s = resolve(inst, cfg)
     if a.action == "apply":
         apply_settings(inst, s)
@@ -2673,7 +2693,8 @@ class Tui:
         self.cfg = Config(self.inst)
         s, out = _quiet(resolve, self.inst, self.cfg)
         self.settings_err = "" if s else (out or "server.ini does not resolve")
-        self.summary = {"name": s.name, "profile": s.profile.key, "port": s.port, "mission": s.mission} if s else {}
+        self.summary = {"name": s.name, "profile": s.profile.key, "port": s.port, "mission": s.mission,
+                        "launchMods": list(s.launch_mods)} if s else {}
         self.maps = None
         if s:
             rows, _ = _quiet(mission_rows, self.inst, s)
@@ -2898,11 +2919,19 @@ class Tui:
             self.note("Saved. %s" % ("F8 restarts the server to use it." if self.st else "Used at the next start."))
 
     def set_profile(self, word):
-        """A map from the old mod would not exist in the new one: the map goes back to default.
-        Re-picking the CURRENT mod keeps the map (it used to clear it too)."""
-        if word.lower() != self.cfg.get("server", "profile").lower():
-            ini_set(self.inst, "server", "mission", "")
+        """Picking a DIFFERENT mod means that mod's own launch chain: the starting map, the map
+        rotation and the `mods` override all belong to the old mod and are cleared with it (a
+        leftover mods=Duel kept launching Duel after "switching" to base -- resolve() gives the
+        override priority). Re-picking the CURRENT mod keeps all three."""
+        reset = PROFILE_OWNED_KEYS if word.lower() != self.cfg.get("server", "profile").lower() else ()
+        cleared = [k for k in reset if self.cfg.get("server", k).strip()]
+        for k in reset:
+            ini_set(self.inst, "server", k, "")
         self.set_value("server", "profile", word)
+        if cleared and not self.settings_err:
+            self.note("Saved; cleared the old mod's %s. %s" % (", ".join(PROFILE_KEY_LABELS[k] for k in cleared),
+                                                             "F8 restarts the server to use it." if self.st
+                                                             else "Used at the next start."))
 
     def open_modal(self, title, items, fn, filterable=False):
         self.modal = {"title": title, "items": items, "fn": fn, "sel": 0, "top": 0,
@@ -3283,6 +3312,14 @@ class Tui:
             else:
                 parts.append("starting (not answering yet)")
             parts.append("port %s" % st.get("port"))
+            if st.get("profile"):     # older supervisors do not report what they launched
+                parts.append("mod %s" % st["profile"])
+                sm = self.summary
+                if sm and (sm.get("profile") != st["profile"] or
+                           [w.lower() for w in sm.get("launchMods") or []] !=
+                           [w.lower() for w in st.get("launchMods") or []]):
+                    parts.append("SAVED %s (%s) -- F8 to apply" % (sm.get("profile"),
+                                                                  " ".join(sm.get("launchMods") or []) or "base"))
             parts.append("v%d%s" % (inst, (" (v%d available)" % latest) if latest > inst else ""))
             parts.append("auto-update %s" % ("on" if st.get("autoUpdate") else "off"))
             if st.get("updatePending"):

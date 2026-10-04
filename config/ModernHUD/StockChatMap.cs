@@ -96,7 +96,8 @@ function ModernHUDStock::drawChat(%screen)
    }
    else
    {
-      if($MHChat::CommandActive) %bottom = %bottom - %lh;
+      // CommandVisible, not CommandActive: a hidden command ($xChat::HideCmdMsg) takes no row
+      if($MHChat::CommandVisible) %bottom = %bottom - %lh;
       for(%i = 0; %i < $MHChat::RowCount; %i++)
       {
          %ry = %bottom - (%i + 1) * %lh + $MHChat::ScrollOffset;
