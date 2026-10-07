@@ -38,9 +38,9 @@ same game settings; this guide is only about Linux.
 
 | | |
 |---|---|
-| **OS** | 64-bit Linux. Tested on **Ubuntu 22.04** with Wine 6.0.3. Other distros should work if they can run 32-bit Wine, but are untested. |
-| **Software** | Python 3.8 or newer, and Wine with **32-bit** support. Nothing else -- no desktop, no X server, no graphics drivers, no sound. |
-| **Disk** | About **4.5 GB** for the server (base game + bundled mods), plus ~0.5 GB for Wine's files. Asset Store mods add 2 MB to 1.1 GB each. |
+| **OS** | 64-bit Linux. Tested on **Ubuntu 22.04** with Wine 6.0.3. Other distros should work if they can run 64-bit Wine, but are untested. |
+| **Software** | Python 3.8 or newer, and **64-bit** Wine (the game is 64-bit from v36). Nothing else -- no desktop, no X server, no graphics drivers, no sound. |
+| **Disk** | About **4.5 GB** for the server (base game + bundled mods), plus ~1 GB for Wine's files (64-bit). Asset Store mods add 2 MB to 1.1 GB each. |
 | **Memory** | ~250 MB for a server with a full bot game (measured). 1 GB of RAM total is comfortable. |
 | **CPU** | Light. One core is plenty for a normal server. |
 | **Network** | UDP port 28001 (or the one you choose) and that port + 2 for voice chat, reachable by players. |
@@ -50,22 +50,38 @@ nothing to compile.
 
 ## 2. Install Wine
 
-You need Wine **with 32-bit support**.
+You need **64-bit** Wine. The game is a 64-bit program from v36 on.
 
 **Ubuntu / Debian**
 
 ```bash
-sudo dpkg --add-architecture i386
 sudo apt update
-sudo apt install --no-install-recommends python3 wine wine32:i386 wget ca-certificates
+sudo apt install --no-install-recommends python3 wine wine64 wget ca-certificates
 ```
+
+**Already running a server from before v36?** That one used 32-bit Wine, and the copy of
+this tool that is running right now does not know about 64-bit Wine yet. Install `wine64`
+as above, then update with the server STOPPED so the new tool does the restart:
+
+```bash
+./tribes-server stop          # or: sudo systemctl stop tribes-server
+./tribes-server update
+./tribes-server start         # or: sudo systemctl start tribes-server
+```
+
+The tool makes a new 64-bit Wine folder (`.tribes-server/wine64`) by itself on that start;
+the old `.tribes-server/wine` folder is left alone and can be deleted. If `server.ini` sets
+`prefix =` to a folder of your own, point it at a new, empty folder. If the server
+auto-updated itself to v36 and stopped with `CRASH LOOP`, just start it again (or
+`sudo systemctl restart tribes-server`) -- the new tool takes over from there. Later
+updates restart the tool by themselves.
 
 `--no-install-recommends` keeps it small: the server needs none of the graphics or audio
 extras Wine normally pulls in. `wget` is for the next step; minimal server images often
 leave it out.
 
-**Other distros** (untested): install your distribution's `wine` package with its 32-bit
-(multilib) parts, plus `python3`.
+**Other distros** (untested): install your distribution's 64-bit `wine` package, plus
+`python3`.
 
 Check it worked:
 
@@ -196,8 +212,8 @@ to a running server within a few seconds, with no restart.
 | Key | Default | Meaning |
 |---|---|---|
 | `wine` | `wine` | The Wine command. |
-| `prefix` | *(blank)* | Wine's settings folder. Blank = `.tribes-server/wine` inside the install, created on first start. |
-| `arch` | `win32` | Wine architecture for that folder. Leave it. |
+| `prefix` | *(blank)* | Wine's settings folder. Blank = `.tribes-server/wine64` inside the install (`.tribes-server/wine` for a pre-v36 32-bit game), created on first start. |
+| `arch` | *(blank)* | Wine architecture. Blank = match the game (`win64`). Leave it; `win32` is ignored for the 64-bit game. |
 | `debug` | `-all` | Wine's own log output. Leave it. |
 
 ## 5. Pick a mod and a map
@@ -498,7 +514,7 @@ Start with:
 | Symptom | Cause / fix |
 |---|---|
 | `'wine' not found` | Install Wine ([section 2](#2-install-wine)). |
-| Server exits immediately, over and over; status says `CRASH LOOP` | Something stops it from starting. Read `./tribes-server logs` and `.tribes-server/supervisor.log` (or `journalctl -u tribes-server`). Likely causes: Wine without 32-bit support, a broken edit in `config/*.cs`, a mod's files missing. Fix it, then `./tribes-server start`. |
+| Server exits immediately, over and over; status says `CRASH LOOP` | Something stops it from starting. Read `./tribes-server logs` and `.tribes-server/supervisor.log` (or `journalctl -u tribes-server`). Likely causes: no 64-bit Wine (`sudo apt install wine64`; `./tribes-server doctor` checks it), a broken edit in `config/*.cs`, a mod's files missing. Fix it, then `./tribes-server start`. |
 | `cannot start the server` / `unknown profile` | `server.ini` names a mod that is not installed. `./tribes-server mods` lists valid profiles. |
 | `not answering status queries yet` for more than a minute | Look at `./tribes-server logs`. If the map failed to load, set `server.mission` to one from `./tribes-server missions`. |
 | `Error: no mission provided` in the log | No map set and none found for that mod. Set `server.mission`. |
@@ -554,7 +570,7 @@ Inside the install folder:
 | `config/ServerPrefs.cs`, `config/rpgserv.cs`, `config/rmrpgserv.cs` | Game server settings files (kept across updates). |
 | `updpacks/` | Records of installed Asset Store mods. |
 | `updver.txt` | Installed version. |
-| `.tribes-server/` | Tool state: Wine folder (`wine/`), presets, `supervisor.log` (background runs), control socket, `tui_history` (control-screen command history, readable only by you). |
+| `.tribes-server/` | Tool state: Wine folder (`wine64/`; a pre-v36 install also has an old `wine/` you can delete), presets, `supervisor.log` (background runs), control socket, `tui_history` (control-screen command history, readable only by you). |
 | `_update/` | Temporary download folder during updates. |
 
 ## 18. Uninstall

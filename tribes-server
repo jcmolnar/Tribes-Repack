@@ -38,6 +38,7 @@ import shlex
 import shutil
 import signal
 import socket
+import struct
 import subprocess
 import sys
 import textwrap
@@ -319,9 +320,12 @@ probe_url =
 
 [wine]
 wine = wine
-# Blank = .tribes-server/wine inside this install (private prefix, created on first run).
+# Blank = a private prefix inside this install, created on first run: .tribes-server/wine64
+# for the 64-bit game (v36+), .tribes-server/wine for an older 32-bit one.
 prefix =
-arch = win32
+# Blank = match the game exe (win64 for the 64-bit ModernTribes.exe). A win32 prefix cannot
+# run a 64-bit exe, so `win32` is ignored for one.
+arch =
 debug = -all
 
 [tui]
@@ -1396,13 +1400,94 @@ def probe(port, timeout=2.0):
 # ---------------------------------------------------------------------------------------
 # Wine
 # ---------------------------------------------------------------------------------------
+def file_sha1(path):
+    try:
+        with open(path, "rb") as f:
+            return hashlib.sha1(f.read()).hexdigest()
+    except OSError:
+        return None
+
+
+REEXEC_ENV = "TRIBES_SERVER_REEXEC"
+
+
+def reexec_if_updated(before, note):
+    """Re-run this script in place (same argv, same PID) when an update just replaced it.
+
+    Relaunching the game from the old code still in memory is how the v36 switch to a 64-bit
+    exe would have met a supervisor that only knew 32-bit Wine. Same PID, so systemd and
+    supervisor.pid are unaffected, and serve() rebinds the control socket. The new file must
+    compile first: a broken publish keeps the running version instead of killing the server."""
+    me = os.path.abspath(__file__)
+    after = file_sha1(me)
+    if not (before and after and before != after):
+        return
+    try:
+        with open(me, "r", encoding="utf-8") as f:
+            compile(f.read(), me, "exec")
+    except (OSError, SyntaxError, ValueError) as e:
+        note("the updated tribes-server does not load (%s); staying on the running version" % e)
+        return
+    note("tribes-server itself was updated -- restarting it on the new version")
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os.environ[REEXEC_ENV] = "1"
+    try:
+        os.execv(sys.executable, [sys.executable, me] + sys.argv[1:])
+    except OSError as e:
+        os.environ.pop(REEXEC_ENV, None)
+        note("could not restart on the new version (%s); continuing on the old one" % e)
+
+
+def pe_machine(path):
+    """'x64', 'x86' or None for a Windows exe (PE header Machine field)."""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(4096)
+        off = struct.unpack_from("<I", head, 0x3C)[0]
+        if head[:2] != b"MZ" or head[off:off + 4] != b"PE\0\0":
+            return None
+        m = struct.unpack_from("<H", head, off + 4)[0]
+        return {0x8664: "x64", 0x14C: "x86"}.get(m)
+    except (OSError, struct.error, IndexError):
+        return None
+
+
+def prefix_arch(prefix):
+    """'win32' / 'win64' from an existing prefix's system.reg header, else None."""
+    try:
+        with open(os.path.join(prefix, "system.reg"), "r", errors="replace") as f:
+            for _ in range(10):
+                m = re.match(r"#arch=(win32|win64)", f.readline().strip())
+                if m:
+                    return m.group(1)
+    except OSError:
+        pass
+    return None
+
+
+def wine_arch(inst, cfg):
+    """The Wine architecture this install needs. The game went 64-bit in v36 and a win32
+    prefix cannot run a PE32+ exe, so an x64 exe always gets win64 -- even over an explicit
+    `arch = win32` that older server.ini templates wrote."""
+    exe = inst.exe()
+    machine = pe_machine(os.path.join(inst.root, exe)) if exe else None
+    arch = (cfg.get("wine", "arch") or "").strip().lower()
+    if machine == "x64":
+        return "win64"
+    if arch in ("win32", "win64"):
+        return arch
+    return "win32" if machine == "x86" else "win64"
+
+
 def wine_env(inst, cfg):
     env = dict(os.environ)
-    prefix = cfg.get("wine", "prefix") or os.path.join(inst.state, "wine")
+    arch = wine_arch(inst, cfg)
+    # Separate default folders per arch: switching to the 64-bit game creates a fresh win64
+    # prefix beside the old win32 one instead of reusing (or deleting) it.
+    prefix = cfg.get("wine", "prefix") or os.path.join(inst.state, "wine64" if arch == "win64" else "wine")
     env["WINEPREFIX"] = os.path.abspath(prefix)
-    arch = cfg.get("wine", "arch")
-    if arch:
-        env["WINEARCH"] = arch
+    env["WINEARCH"] = arch
     env["WINEDEBUG"] = cfg.get("wine", "debug") or "-all"
     # no Mono/Gecko install prompts, no desktop menu entries
     env["WINEDLLOVERRIDES"] = "mscoree=;mshtml=;winemenubuilder.exe=d"
@@ -1416,14 +1501,22 @@ def wine_bin(cfg):
     w = cfg.get("wine", "wine") or "wine"
     found = shutil.which(w)
     if not found:
-        die("'%s' not found. Install Wine (Debian/Ubuntu: sudo dpkg --add-architecture i386 && "
-            "sudo apt update && sudo apt install --no-install-recommends wine wine32:i386)" % w)
+        die("'%s' not found. Install Wine (Debian/Ubuntu: sudo apt update && "
+            "sudo apt install --no-install-recommends wine wine64; a 32-bit -X86 game build "
+            "also needs sudo dpkg --add-architecture i386 and wine32:i386)" % w)
     return found
 
 
 def ensure_prefix(inst, cfg):
     env = wine_env(inst, cfg)
     prefix = env["WINEPREFIX"]
+    have = prefix_arch(prefix)
+    if have and have != env["WINEARCH"]:
+        # Only reachable with a custom `prefix =` (the default folders are per-arch): never
+        # delete someone else's prefix, say exactly what to change.
+        die("Wine prefix %s is %s but the game needs %s (a 64-bit ModernTribes.exe cannot run in a "
+            "32-bit prefix). Point [wine] prefix at a new folder, or blank it to use the built-in one."
+            % (prefix, have, env["WINEARCH"]))
     marker = os.path.join(prefix, ".tribes-server-ready")
     if os.path.exists(marker):
         return env
@@ -1444,6 +1537,19 @@ def ensure_prefix(inst, cfg):
     ws = shutil.which("wineserver")
     if ws:
         subprocess.run([ws, "-w"], env=env, timeout=120)
+    # Only a prefix of the right architecture is "ready": without 64-bit Wine, wineboot fails
+    # quietly (or builds a 32-bit one), and marking that ready would turn a clear install
+    # error into a crash loop on every start. die() -> safe_launch stops with exit 3.
+    made = prefix_arch(prefix)
+    if made != env["WINEARCH"]:
+        if env["WINEARCH"] == "win64":
+            die("could not create a 64-bit Wine prefix in %s (got %s). The game is 64-bit: install "
+                "64-bit Wine (Debian/Ubuntu: sudo apt install wine64), then delete that folder and "
+                "start again. `./tribes-server doctor` checks it." % (prefix, made or "nothing"))
+        die("could not create a %s Wine prefix in %s (got %s); install 32-bit Wine "
+            "(Debian/Ubuntu: sudo dpkg --add-architecture i386 && sudo apt update && "
+            "sudo apt install wine32:i386), delete that folder and start again"
+            % (env["WINEARCH"], prefix, made or "nothing"))
     with open(marker, "w") as f:
         f.write("1\n")
     return env
@@ -1734,6 +1840,7 @@ class Supervisor:
 
     def run_update(self):
         self.state = "updating"
+        before = file_sha1(os.path.abspath(__file__))
         try:
             changed, ver = do_update(self.inst, self.cfg, quiet_current=True)
             self.remote_version = ver
@@ -1742,6 +1849,8 @@ class Supervisor:
         except Exception as e:   # noqa: BLE001 -- an update failure must not take the server down
             self.note("update failed: %s (server restarts on the current version)" % e)
         self.update_requested = None
+        if not self.stop_requested:
+            reexec_if_updated(before, self.note)
 
     def main(self):
         self.inst.ensure_state()
@@ -1922,11 +2031,16 @@ def cmd_run(a):
     cfg = ensure_config(inst)
     if running(inst):
         die("a supervisor for %s is already running (`tribes-server status`)" % inst.root)
-    if a.update or (cfg.bool("update", "auto_update", False) and not a.no_update):
+    # A re-exec after a self-update has just updated: skip the pre-start check (it would only
+    # repeat the download check while no control socket is up yet).
+    reexeced = os.environ.pop(REEXEC_ENV, None)
+    if not reexeced and (a.update or (cfg.bool("update", "auto_update", False) and not a.no_update)):
+        before = file_sha1(os.path.abspath(__file__))
         try:
             do_update(inst, cfg, quiet_current=True)
         except Exception as e:   # noqa: BLE001 -- start on what we have
             say("update check failed (%s); starting the installed version" % e)
+        reexec_if_updated(before, say)
     sup = Supervisor(inst, cfg, auto_update=False if a.no_update else None)
     sys.exit(sup.main())
 
@@ -2432,9 +2546,23 @@ def cmd_doctor(a):
             ver = subprocess.run([w, "--version"], capture_output=True, text=True, timeout=30).stdout.strip()
         except (OSError, subprocess.TimeoutExpired):
             pass
-    chk(bool(w), "wine: %s %s" % (w, ver), "wine not found (sudo dpkg --add-architecture i386 && sudo apt update "
-                                           "&& sudo apt install --no-install-recommends wine wine32:i386)")
+    chk(bool(w), "wine: %s %s" % (w, ver), "wine not found (sudo apt update "
+                                           "&& sudo apt install --no-install-recommends wine wine64)")
     chk(bool(inst.exe()), "game exe: %s" % inst.exe(), "no ModernTribes.exe (run `tribes-server install`)")
+    if inst.exe():
+        machine = pe_machine(os.path.join(inst.root, inst.exe()))
+        dcfg = Config(inst)
+        need = wine_arch(inst, dcfg)
+        pfx = wine_env(inst, dcfg)["WINEPREFIX"]
+        have = prefix_arch(pfx)
+        chk(machine is not None, "game exe is %s -> Wine %s" % (machine, need), "game exe is not a Windows PE file")
+        chk(have in (None, need), "Wine prefix %s (%s)" % (pfx, have or "created on first start"),
+            "Wine prefix %s is %s but the game needs %s -- blank [wine] prefix or point it at a new folder"
+            % (pfx, have, need))
+        if need == "win64" and w and not (shutil.which("wine64") or os.path.exists("/usr/lib/wine/wine64")
+                                          or os.path.exists("/opt/wine-stable/bin/wine64")):
+            say("  note 64-bit Wine not found next to `wine` -- if the server will not start, "
+                "`sudo apt install wine64` (Debian/Ubuntu) or install winehq-stable")
     chk(read_int(os.path.join(inst.root, VERSION_FILE)) > 0,
         "installed v%d" % read_int(os.path.join(inst.root, VERSION_FILE)), "no updver.txt (never updated)")
     free = shutil.disk_usage(inst.root).free
