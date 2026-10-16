@@ -1,4 +1,4 @@
-$Server::Address = "LOOPBACK:28001";
+$Server::Address = "t2://45.63.71.224:28003";
 $Server::AllowRape = "false";
 $Server::allowRepair = "1";
 $Server::AntiRape = "true";
@@ -86,4 +86,4 @@ $Server::XLMasterN4 = "IP:51.81.187.48:28000";
 $Server::XLMasterN5 = "IP:159.65.169.146:28000";
 $Server::XLMasterN6 = "IP:216.249.100.66:28000";
 $Server::XLMasterN7 = "IP:209.223.236.114:28000";
-$pref::LastMission = "-NR- Newbies Reborn";
+$pref::LastMission = "FB_1";

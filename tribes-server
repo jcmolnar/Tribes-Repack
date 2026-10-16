@@ -147,18 +147,32 @@ def ci_join(root, *parts):
     return cur
 
 
-def write_atomic(path, data, mode="w", newline=None):
+def write_atomic(path, data, mode="w", newline=None, private=False):
+    """Write path via path.tmp + os.replace. The new file keeps the mode of the one it replaces
+    (a new file gets the umask default). private=True -- server.ini, hostgui.cs and the serv
+    files, which hold the passwords -- makes it 0600 whatever it was, so a file an older build
+    left world-readable is tightened on its next write. The tmp gets that mode before any data."""
     tmp = path + ".tmp"
+    perm = 0o600 if private else None
+    if not private:
+        try:
+            perm = os.stat(path).st_mode & 0o777
+        except OSError:
+            pass
+    fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o666 if perm is None else 0o600)
+    if perm is not None:
+        try:
+            os.chmod(tmp, perm)   # also covers a stale tmp, whose old mode O_CREAT would keep
+        except OSError:
+            pass
     if "b" in mode:
-        with open(tmp, mode) as f:
-            f.write(data)
-            f.flush()
-            os.fsync(f.fileno())
+        f = os.fdopen(fd, mode)
     else:
-        with open(tmp, mode, newline=newline, encoding="latin-1") as f:
-            f.write(data)
-            f.flush()
-            os.fsync(f.fileno())
+        f = os.fdopen(fd, mode, newline=newline, encoding="latin-1")
+    with f:
+        f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
     os.replace(tmp, path)
 
 
@@ -329,10 +343,21 @@ arch =
 debug = -all
 
 [tui]
+"""   # + TUI_INI_BLOCK, below (one copy of the [tui] keys, shared with the migration)
+
+# The [tui] keys of DEFAULT_INI. TUI_INI_BLOCK_OLD is the exact text every server.ini got
+# while blue was the default; an untouched copy of it means "the default", so `tui` moves it
+# to the current default once (migrate_tui_theme).
+TUI_INI_BLOCK = """\
+# Look of `tribes-server tui`: modern (the default: rounded outlines, one accent colour) or
+# one of the classic colour-bar themes: blue, green (Tribes green), amber, cyan, or mono
+# (no colour: bold and reverse only).
+theme = modern"""
+TUI_INI_BLOCK_OLD = """\
 # Colours of `tribes-server tui`: blue (the original, default), green (Tribes green),
 # amber, cyan, or mono (no colour: bold and reverse only).
-theme = blue
-"""
+theme = blue"""
+DEFAULT_INI += TUI_INI_BLOCK + "\n"
 
 BOOL_TRUE = ("1", "true", "yes", "on")
 
@@ -362,13 +387,24 @@ class Config:
 
 def ensure_config(inst):
     if not os.path.isfile(inst.config_path):
-        write_atomic(inst.config_path, DEFAULT_INI, newline="\n")
-        try:
-            os.chmod(inst.config_path, 0o600)   # holds passwords
-        except OSError:
-            pass
+        write_atomic(inst.config_path, DEFAULT_INI, newline="\n", private=True)   # holds passwords
         say("wrote default %s -- edit it, then start the server" % inst.config_path)
     return Config(inst)
+
+
+def migrate_tui_theme(inst):
+    """server.ini still holding the untouched old-default [tui] block (theme = blue, written
+    while blue was the default) moves to the current default. True if it changed."""
+    try:
+        with open(inst.config_path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except OSError:
+        return False
+    if TUI_INI_BLOCK_OLD not in text:
+        return False
+    write_atomic(inst.config_path, text.replace(TUI_INI_BLOCK_OLD, TUI_INI_BLOCK), newline="\n",
+                 private=True)
+    return True
 
 
 # ---------------------------------------------------------------------------------------
@@ -754,11 +790,12 @@ def surgical_edit(path, sets):
     if not os.path.exists(bak):
         shutil.copyfile(path, bak)
     out = eol.join(lines) + (eol if text.endswith("\n") else "")
-    write_atomic(path, out.encode("latin-1"), mode="wb")
+    write_atomic(path, out.encode("latin-1"), mode="wb", private=True)   # now holds the passwords
 
 
 def apply_settings(inst, s):
-    write_atomic(ci_join(inst.root, "config", "hostgui.cs"), hostgui_cs(s).encode("latin-1"), mode="wb")
+    write_atomic(ci_join(inst.root, "config", "hostgui.cs"), hostgui_cs(s).encode("latin-1"), mode="wb",
+                 private=True)
     if s.profile.serv_file:
         p = ci_join(inst.root, "config", s.profile.serv_file)
         if not os.path.isfile(p):
@@ -2211,7 +2248,7 @@ def ini_set(inst, sec, key, value):
         if cur != sec:
             lines += ["", "[%s]" % sec]
         lines.append("%s = %s" % (key, value))
-    write_atomic(inst.config_path, "\n".join(lines), newline="\n")
+    write_atomic(inst.config_path, "\n".join(lines), newline="\n", private=True)
 
 
 # [server] keys that belong to the selected profile: a profile CHANGE in the tui clears them
@@ -2262,7 +2299,7 @@ def cmd_preset(inst, a):
     cp.read_string(cur)
     for k in PASSWORD_KEYS:
         text = _set_ini_text_value(text, k, cp.get("server", k, fallback=""))
-    write_atomic(inst.config_path, text, newline="\n")
+    write_atomic(inst.config_path, text, newline="\n", private=True)
     say("loaded preset '%s' (kept your current passwords); `tribes-server restart` to use it" % a.args[0])
 
 
@@ -2607,8 +2644,19 @@ TUI_PLAYERS_CMD = ('echo("[tui-pl] BEGIN"); for(%c = Client::getFirst(); %c != -
 # ★Never bold BLACK text on a coloured bar★ -- most terminals draw bold black as dark grey,
 # which made the green theme's F-key bar unreadable in its first render. ("blue" keeps its
 # original bold key bar on purpose: it is the original look, unchanged.)
+# "modern" (the default) draws differently: rounded outlines instead of colour bars, and its
+# colours may be (xterm-256 index, 8-colour fallback[, fallback attrs]) -- the index where the
+# terminal has 256 colours, else the fallback.
 TUI_THEMES = {
-    "blue": ("The original (default): blue bars on your terminal's own background", {
+    "modern": ("Rounded outlines and one accent colour (the default)", {
+        "body": None, "accent": ((173, "yellow"), "default", ""), "sel": ((173, "yellow"), "default", "b"),
+        "border": ((244, "white", "d"), "default", ""), "dim": ((245, "white", "d"), "default", ""),
+        "ok": ((71, "green"), "default", ""), "warn": ((178, "yellow"), "default", ""),
+        "bad": ((167, "red"), "default", ""), "info": ((74, "cyan"), "default", ""),
+        "title": (None, None, "b"), "head": (None, None, "b"), "key": (None, None, "b"), "box": None,
+        "okhead": ((71, "green"), "default", "b"), "warnhead": ((178, "yellow"), "default", "b"),
+        "badhead": ((167, "red"), "default", "b")}),
+    "blue": ("The original: blue bars on your terminal's own background", {
         "body": None, "head": ("white", "blue", ""), "ok": ("green", "default", ""),
         "warn": ("yellow", "default", ""), "bad": ("red", "default", ""), "info": ("cyan", "default", ""),
         "sel": ("black", "cyan", ""), "key": ("black", "white", "b"), "box": ("white", "blue", ""),
@@ -2639,7 +2687,23 @@ TUI_THEMES = {
         "okhead": (None, None, "b"), "warnhead": (None, None, "rb"), "badhead": (None, None, "rb"),
         "dim": (None, None, "d")}),
 }
-TUI_THEME_DEFAULT = "blue"   # Joe, 2026-10-02: the original stays the default; green is opt-in
+TUI_THEME_DEFAULT = "modern"   # Joe, 2026-10-11: modern is the default; the bar themes are opt-in
+
+# Line-drawing and symbols of the modern theme, written as escapes so this file stays ASCII.
+# "vt" = the Linux text console (TERM=linux: its font has the square corners, not the rounded
+# ones or the symbols); "ascii" = a locale that is not UTF-8. utf8 keeps to symbols PuTTY's
+# default font draws (checked in PuTTY 0.85): its pointer and job-output hook were boxes as
+# U+276F / U+23BF, and two spinner frames (U+2733, U+2217) too.
+TUI_GLYPHS = {
+    "utf8": {"tl": "\u256d", "tr": "\u256e", "bl": "\u2570", "br": "\u256f", "h": "\u2500", "v": "\u2502",
+             "dot": "\u25cf", "ptr": "\u203a", "sub": "\u2514", "sep": "\u00b7", "star": "\u273b",
+             "ell": "\u2026", "spin": ("\u00b7", "\u2722", "\u273b", "\u273d")},
+    "vt": {"tl": "\u250c", "tr": "\u2510", "bl": "\u2514", "br": "\u2518", "h": "\u2500", "v": "\u2502",
+           "dot": "*", "ptr": ">", "sub": "`", "sep": "\u00b7", "star": "*", "ell": "...",
+           "spin": ("-", "\\", "|", "/")},
+    "ascii": {"tl": "+", "tr": "+", "bl": "+", "br": "+", "h": "-", "v": "|", "dot": "*", "ptr": ">",
+              "sub": "`", "sep": "|", "star": "*", "ell": "...", "spin": ("-", "\\", "|", "/")},
+}
 
 # (section, key, label, kind). kind: text | pw | int | int? (blank allowed) | bool | profile |
 # mission | theme | choice:a,b (an empty choice = blank = default)
@@ -2692,8 +2756,8 @@ TUI_HELP_EXTRA = {
     ("server", "require_current_client"): "modern150 netcode only: refuse out-of-date clients.",
     ("server", "cheat_observe"): "Log-only cheat observation warnings in the server log.",
     ("update", "check_minutes"): "How often a running server with auto-update on looks for updates.",
-    ("tui", "theme"): "Colours of this screen only; applies at once. blue (the original, default), green, "
-                      "amber, cyan or mono.",
+    ("tui", "theme"): "Look of this screen only; applies at once. modern (the default), or the colour-bar "
+                      "themes blue (the original), green, amber, cyan or mono.",
 }
 
 
@@ -2781,7 +2845,7 @@ class Tui:
         self.confirm = None              # (question, fn)
         self.modal = None                # {title, items:[(label, value)], fn, sel, top, filter}
         self.edit = None                 # {label, buf, cur, fn, secret}
-        self.job, self.job_name = None, ""
+        self.job, self.job_name, self.job_at = None, "", 0.0
         self.players, self.pl_new, self.players_at = [], None, 0.0
         self.pl_asked = 0.0              # a reply is only ours while a request is pending (the
                                          # attach backlog can replay someone else's old one)
@@ -2793,6 +2857,8 @@ class Tui:
         self.help = ini_help()
         self.summary = {}
         self.ascii = True
+        self.g = TUI_GLYPHS["ascii"]
+        self.modern = False              # set by init_colors from the theme
         self.quit = False
         self.refresh_config()
 
@@ -2945,7 +3011,7 @@ class Tui:
         except OSError as e:
             self.note("Could not run %s: %s" % (name, e))
             return
-        self.job, self.job_name = p, name
+        self.job, self.job_name, self.job_at = p, name, time.time()
         self.add("[tui] %s: tribes-server %s" % (name, " ".join(args)))
         self.screen = 0
         self.scroll = 0
@@ -3258,7 +3324,25 @@ class Tui:
             self.load_store()
 
     def body_h(self):
-        return max(1, self.H - 6)
+        return self.layout()[1]
+
+    def layout(self):
+        """(first row, rows) of the screen body. Classic: 3 header rows, then message, input and
+        key bar. Modern: the status box (2 bare rows on a short terminal) and the screen tabs,
+        then message line, prompt box and key hints."""
+        if self.modern:
+            top = 5 if self.H >= 18 else 3
+            return top, max(1, self.H - top - (self.modal_h() + 2 if self.modal else 5))
+        return 3, max(1, self.H - 6)
+
+    def modal_h(self):
+        """Modern: rows of the open picker. It sits at the bottom in place of the prompt box
+        (nothing is drawn over the screen), sized by ALL its choices so typing a filter does not
+        move the screen, and leaves the screen body at least 3 rows."""
+        m = self.modal
+        top = 5 if self.H >= 18 else 3
+        want = len(m["items"]) + 2 + (1 if m["filter"] is not None else 0)
+        return max(3, min(want, self.H - top - 2 - 3))
 
     def key_console(self, k):
         if k in ("\n", "\r", curses.KEY_ENTER):
@@ -3398,22 +3482,175 @@ class Tui:
         self.put(y, 0, " " * self.W, attr)
 
     def color(self, name):
-        return self.colors.get(name, 0) if self.colors else {"head": curses.A_REVERSE, "sel": curses.A_REVERSE,
-                                                             "bad": curses.A_BOLD, "warn": curses.A_BOLD,
-                                                             "key": curses.A_REVERSE, "box": curses.A_REVERSE,
-                                                             "title": curses.A_BOLD}.get(name, 0)
+        if self.colors:
+            return self.colors.get(name, 0)
+        if self.modern:   # no colour support: the modern look in attributes only
+            return {"sel": curses.A_BOLD, "accent": curses.A_BOLD, "bad": curses.A_BOLD, "warn": curses.A_BOLD,
+                    "title": curses.A_BOLD, "key": curses.A_BOLD, "dim": curses.A_DIM,
+                    "border": curses.A_DIM}.get(name, 0)
+        return {"head": curses.A_REVERSE, "sel": curses.A_REVERSE, "bad": curses.A_BOLD, "warn": curses.A_BOLD,
+                "key": curses.A_REVERSE, "box": curses.A_REVERSE, "title": curses.A_BOLD}.get(name, 0)
 
-    def line_attr(self, line):
+    def line_kind(self, line):
         low = line.lower()
         if line.startswith("[tui]") or line.startswith("[tribes-server]"):
-            return self.color("info")
+            return "bad" if "failed" in low else "info"
         if "error" in low or "unknown command" in low or "crash" in low or "failed" in low:
-            return self.color("bad")
+            return "bad"
         if "warning" in low:
-            return self.color("warn")
+            return "warn"
         if line.startswith("[start]") or line.startswith("[update]") or line.startswith("[store]"):
-            return self.color("ok")
-        return 0
+            return "ok"
+        return ""
+
+    def line_attr(self, line):
+        if line.startswith("[tui]") or line.startswith("[tribes-server]"):
+            return self.color("info")   # classic: tool lines are all info-coloured
+        kind = self.line_kind(line)
+        return self.color(kind) if kind else 0
+
+    def segs(self, y, x, parts, xmax):
+        """Draw (text, attr) parts one after another, clipped at column xmax. Returns the next x."""
+        for text, attr in parts:
+            if x >= xmax:
+                break
+            self.put(y, x, text[:xmax - x], attr)
+            x += len(text)
+        return x
+
+    def box(self, y, x, h, w, attr, title="", foot="", clear=False):
+        """Modern: a rounded outline; title / foot sit in the top / bottom edge."""
+        g = self.g
+        self.put(y, x, g["tl"] + g["h"] * (w - 2) + g["tr"], attr)
+        for r in range(1, h - 1):
+            if clear:
+                self.put(y + r, x, " " * w)
+            self.put(y + r, x, g["v"], attr)
+            self.put(y + r, x + w - 1, g["v"], attr)
+        self.put(y + h - 1, x, g["bl"] + g["h"] * (w - 2) + g["br"], attr)
+        if title:
+            self.put(y, x + 2, " %s " % title[:w - 6], self.color("title"))
+        if foot:
+            self.put(y + h - 1, x + 2, " %s " % foot[:w - 6], self.color("dim"))
+
+    def spinner(self):
+        f = self.g["spin"]
+        f = f + f[-2:0:-1]   # there and back, like a breathing star
+        return f[int(time.time() * 6) % len(f)]
+
+    def draw_header_modern(self):
+        g, st, sm = self.g, self.st, self.summary
+        sep = " %s " % g["sep"]
+        boxed = self.H >= 18
+        if boxed:
+            self.box(0, 0, 4, self.W, self.color("border"))
+        y, x0, xmax = (1, 2, self.W - 3) if boxed else (0, 1, self.W - 1)
+        dim = self.color("dim")
+        if st:
+            q = st.get("query") or {}
+            state, up = st["state"], st.get("uptime") or 0
+            good = state == "running" and q
+            kind = "ok" if good else "bad" if state in ("crash-loop", "config-error") else "warn"
+            mark = g["dot"] if good or kind == "bad" else self.spinner()   # starting / updating / restart-wait
+            inst_v, latest = st.get("installed") or 0, st.get("latest") or 0
+            line1 = [(g["star"] + " ", self.color("accent")), (q.get("name") or sm.get("name", ""), self.color("title")),
+                     ("  %s %s" % (mark, state), self.color(kind)),
+                     (sep + "up %dh%02dm" % (up // 3600, up // 60 % 60), dim),
+                     (sep + "%d restart%s" % (st.get("restarts", 0), "" if st.get("restarts", 0) == 1 else "s"), dim),
+                     (sep + "v%d" % inst_v, dim)]
+            if latest > inst_v:
+                line1.append((" (v%d available)" % latest, self.color("warn")))
+            line1.append((sep + "auto-update %s" % ("on" if st.get("autoUpdate") else "off"), dim))
+            line2 = []
+            if q:
+                line2 += [("%s (%s)" % (self.full_mission(q), q.get("missionType")), 0),
+                          (sep + "%d/%d players" % (q.get("players", 0), q.get("max", 0)), dim)]
+            else:
+                line2.append(("not answering yet", dim))
+            line2.append((sep + "port %s" % st.get("port"), dim))
+            if st.get("profile"):     # older supervisors do not report what they launched
+                line2.append((sep + "mod %s" % st["profile"], dim))
+                if sm and (sm.get("profile") != st["profile"] or
+                           [w.lower() for w in sm.get("launchMods") or []] !=
+                           [w.lower() for w in st.get("launchMods") or []]):
+                    line2.append((sep + "saved %s (%s) -- F8 applies it" % (
+                        sm.get("profile"), " ".join(sm.get("launchMods") or []) or "base"), self.color("warn")))
+            if st.get("updatePending"):
+                line2.append((sep + "update pending (%s)" % st["updatePending"], self.color("warn")))
+        else:
+            v = read_int(os.path.join(self.inst.root, VERSION_FILE))
+            line1 = [(g["star"] + " ", self.color("accent")), (sm.get("name") or "tribes-server", self.color("title")),
+                     ("  %s stopped" % g["dot"], self.color("bad")), (sep + "v%d installed" % v, dim),
+                     (sep + "F7 starts it", dim)]
+            line2 = ([("%s" % (sm.get("mission") or "(no map)"), 0), (sep + "port %s" % sm.get("port"), dim),
+                      (sep + "mod %s" % sm.get("profile"), dim)] if sm else
+                     [("server.ini has a problem -- see Settings", self.color("bad"))])
+        self.segs(y, x0, line1, xmax)
+        self.segs(y + 1, x0 + 2, line2, xmax)
+        x, ty = 2, (4 if boxed else 2)
+        for i, n in enumerate(TUI_SCREENS):
+            x = self.segs(ty, x, [("F%d " % ((i + 2) if i < 5 else 1), dim),
+                                  (n, self.color("sel") if i == self.screen else dim)], self.W) + 3
+
+    def draw_prompt(self):
+        """Modern bottom: message / progress line, the prompt box, key hints. Returns the cursor."""
+        g, H, W = self.g, self.H, self.W
+        cursor = None
+        my = H - 2 - self.modal_h() if self.modal else H - 5   # a picker takes the prompt box's place
+        if self.msg and time.time() - self.msg_at < 10:
+            self.put(my, 2, self.msg, self.color("warn"))
+        elif self.job and self.job.poll() is None:
+            self.put(my, 0, self.spinner(), self.color("accent"))
+            self.put(my, 2, "Running %s%s" % (self.job_name, g["ell"]), self.color("accent"))
+            self.put(my, 2 + len("Running %s%s" % (self.job_name, g["ell"])) + 1,
+                     "(%ds)" % (time.time() - self.job_at), self.color("dim"))
+        elif self.scroll and self.screen == 0:
+            self.put(my, 2, "scrolled back %d lines %s PgDn / End / Esc returns to live" % (self.scroll, g["sep"]),
+                     self.color("accent"))
+        y, room = H - 3, W - 4
+        if self.modal:
+            pass   # draw_modal_modern draws it after this
+        elif self.confirm:
+            self.box(H - 4, 0, 3, W, self.color("warn"))
+            self.segs(y, 2, [("? ", self.color("warn")), (self.confirm[0], self.color("title")),
+                             ("  y yes %s any other key cancels" % g["sep"], self.color("dim"))], W - 2)
+        elif self.edit:
+            e = self.edit
+            shown = "*" * len(e["buf"]) if e["secret"] else e["buf"]
+            self.box(H - 4, 0, 3, W, self.color("accent"), foot="Enter saves %s Esc cancels" % g["sep"])
+            pre = "%s: " % e["label"]
+            off = max(0, e["cur"] - (room - len(pre) - 1))
+            self.segs(y, 2, [(pre, self.color("accent")), (shown[off:], 0)], W - 2)
+            cursor = (y, 2 + len(pre) + e["cur"] - off)
+        elif self.screen == 0:
+            self.box(H - 4, 0, 3, W, self.color("border"))
+            pre = "> "
+            off = max(0, self.cur - (room - len(pre) - 1))
+            self.put(y, 2, pre, self.color("accent") if self.st else self.color("dim"))
+            if self.inp:
+                self.segs(y, 2 + len(pre), [(self.inp[off:], 0)], W - 2)
+            else:
+                self.segs(y, 2 + len(pre), [("type a console command %s Up = history" % g["sep"]
+                                             if self.st else "the server is not running %s F7 starts it" % g["sep"],
+                                             self.color("dim"))], W - 2)
+            if not (self.modal or self.confirm):
+                cursor = (y, 2 + len(pre) + self.cur - off)
+        else:
+            self.box(H - 4, 0, 3, W, self.color("border"))
+            hint = {"Players": "Enter kick / ban %s m message everyone %s r refresh",
+                    "Maps": "type to filter (ctf = Capture the Flag) %s Enter acts on a map %s Esc clears",
+                    "Settings": "Up/Down choose %s Enter changes it (saved to server.ini)",
+                    "Store": "Enter install / update %s x remove %s r reload",
+                    "Help": "Up/Down scroll"}.get(TUI_SCREENS[self.screen], "")
+            self.segs(y, 2, [(hint.replace("%s", g["sep"]), self.color("dim"))], W - 2)
+        keys = [("F7", "stop" if self.st else "start"), ("F8", "restart"), ("F9", "update"), ("F10", "quit"),
+                ("Tab", "next screen"), ("F1", "help")]
+        parts = []
+        for n, (k, label) in enumerate(keys):
+            parts += [((" %s " % g["sep"]) if n else "  ", self.color("dim")), (k, self.color("key")),
+                      (" " + label, self.color("dim"))]
+        self.segs(H - 1, 0, parts, W - 1)
+        return cursor
 
     def draw_header(self):
         st = self.st
@@ -3477,6 +3714,27 @@ class Tui:
             return [""]
         return [text[i:i + width] for i in range(0, len(text), width)]
 
+    def console_rows(self, lines, i):
+        """Modern: screen rows of log line i as (gutter, gutter attr, text, text attr). The tui's
+        own lines get a bullet, a job's output hangs under it, server output is plain."""
+        g, line = self.g, lines[i]
+        kind = self.line_kind(line)
+        m = re.match(r"\[(tui|tribes-server|start|update|store)\] ?", line)
+        tag, text = (m.group(1), line[m.end():]) if m else (None, line)
+        if tag in ("tui", "tribes-server"):
+            if text.startswith("-- ") and text.endswith(" --"):
+                text = text[3:-3]
+            mark = "bad" if kind == "bad" else "ok" if text.endswith(" finished") else "accent"
+            first, rest, gattr, tattr = g["dot"] + " ", "  ", self.color(mark), self.color("bad") if kind == "bad" else 0
+        elif tag:
+            under = i > 0 and lines[i - 1].startswith("[%s]" % tag)
+            first, rest, gattr = ("     " if under else "  %s  " % g["sub"]), "     ", self.color("dim")
+            tattr = self.color(kind) if kind in ("bad", "warn") else self.color("dim")
+        else:
+            first, rest, gattr, tattr = "  ", "  ", 0, self.color(kind) if kind else 0
+        return [(first if n == 0 else rest, gattr, c, tattr)
+                for n, c in enumerate(self.wrap(text, max(1, self.W - len(rest))))]
+
     def draw_console(self, y0, h):
         with self.lock:
             lines = list(self.lines)
@@ -3485,18 +3743,26 @@ class Tui:
         rows = []
         i = end - 1
         while i >= 0 and len(rows) < h:
-            rows = [(c, self.line_attr(lines[i])) for c in self.wrap(lines[i], self.W)] + rows
+            if self.modern:
+                rows = self.console_rows(lines, i) + rows
+            else:
+                rows = [("", 0, c, self.line_attr(lines[i])) for c in self.wrap(lines[i], self.W)] + rows
             i -= 1
         rows = rows[-h:]
-        for n, (text, attr) in enumerate(rows):
-            self.put(y0 + n, 0, text, attr)
-        if scroll:
+        if self.modern:   # newest line sits just above the prompt
+            y0 += h - len(rows)
+        for n, (gut, gattr, text, attr) in enumerate(rows):
+            self.put(y0 + n, 0, gut, gattr)
+            self.put(y0 + n, len(gut), text, attr)
+        if scroll and not self.modern:   # modern says it on the line above the prompt
             t = " scrolled back %d lines -- PgDn / End / Esc returns to live " % scroll
             self.put(y0, max(0, self.W - len(t)), t, self.color("sel"))
 
     def draw_list(self, name, y0, h, header, rows, attrs=None):
-        """rows: list of strings; keeps the selection visible."""
-        self.put(y0, 0, header, self.color("dim") | curses.A_UNDERLINE)
+        """rows: list of strings; keeps the selection visible. Modern: a pointer and the accent
+        colour mark the selection instead of a reverse bar."""
+        gx = self.gx()
+        self.put(y0, gx, header, self.color("dim") | (0 if self.modern else curses.A_UNDERLINE))
         h -= 1
         sel = min(self.sel[name], max(0, len(rows) - 1))
         top = self.top[name]
@@ -3504,13 +3770,23 @@ class Tui:
             top = sel
         elif sel >= top + h:
             top = sel - h + 1
+        top = max(0, min(top, len(rows) - h))   # room again (a picker closed, a resize): fill it
         self.top[name] = top
         for n, r in enumerate(rows[top:top + h]):
             idx = top + n
             a = self.color("sel") if idx == sel else (attrs[idx] if attrs else 0)
-            self.put(y0 + 1 + n, 0, r.ljust(self.W), a)
+            if self.modern:
+                if idx == sel:
+                    self.put(y0 + 1 + n, 0, self.g["ptr"], a)
+                self.put(y0 + 1 + n, gx, r, a)
+            else:
+                self.put(y0 + 1 + n, 0, r.ljust(self.W), a)
         if len(rows) > h:
             self.put(y0, max(0, self.W - 12), " %d/%d " % (sel + 1, len(rows)), self.color("dim"))
+
+    def gx(self):
+        """Left gutter of the screen body: the modern theme keeps column 0 for its pointer."""
+        return 2 if self.modern else 0
 
     def draw_players(self, y0, h):
         if not self.st:
@@ -3522,7 +3798,8 @@ class Tui:
             rows.append("%-8s %-10s %-24s %s" % (p["id"], team, p["addr"] or "-", p["name"]))
         if not rows:
             self.put(y0 + 1, 2, "Nobody is on (bots are not listed)." if self.players_at else "Asking the server...")
-            self.put(y0, 0, "%-8s %-10s %-24s %s" % ("ID", "TEAM", "ADDRESS", "NAME"))
+            self.put(y0, self.gx(), "%-8s %-10s %-24s %s" % ("ID", "TEAM", "ADDRESS", "NAME"),
+                     self.color("dim") if self.modern else 0)
             return
         self.draw_list("Players", y0, h, "%-8s %-10s %-24s %s" % ("ID", "TEAM", "ADDRESS", "NAME"), rows)
 
@@ -3530,9 +3807,10 @@ class Tui:
         rows = self.filtered_maps()
         cur = self.full_mission((self.st or {}).get("query")).lower()
         start = self.cfg.get("server", "mission").lower() or self.summary.get("mission", "").lower()
-        self.put(y0, 0, "Filter: %s_" % self.map_filter if self.map_filter else
-                 "Type to filter by name or game type.  %d maps for profile %s." % (
-                     len(self.maps or []), self.summary.get("profile", "?")), self.color("info"))
+        self.put(y0, self.gx(), "Filter: %s_" % self.map_filter if self.map_filter else
+                 "Type to filter by name or game type.  %d maps for profile %s.%s" % (
+                     len(self.maps or []), self.summary.get("profile", "?"),
+                     "  * = playing, s = starting map" if self.modern else ""), self.color("info"))
         text = []
         for t, n, d in rows:
             mark = "*" if n.lower() == cur else ("s" if n.lower() == start else " ")
@@ -3554,10 +3832,11 @@ class Tui:
         self.draw_list("Settings", y0, h - 4, "%-26s %s" % ("SETTING", "VALUE   (Enter changes it)"), rows)
         f = TUI_FIELDS[self.sel["Settings"]]
         txt = "%s.%s -- %s" % (f[0], f[1], self.help.get((f[0], f[1]), ""))
-        for n, part in enumerate(textwrap.wrap(txt, self.W - 2)[:3]):
-            self.put(y0 + h - 3 + n, 1, part, self.color("info"))
+        x = 2 if self.modern else 1
+        for n, part in enumerate(textwrap.wrap(txt, self.W - x - 1)[:3]):
+            self.put(y0 + h - 3 + n, x, part, self.color("info"))
         if self.settings_err:
-            self.put(y0 + h - 4, 1, "server.ini: " + self.settings_err.splitlines()[-1], self.color("bad"))
+            self.put(y0 + h - 4, x, "server.ini: " + self.settings_err.splitlines()[-1], self.color("bad"))
 
     def draw_store(self, y0, h):
         if self.store_busy and self.store is None:
@@ -3578,8 +3857,8 @@ class Tui:
             attrs.append(self.color("ok") if r["have"] else (self.color("dim") if p["category"] != "mods" else 0))
         self.draw_list("Store", y0, h - 2, "%-16s %-8s %-14s %9s  %s" % ("ID", "TYPE", "INSTALLED", "DOWNLOAD",
                                                                          "TITLE"), rows, attrs)
-        self.put(y0 + h - 1, 1, "Only 'mods' packs matter on a server; the rest are client-side looks.",
-                 self.color("dim"))
+        self.put(y0 + h - 1, 2 if self.modern else 1,
+                 "Only 'mods' packs matter on a server; the rest are client-side looks.", self.color("dim"))
 
     def help_lines(self):
         return ("Keys",
@@ -3600,7 +3879,7 @@ class Tui:
         lines = self.help_lines()
         top = min(self.sel["Help"], max(0, len(lines) - h))
         for n, l in enumerate(lines[top:top + h]):
-            self.put(y0 + n, 1, l, self.color("info") if l and not l.startswith(" ") else 0)
+            self.put(y0 + n, 2 if self.modern else 1, l, self.color("info") if l and not l.startswith(" ") else 0)
 
     def modal_items(self):
         m = self.modal
@@ -3610,6 +3889,8 @@ class Tui:
         return m["items"]
 
     def draw_modal(self):
+        if self.modern:
+            return self.draw_modal_modern()
         m = self.modal
         items = self.modal_items()
         w = min(self.W - 4, max(40, max([len(i[0]) for i in items] + [len(m["title"])]) + 6))
@@ -3633,6 +3914,31 @@ class Tui:
             self.put(ly + n, x0 + 1, (" " + label).ljust(w - 2)[:w - 2], a)
         self.put(y0 + h - 1, x0 + 2, " Enter picks, Esc cancels ", self.color("box"))
 
+    def draw_modal_modern(self):
+        m, g = self.modal, self.g
+        items = self.modal_items()
+        h, w, x0 = self.modal_h(), self.W, 0
+        y0 = self.H - 1 - h
+        self.box(y0, x0, h, w, self.color("accent"), title=m["title"],
+                 foot="Up/Down %s Enter picks %s Esc cancels" % (g["sep"], g["sep"]), clear=True)
+        ly = y0 + 1
+        if m["filter"] is not None:
+            self.segs(ly, x0 + 3, [("filter ", self.color("dim")), (m["filter"], 0), ("_", self.color("accent"))],
+                      x0 + w - 2)
+            ly += 1
+        vis = max(1, y0 + h - 1 - ly)
+        m["sel"] = min(m["sel"], max(0, len(items) - 1))
+        if m["sel"] < m["top"]:
+            m["top"] = m["sel"]
+        elif m["sel"] >= m["top"] + vis:
+            m["top"] = m["sel"] - vis + 1
+        for n, (label, _) in enumerate(items[m["top"]:m["top"] + vis]):
+            on = m["top"] + n == m["sel"]
+            self.segs(ly + n, x0 + 3, [((g["ptr"] if on else " ") + " ", self.color("sel")),
+                                       (label, self.color("sel") if on else 0)], x0 + w - 2)
+        if not items:
+            self.put(ly, x0 + 5, "nothing matches", self.color("dim"))
+
     def draw(self):
         self.H, self.W = self.scr.getmaxyx()
         self.scr.erase()
@@ -3640,10 +3946,28 @@ class Tui:
             self.put(0, 0, "Terminal too small (need at least 60x12). F10 quits.")
             self.scr.refresh()
             return
-        self.draw_header()
-        y0, h = 3, self.H - 6
+        y0, h = self.layout()
+        if self.modern:
+            self.draw_header_modern()
+        else:
+            self.draw_header()
         getattr(self, "draw_" + TUI_SCREENS[self.screen].lower())(y0, h)
-        # message line
+        cursor = self.draw_prompt() if self.modern else self.draw_bottom_classic()
+        if self.modal:
+            self.draw_modal()
+            cursor = None
+        try:
+            if cursor:
+                curses.curs_set(1)
+                self.scr.move(cursor[0], min(cursor[1], self.W - 1))
+            else:
+                curses.curs_set(0)
+        except curses.error:
+            pass
+        self.scr.refresh()
+
+    def draw_bottom_classic(self):
+        """Message line, input / hint line and the key bar. Returns the cursor."""
         cursor = None
         if self.confirm:
             self.fill(self.H - 3, self.color("warnhead"))
@@ -3679,21 +4003,11 @@ class Tui:
         self.fill(self.H - 1, self.color("key"))
         self.put(self.H - 1, 0, " F7 %s  F8 Restart  F9 Update  F10 Quit  Tab Next screen  F1 Help" %
                  ("Stop" if self.st else "Start"), self.color("key"))
-        if self.modal:
-            self.draw_modal()
-            cursor = None
-        try:
-            if cursor:
-                curses.curs_set(1)
-                self.scr.move(cursor[0], min(cursor[1], self.W - 1))
-            else:
-                curses.curs_set(0)
-        except curses.error:
-            pass
-        self.scr.refresh()
+        return cursor
 
     def init_colors(self):
         self.colors = {}
+        self.modern = self.theme_name() == "modern"
         if not curses.has_colors():
             return
         if not getattr(self, "colors_started", False):
@@ -3711,18 +4025,25 @@ class Tui:
                  "yellow": curses.COLOR_YELLOW, "blue": curses.COLOR_BLUE, "magenta": curses.COLOR_MAGENTA,
                  "cyan": curses.COLOR_CYAN, "white": curses.COLOR_WHITE, "default": self.default_bg}
         flags = {"b": curses.A_BOLD, "d": curses.A_DIM, "r": curses.A_REVERSE}
+        wide = getattr(curses, "COLORS", 8) >= 256
         spec = TUI_THEMES[self.theme_name()][1]
         for n, (role, entry) in enumerate(spec.items(), 1):
             if entry is None:
                 self.colors[role] = 0
                 continue
             fg, bg, attrs = entry
+            if isinstance(fg, tuple):   # (xterm-256 index, 8-colour fallback[, fallback attrs])
+                if wide:
+                    fg = fg[0]
+                else:
+                    attrs += fg[2] if len(fg) > 2 else ""
+                    fg = fg[1]
             a = 0
             for ch in attrs:
                 a |= flags[ch]
             if fg is not None:
                 try:
-                    curses.init_pair(n, names[fg], names[bg])
+                    curses.init_pair(n, fg if isinstance(fg, int) else names[fg], names[bg])
                     a |= curses.color_pair(n)
                 except curses.error:
                     pass
@@ -3739,12 +4060,14 @@ class Tui:
 
     def read_escape(self):
         """curses decodes only the sequences in the terminfo entry for $TERM. PuTTY's default
-        keyboard sends F1-F4 as ESC[11~..ESC[14~ and the Linux console as ESC[[A..ESC[[E; map
-        those, and swallow any other unknown sequence instead of typing it into the console.
-        Returns the key, "\\x1b" for a lone Esc, or None."""
+        keyboard sends F1-F4 as ESC[11~..ESC[14~ and Home / End as ESC[1~ / ESC[4~ (TERM=xterm
+        expects ESC OH / ESC OF, so End never returned the console to live), and the Linux
+        console F1-F5 as ESC[[A..ESC[[E; map those, and swallow any other unknown sequence instead
+        of typing it into the console. Returns the key, "\\x1b" for a lone Esc, or None."""
         esc_keys = {"[11~": curses.KEY_F1, "[12~": curses.KEY_F2, "[13~": curses.KEY_F3, "[14~": curses.KEY_F4,
                     "[[A": curses.KEY_F1, "[[B": curses.KEY_F2, "[[C": curses.KEY_F3, "[[D": curses.KEY_F4,
-                    "[[E": curses.KEY_F5}
+                    "[[E": curses.KEY_F5, "[1~": curses.KEY_HOME, "[4~": curses.KEY_END,
+                    "[7~": curses.KEY_HOME, "[8~": curses.KEY_END}   # [7~ [8~: rxvt
         seq = ""
         self.scr.timeout(40)
         try:
@@ -3770,6 +4093,8 @@ class Tui:
         self.scr = scr
         enc = (locale.getpreferredencoding(False) or "").lower().replace("-", "")
         self.ascii = enc != "utf8"
+        self.g = TUI_GLYPHS["ascii" if self.ascii else "vt" if os.environ.get("TERM", "").startswith("linux")
+                            else "utf8"]
         self.init_colors()
         curses.raw()          # Ctrl-C / Ctrl-Q arrive as keys
         scr.keypad(True)
@@ -3818,9 +4143,13 @@ def cmd_tui(a):
         die("this Python has no curses module (Debian/Ubuntu ship it with python3)")
     inst = find_root(a.dir)
     ensure_config(inst)
+    moved = migrate_tui_theme(inst)
     os.environ.setdefault("ESCDELAY", "25")   # Esc reacts at once instead of after a second
+    tui = Tui(inst)
+    if moved:
+        tui.note("New look. The old blue one: F5 Settings, Colour theme, blue.")
     try:
-        curses.wrapper(Tui(inst).main)
+        curses.wrapper(tui.main)
     except curses.error as e:
         die("could not start the terminal UI (%s) -- is TERM set? e.g. TERM=xterm-256color" % e)
 

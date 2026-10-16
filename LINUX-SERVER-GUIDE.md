@@ -316,20 +316,28 @@ A full-screen control panel in the terminal -- over SSH too, nothing extra to in
 alongside the service from section 7, and several people can have it open at once.
 
 ```
- My Tribes Server   RUNNING  up 2h14m  restarts 0
- Raindance (CTF)  |  3/16 players  |  port 28001  |  v30  |  auto-update on
- F2 Console   F3 Players   F4 Maps   F5 Settings   F6 Store   F1 Help
- ...the live server console...
- >  type a command here
- F7 Stop  F8 Restart  F9 Update  F10 Quit  Tab Next screen  F1 Help
+.---------------------------------------------------------------------------.
+| * My Tribes Server  * running - up 2h14m - 0 restarts - v30               |
+|   Raindance (Capture the Flag) - 3/16 players - port 28001 - mod base     |
+'---------------------------------------------------------------------------'
+  F2 Console   F3 Players   F4 Maps   F5 Settings   F6 Store   F1 Help
+* attached to the server console
+  ...the live server console...
+.---------------------------------------------------------------------------.
+| > type a console command                                                  |
+'---------------------------------------------------------------------------'
+  F7 stop - F8 restart - F9 update - F10 quit - Tab next screen - F1 help
 ```
+
+(The real screen draws rounded outlines and symbols; on a terminal that is not UTF-8 it
+falls back to plain `+-|` characters.)
 
 | Screen | What you do there |
 |---|---|
 | **F2 Console** | The live server console. Type a command, Enter runs it. Up/Down = command history (kept between sessions), PgUp/PgDn scroll back, End or Esc = back to live. |
 | **F3 Players** | Who is on: client id, team, address, name. Enter on a player = **kick** or **ban for 30 minutes**. `m` = message everyone, `r` = refresh. Bots are not listed. |
 | **F4 Maps** | Every map for the current mod, with its game type. Type to filter by part of a name or a type -- or a type's initials (`ctf` finds every Capture the Flag map). Enter = **switch to it now**, make it the **starting map**, or **add it to the rotation**. `*` marks the map being played. |
-| **F5 Settings** | Everything in `server.ini`'s `[server]` section plus auto-update and the restart rules, with the explanation of the selected one underneath. Enter changes it: on/off settings flip, the mod and the map are picked from a list, text is typed in. Saved straight to `server.ini` (your comments are kept); **F8** applies a game setting to a running server, while auto-update and the restart rules apply on their own within a few seconds. The last row, **Colour theme**, switches this screen between blue (the original look, and the default), Tribes green, amber, cyan and mono (no colour) at once; it is saved as `[tui] theme` in `server.ini`. Changing the mod resets the map to that mod's default. |
+| **F5 Settings** | Everything in `server.ini`'s `[server]` section plus auto-update and the restart rules, with the explanation of the selected one underneath. Enter changes it: on/off settings flip, the mod and the map are picked from a list, text is typed in. Saved straight to `server.ini` (your comments are kept); **F8** applies a game setting to a running server, while auto-update and the restart rules apply on their own within a few seconds. The last row, **Colour theme**, switches the look of this screen at once: **modern** (the default: rounded outlines, one accent colour, your terminal's own background) or one of the colour-bar themes -- blue (the original look), Tribes green, amber, cyan and mono (no colour). It is saved as `[tui] theme` in `server.ini`. If the modern theme shows empty boxes instead of symbols, your terminal font lacks them: pick blue, or use a font such as DejaVu Sans Mono or Cascadia Mono. Changing the mod resets the map to that mod's default. |
 | **F6 Store** | The Asset Store: what is installed, what has an update, download sizes. Enter = install or update, `x` = remove (server stopped). After installing a mod it offers to host it. |
 | **F1 Help** | Keys, and the admin command cheat sheet. |
 

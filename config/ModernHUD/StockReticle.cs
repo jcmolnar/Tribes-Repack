@@ -92,6 +92,46 @@ function ModernHUDStock::reticleGuide(%cx, %cy, %left, %top, %right, %bottom, %f
                 "<jc><f:" @ %font @ ":ffffff>ZOOM: " @ %factor @ "x", ModernHUD::alphaOf(255));
 }
 
+// Is the SAVED reticle position only the default centre, not a place the player chose?
+//
+// ModernHUD::storePos saves every non-zero position, dragged or not, and restorePos puts
+// it back as absolute pixels. For the reticle that pinned the aim point: quit once at a
+// 1024x1000 window and "480 468||0.5 0.5 0" (that window's centre) was restored at
+// 1840x1000, 408 px left of centre, then re-saved there as "480 468||0.27027 0.5 0"
+// (Joe 2026-10-13; reproduced with mcp/fixtures/reticle-recentre.cs).
+//
+// fracPos = position / (canvas - handle extent), so the canvas a position was saved on can
+// be recovered from the pair, and a position at the centre of ITS OWN canvas is the
+// default. A value saved before this rule existed cannot be trusted either way (it may
+// already be a pinned default), so each pack's reticle is re-centred once.
+// Read-only: the caller in reticlePlace sets the once-per-pack mark.
+function ModernHUDStock::reticleSavedIsDefault(%q)
+{
+   %saved = $pref::hudPositions[%q];
+   if(ModernHUD::isEmptyLayout(%saved))
+      return false;
+   if($pref::ModernHUD::ReticleRecentred[%q] == "")
+      return true;
+   if(String::Explode(%saved, "||", "reticleSaved") != 2)
+      return false;
+   %scale = $pref::hudScale[%q];
+   if(%scale == "") %scale = 1;
+   %scale = ModernHUD::scaleOf(%scale);
+   for(%i = 0; %i < 2; %i++)
+   {
+      %p = getWord($reticleSaved[0], %i) + 0;
+      %f = getWord($reticleSaved[1], %i) + 0;
+      if(%f <= 0)
+         return false;
+      // The handle is the 64 px box; accept it scaled or unscaled (identical at scale 1).
+      %plain = %p - (%p / %f + 64 - 64 * %scale) / 2;
+      %scaled = %p - %p / %f / 2;
+      if((%plain < -1.5 || %plain > 1.5) && (%scaled < -1.5 || %scaled > 1.5))
+         return false;
+   }
+   return true;
+}
+
 // Read the position in REAL canvas units, never a projected preview rectangle.
 function ModernHUDStock::reticleSource(%realScreen)
 {
@@ -115,7 +155,7 @@ function ModernHUDStock::reticleSource(%realScreen)
       if(%source == "")
          %source = $ModernHUD::HandlePos[%name];
    }
-   else if(!ModernHUD::isEmptyLayout($pref::hudPositions[%q]))
+   else if(!ModernHUD::isEmptyLayout($pref::hudPositions[%q]) && !ModernHUDStock::reticleSavedIsDefault(%q))
    {
       String::Explode($pref::hudPositions[%q], "||", "reticleSource");
       %source = $reticleSource[0];
@@ -176,6 +216,15 @@ function ModernHUDStock::reticlePlace(%screen, %box, %scale)
    %q = ModernHUD::qualify(%name);
    %realScreen = $ModernHUD::Preview ? $ModernHUD::PreviewReal : %screen;
    $ModernHUDStock::ReticleRealScreen = %realScreen;
+   // First real draw of this pack's reticle: its handle is about to be created and the
+   // saved position restored into it. A saved default (see reticleSavedIsDefault) goes to
+   // THIS screen's centre instead, through the same per-part reset the HUD designer uses.
+   if(!$ModernHUD::Preview && !isObject($ModernHUD::Handle[%name]))
+   {
+      if(ModernHUDStock::reticleSavedIsDefault(%q))
+         $ModernHUD::ResetPending[%name] = 1;
+      $pref::ModernHUD::ReticleRecentred[%q] = 1;
+   }
    %source = ModernHUDStock::reticleSource(%realScreen);
    // Keep the source scale across read-only preview frames. A drag gives us a
    // new source position; a reset uses the authored anchor at the current size.
@@ -197,6 +246,10 @@ function ModernHUDStock::reticlePlace(%screen, %box, %scale)
    if(%anchor == "bottom-left" || %anchor == "bottom-center" || %anchor == "bottom-right") %dy = %extra;
    else if(%anchor == "center-left" || %anchor == "center" || %anchor == "center-right") %dy = -%extra / 2;
    %at = ModernHUDStock::place(crosshairHud, %name, "center", %dx, %dy, %box, %box, %screen);
+   // A handle created this frame has not published a position yet; the authored spot is
+   // where it was just put.
+   if(%source == "" && %at == "")
+      %at = %realAt;
    if(%source != "")
    {
       %placed = %at;
