@@ -174,9 +174,12 @@ to a running server within a few seconds, with no restart.
 | `bots_team0`, `bots_team1` | *(blank)* | Bot cap for team 1 / team 2. Blank = full roster. |
 | `mixed_types` | `false` | Allow mixing game types in one rotation. |
 | `voice_chat` | `true` | In-game voice relay (uses port + 2). |
-| `netcode` | `legacy` | `legacy` = every client can join. `modern150` = Modern Tribes 1.50 clients only, and enables the four options below. |
+| `netcode` | `legacy` | `legacy` = every client can join. `modern150` = Modern Tribes 1.50 clients only, and enables the seven options below. |
 | `lag_comp` | `false` | (modern150) Hits are checked against what the shooter saw. |
 | `fire_from_view` | `false` | (modern150) Shots leave from where the shooter's screen shows them. |
+| `click_aim` | `true` | (modern150) Shots leave along the player's aim at the moment they clicked, not at the end of that tick. |
+| `predict_data` | `true` | (modern150) Lets players' games predict chaingun and plasma shots, with chaingun spread matching the server. |
+| `continuous_collision` | `false` | (modern150) Also catches shots that pass through players crossing their path between server ticks. |
 | `require_current_client` | `false` | (modern150) Refuse 1.50 clients older than this server's version. |
 | `cheat_observe` | `true` | Log-only warnings that name a player worth watching. Never kicks anyone. |
 | `rpg_limits` | *(blank)* | (modern150) Raised content limits for RPG mods. Blank = on automatically for modern150 + an RPG mod. |

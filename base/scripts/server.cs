@@ -75,7 +75,7 @@ function Server::onClientDisconnect(%clientId)
    // reload is already bringing the same map back.
    // MCP (mission hold): refreshData() would rotate; Server::nextMission gates it too, but
    // skip the temp-prefs re-exec as well so a held host stays exactly as prepared.
-   if(getNumClients() == 1 && !$EditingMission && !$Server::HoldMission) // this is the last client.
+   if(getNumClients() == 1 && !$EditingMission && !$Server::HoldMission && !$VisualStudio::Active) // this is the last client.
       Server::refreshData();
 }
 
@@ -162,7 +162,7 @@ function createServer(%mission, %dedicated)
       return "False";
    }
 
-   if(!$SinglePlayer)
+   if(!$SinglePlayer && !$VisualStudio::Active)
       $pref::lastMission = %mission;
 
 	//display the "loading" screen
@@ -177,7 +177,8 @@ function createServer(%mission, %dedicated)
       newServer();
       focusServer();
    }
-   if($SinglePlayer)
+   // The visual range never binds IP/IPX or becomes a public server.
+   if($SinglePlayer || $VisualStudio::Active)
       newObject(serverDelegate, FearCSDelegate, true, "LOOPBACK", $Server::Port);
    else
       newObject(serverDelegate, FearCSDelegate, true, "IP", $Server::Port, "IPX", $Server::Port, "LOOPBACK", $Server::Port);
@@ -213,7 +214,7 @@ function createServer(%mission, %dedicated)
    // race (consoleInternal.cpp:695); and BEFORE preloadServerDataBlocks() below, because the
    // payload declares 5 datablocks (SoundBotRepairItem + 4x TreePoint*). Inert at 0.
    // NATIVE-EDITOR: no AI of any kind in an editing session ($EditingMission).
-   if($Server::SpoonBots == 1 && $Server::BotBrain != 1 && !$EditingMission)
+   if($Server::SpoonBots == 1 && $Server::BotBrain != 1 && !$EditingMission && !$VisualStudio::Active)
       exec("spoonbot\\spoonbot_load.cs");
 
    // NATIVE-EDITOR (thunderstorms): weather datablocks + storm loop. Placement
@@ -232,7 +233,9 @@ function createServer(%mission, %dedicated)
    if($Mod::ServerDataBlocks != "")
       exec($Mod::ServerDataBlocks);
 
-   Server::storeData();
+   // A private preview must not write host or last-mission preferences.
+   if(!$VisualStudio::Active)
+      Server::storeData();
 
    // NOTE!! You must have declared all data blocks BEFORE you call
    // preloadServerDataBlocks.
@@ -245,11 +248,11 @@ function createServer(%mission, %dedicated)
    {
       focusClient();
 
-		if ($IRC::DisconnectInSim == "")
+		if (!$VisualStudio::Active && $IRC::DisconnectInSim == "")
 		{
 			$IRC::DisconnectInSim = true;
 		}
-		if ($IRC::DisconnectInSim == true)
+		if (!$VisualStudio::Active && $IRC::DisconnectInSim == true)
 		{
 			ircDisconnect();
 			$IRCConnected = FALSE;
@@ -272,7 +275,7 @@ function Server::nextMission(%replay)
    // votes -- so one gate holds the map against all of them. An explicit
    // Server::loadMission(<name>, true) still changes the map: that is the harness's own
    // switch (bridge-allowlisted, tribes_mission mission:<name>). Unset on shipped configs.
-   if($Server::HoldMission)
+   if($Server::HoldMission || $VisualStudio::Active)
    {
       echo("[HOLD] mission rotation suppressed (staying on ", $missionName, ")");
       return;
@@ -315,7 +318,10 @@ function remoteCGADone(%playerId)
       return;
    %playerId.ghostDoneFlag = "";
 
-   Game::initialMissionDrop(%playerid);
+   if($VisualStudio::Active)
+      VisualStudio::onReady(%playerId);
+   else
+      Game::initialMissionDrop(%playerid);
 
 	if ($cdTrack != "")
 		remoteEval (%playerId, setMusic, $cdTrack, $cdPlayMode);
@@ -441,26 +447,28 @@ function Server::finishMissionLoad()
    // scheduling from boot does not survive a mission change. This point is after the new
    // scheduler exists and after the mission is fully loaded, so it fires correctly on the first
    // mission AND on every change. Inert unless $Apoc::autoRun is set (config\apocalypse.cs).
-   if($Apoc::autoRun == 1)
+   if($Apoc::autoRun == 1 && !$VisualStudio::Active)
       schedule("Apoc::autoStart();", 5);
 
    // NATIVE-PORT (SpoonBot phase 2): same rationale as the Apoc hook above -- this is the only
    // point that survives a mission CHANGE, because Server::loadMission deletes and re-creates
    // ConsoleScheduler (:259/:268) and discards anything scheduled earlier. Phase 1 only DEFINED
    // the payload; this initialises it per mission. MissionStart self-gates on $matchStarted.
-   if($Server::SpoonBots == 1 && $Server::BotBrain != 1 && !$EditingMission)
+   if($Server::SpoonBots == 1 && $Server::BotBrain != 1 && !$EditingMission && !$VisualStudio::Active)
       schedule("SpoonBot::MissionStart();", 5);
 
    // NATIVE-EDITOR (thunderstorms): find placed Storm markers and start their
    // strike loops. Same placement rationale as the SpoonBot phase-2 hook: this
    // spot survives a mission change (ConsoleScheduler is recreated by
    // Server::loadMission, discarding anything scheduled earlier).
-   schedule("Storm::MissionStart();", 6);
+   if(!$VisualStudio::Active)
+      schedule("Storm::MissionStart();", 6);
 
    // CASTER (2026-08-28): restart the follow-carrier poll for anyone still in
    // follow mode -- same placement rationale as the hooks above, this is the
    // only spot that survives the ConsoleScheduler recreation.
-   schedule("Caster::missionStart();", 4);
+   if(!$VisualStudio::Active)
+      schedule("Caster::missionStart();", 4);
 
    return "True";
 }

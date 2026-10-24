@@ -294,6 +294,12 @@ voice_chat = true
 netcode = legacy
 lag_comp = false
 fire_from_view = false
+# Shots leave along the aim at the moment the player clicked (modern150 only)
+click_aim = true
+# Chaingun / plasma prediction for players, with matching spread (modern150 only)
+predict_data = true
+# Swept hit tests: shots hit players crossing their path between ticks (modern150 only)
+continuous_collision = false
 require_current_client = false
 cheat_observe = true
 # Blank = automatic (on for modern150 + an RPG mod)
@@ -552,6 +558,9 @@ def resolve(inst, cfg):
     s.modern = cfg.get("server", "netcode").lower() == "modern150"
     s.lag_comp = cfg.bool("server", "lag_comp", False)
     s.fire_view = cfg.bool("server", "fire_from_view", False)
+    s.click_aim = cfg.bool("server", "click_aim", True)
+    s.predict_data = cfg.bool("server", "predict_data", True)
+    s.cont_collide = cfg.bool("server", "continuous_collision", False)
     s.req_current = cfg.bool("server", "require_current_client", False)
     s.ac_observe = cfg.bool("server", "cheat_observe", True)
     if s.competitive:   # hostgui.cpp applyCompetitive
@@ -657,6 +666,9 @@ def hostgui_cs(s):
     a('$Server::requireCurrentClient = "%s";' % ("1" if s.req_current else "0"))
     a('$Server::lagComp = "%s";' % ("1" if (s.lag_comp and s.modern) else "0"))
     a('$Server::fireFromView = "%s";' % ("1" if (s.fire_view and s.modern) else "0"))
+    a('$Server::clickAim = "%s";' % ("1" if (s.click_aim and s.modern) else "0"))
+    a('$Server::predictData = "%s";' % ("1" if (s.predict_data and s.modern) else "0"))
+    a('$Server::continuousCollision = "%s";' % ("1" if (s.cont_collide and s.modern) else "0"))
     a('$Server::RpgLimits = "%s";' % ("1" if (s.rpg_limits and s.modern) else "0"))
     a('$HostGUI::Competitive = "%s";' % ("true" if s.competitive else "false"))
     a('$Server::ObsZoomMax = "%s";' % ("20" if s.competitive else ""))
@@ -2727,6 +2739,9 @@ TUI_FIELDS = (
     ("server", "netcode", "Netcode", "choice:legacy,modern150"),
     ("server", "lag_comp", "Lag compensation", "bool"),
     ("server", "fire_from_view", "Fire from view", "bool"),
+    ("server", "click_aim", "Shots aim at the click", "bool"),
+    ("server", "predict_data", "Chaingun / plasma prediction", "bool"),
+    ("server", "continuous_collision", "Continuous collision", "bool"),
     ("server", "require_current_client", "Require current client", "bool"),
     ("server", "cheat_observe", "Cheat observation", "bool"),
     ("server", "rpg_limits", "RPG limits", "choice:,true,false"),

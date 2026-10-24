@@ -253,6 +253,11 @@ function Caster::missionStart()
 
 $Caster::maHeight = 8;
 $Caster::momentPoll = 0.5;
+// Echo each moment into the attributed player's chat. OFF by default: the EVENT
+// below is the interface, and the chat line is an unstylable hardcoded string that
+// every player would see on every midair whether or not anyone is casting. Set to 1
+// on a server that wants the stock text and has no HUD pack drawing its own.
+$Caster::momentChat = 0;
 
 function Caster::clientKilled(%victimCl, %killerCl)
 {
@@ -286,8 +291,19 @@ function Caster::moment(%cl, %type, %detail)
       return;
    if(Client::getTransportAddress(%cl) == "")
       return;
+   // THE EVENT IS THE INTERFACE -- keep it unconditional. Any HUD pack can define
+   // remoteCasterMoment(%server, %type, %detail, %mission) and draw its own midair
+   // popup or killfeed row from these: MA, CK, MA-CK, GRAB, CAP, RETURN. The client
+   // handler we ship is already opt-in on its own side ($pref::casterAutoRecord,
+   // nativeDefaults.cs), and a stock client with no handler simply logs one
+   // "Unknown command." console line -- never chat, never a disconnect.
+   // NOTE for anyone promoting this to a documented API: remoteCasterMoment is a
+   // BARE GLOBAL NAME, so a pack defining its own silently REPLACES our auto-record
+   // indexer and the .events.cs sidecar stops being written. Last exec wins.
    remoteEval(%cl, "CasterMoment", %type, %detail, $missionName);
-   Client::sendMessage(%cl, 0, "Moment: " @ %type @ " -- " @ %detail);
+   // The chat line is NOT part of that interface -- see $Caster::momentChat above.
+   if($Caster::momentChat == 1)
+      Client::sendMessage(%cl, 0, "Moment: " @ %type @ " -- " @ %detail);
 }
 
 function Caster::nearestTeamClient(%f, %team)
